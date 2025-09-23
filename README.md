@@ -4,178 +4,89 @@ A modern web-based application for generating Vagrantfiles with an intuitive int
 
 ## Features
 
-- **🚀 Modern Interface**: Responsive, mobile-friendly web interface built with Tailwind CSS
+- **🚀 Modern Interface**: Clean, responsive web interface that works on any device
 - **📦 Multiple VM Support**: Create and manage multiple virtual machines in a single project
-- **🌐 Advanced Networking**: Configure static/dynamic IP assignment and multiple network interfaces
-- **🔧 Plugin Configuration**: Add and configure custom Vagrant plugins per VM or globally
-- **💾 Project Management**: Save, load, and organize project configurations with persistent storage
-- **✅ Real-time Validation**: Immediate feedback on configuration errors and validation
-- **📝 Vagrantfile Generation**: Generate syntactically correct, production-ready Vagrantfiles
-- **🐳 Containerized Development**: Full Docker/Podman support with hot reloading
-- **📱 Responsive Design**: Works seamlessly on desktop, tablet, and mobile devices
-
-## Technology Stack
-
-- **Backend**: Python 3.11 + FastAPI + Pydantic + Uvicorn
-- **Frontend**: HTML5/CSS3/JavaScript ES2022 + Tailwind CSS + Alpine.js
-- **Development**: Vite dev server with hot module replacement
-- **Storage**: JSON-based project persistence with file system storage
-- **Containerization**: Docker/Podman with docker-compose for development
-- **Testing**: Pytest for backend, comprehensive integration testing
+- **🌐 Advanced Networking**: Configure private networks with static or dynamic IP assignment
+- **🔧 Flexible IP Management**: Support for custom IP ranges and automatic IP incrementing for bulk VM creation
+- **⚙️ Configuration Options**: Customizable validation settings for different use cases
+- **💾 Project Management**: Save, load, and organize your VM configurations
+- **✅ Real-time Validation**: Immediate feedback on configuration errors
+- **📝 Production-Ready Output**: Generate syntactically correct, ready-to-use Vagrantfiles
+- **🏷️ VM Organization**: Label and categorize VMs for better project organization
+- **📱 Cross-Platform**: Works on desktop, tablet, and mobile devices
 
 ## Quick Start
-
-### Using Containers (Recommended)
-
-The fastest way to get started is using the containerized development environment:
 
 ```bash
 # Clone the repository
 git clone <repository-url>
 cd Vagrantfile-generator
 
-# Start the development environment
+# Start the application
 make dev-setup
 
-# Access the application
-# Frontend: http://localhost:5173
-# Backend API: http://localhost:8000
-# API Documentation: http://localhost:8000/docs
+# Open your browser
+# Application: http://localhost:5173
 ```
 
-For detailed container setup, see [Container Development Guide](README-CONTAINERS.md).
+## How to Use
 
-### Manual Development Setup
-
-#### Backend Setup
-
-```bash
-# Navigate to backend directory
-cd backend
-
-# Install Python dependencies
-pip install -r requirements.txt
-
-# Run the API server (with auto-reload)
-cd src
-uvicorn main:app --reload --host 0.0.0.0 --port 8000
-```
-
-#### Frontend Setup
-
-```bash
-# Navigate to frontend directory
-cd frontend
-
-# Install Node.js dependencies
-npm install
-
-# Build Tailwind CSS
-npm run tailwind
-
-# Start development server
-npm run dev
-```
-
-The application will be available at:
-- Frontend: http://localhost:5173
-- Backend API: http://localhost:8000
-- API Documentation: http://localhost:8000/docs
-
-## Project Structure
-
-```
-Vagrantfile-generator/
-├── backend/
-│   ├── src/
-│   │   ├── models/          # Pydantic data models
-│   │   ├── services/        # Business logic services
-│   │   ├── api/            # FastAPI route endpoints
-│   │   ├── utils/          # Utility functions and validation
-│   │   └── main.py         # Application entry point
-│   ├── data/               # Project storage directory
-│   ├── tests/
-│   │   ├── contract/       # API contract tests
-│   │   ├── integration/    # End-to-end integration tests
-│   │   └── unit/          # Unit tests
-│   ├── requirements.txt    # Python dependencies
-│   └── Dockerfile         # Backend container configuration
-├── frontend/
-│   ├── src/
-│   │   ├── components/     # Reusable UI components
-│   │   ├── pages/         # Main application views
-│   │   ├── services/      # API communication layer
-│   │   ├── styles/        # Tailwind CSS configuration
-│   │   └── index.html     # Main application entry point
-│   ├── tests/
-│   │   └── unit/          # Frontend component tests
-│   ├── package.json       # Node.js dependencies
-│   ├── vite.config.js     # Vite development server config
-│   ├── tailwind.config.js # Tailwind CSS configuration
-│   └── Dockerfile         # Frontend container configuration
-├── docker-compose.yml     # Container orchestration
-├── Makefile              # Development automation commands
-├── README.md             # This file
-├── README-CONTAINERS.md  # Container development guide
-└── test-containers.sh    # Container testing script
-```
-
-## Usage
-
-1. **Start the application** using containers (`make dev-setup`) or manual setup
-2. **Open your browser** and navigate to http://localhost:5173
+1. **Start the application** using the quick start command above
+2. **Open your browser** and go to http://localhost:5173
 3. **Create a new project** by clicking "Create Your First Project"
-4. **Add virtual machines** and configure their properties:
+4. **Add virtual machines** with custom configurations:
    - Choose VM name and Vagrant box
-   - Set memory and CPU allocations
+   - Set memory and CPU requirements
    - Configure hostname (optional)
-5. **Set up networking** (optional):
+5. **Configure networking** (optional):
    - Add private network interfaces
-   - Configure static or dynamic IP assignment
-   - Set port forwarding rules
-6. **Add provisioners** (optional) for VM setup automation
-7. **Generate Vagrantfile** by clicking the "Generate Vagrantfile" button
-8. **Download and use** the generated Vagrantfile in your project
-9. **Save your project** for future editing and modifications
+   - Set static IP addresses or use DHCP
+   - Enable port forwarding if needed
+6. **Organize with labels** to categorize your VMs
+7. **Generate Vagrantfile** by clicking the generate button
+8. **Download and use** the Vagrantfile in your project directory
 
-### Example Workflow
+## Configuration Options
 
-```bash
-# 1. Start the application
-make dev-setup
+The application includes flexible settings to accommodate different use cases:
 
-# 2. Open browser to http://localhost:5173
-# 3. Create a project called "Web Development Environment"
-# 4. Add VM: "web-server" with "ubuntu/jammy64" box
-# 5. Configure: 2GB RAM, 2 CPUs
-# 6. Add private network: 192.168.33.10
-# 7. Generate and download Vagrantfile
-# 8. Use in your project:
+- **IP Validation**: Choose between strict private IP validation or allow custom ranges
+- **Network Configuration**: Support for both simple and advanced networking setups
+- **Bulk Operations**: Create multiple VMs with automatic IP incrementing
+- **Project Templates**: Save and reuse common VM configurations
 
-cd my-project
-# Place downloaded Vagrantfile here
-vagrant up
-```
+## Networking Features
 
-## API Documentation
+- **Private Networks**: Configure isolated networks between VMs
+- **Static IP Assignment**: Set specific IP addresses for each VM
+- **Dynamic IP (DHCP)**: Let Vagrant assign IPs automatically
+- **Port Forwarding**: Map host ports to guest services
+- **IP Range Validation**: Prevent conflicts and ensure valid configurations
+- **Bulk VM Creation**: Automatically increment IPs when creating multiple VMs
 
-The backend provides a comprehensive REST API documented with OpenAPI/Swagger:
+## Common Use Cases
 
-- **Interactive API Docs**: http://localhost:8000/docs
-- **OpenAPI Specification**: http://localhost:8000/openapi.json
+- **Development Environments**: Create consistent development setups across teams
+- **Testing Infrastructure**: Spin up isolated test environments quickly
+- **Learning Vagrant**: Experiment with Vagrant configurations without manual file editing
+- **Multi-VM Projects**: Set up complex environments with multiple interconnected VMs
+- **Network Testing**: Create VMs with specific network configurations for testing
 
-### Key API Endpoints
+## Requirements
 
-- `GET /api/projects` - List all projects
-- `POST /api/projects` - Create a new project
-- `GET /api/projects/{id}` - Get project details
-- `PUT /api/projects/{id}` - Update project
-- `DELETE /api/projects/{id}` - Delete project
-- `POST /api/projects/{id}/vms` - Add VM to project
-- `PUT /api/projects/{id}/vms/{name}` - Update VM configuration
-- `DELETE /api/projects/{id}/vms/{name}` - Remove VM from project
-- `POST /api/projects/{id}/generate` - Generate Vagrantfile
-- `GET /api/projects/{id}/download` - Download Vagrantfile
+- Docker or Podman installed on your system
+- Modern web browser (Chrome, Firefox, Safari, Edge)
+- Available ports 5173 and 8000 on your machine
+
+## Support & Documentation
+
+- **Container Setup**: See [Container Development Guide](README-CONTAINERS.md) for detailed setup instructions
+- **Issues**: Report bugs and feature requests through the project repository
+- **Contributing**: Fork the repository and submit pull requests for improvements
+
+## License
+
+MIT License - see LICENSE file for details.
 
 ## Testing
 
