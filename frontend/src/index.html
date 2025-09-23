@@ -292,6 +292,7 @@
             async createProject(data) { return this.request('/projects', { method: 'POST', body: data }); }
             async deleteProject(id) { return this.request(`/projects/${id}`, { method: 'DELETE' }); }
             async createVM(projectId, data) { return this.request(`/projects/${projectId}/vms`, { method: 'POST', body: data }); }
+            async updateVM(projectId, vmName, data) { return this.request(`/projects/${projectId}/vms/${vmName}`, { method: 'PUT', body: data }); }
             async deleteVM(projectId, vmName) { return this.request(`/projects/${projectId}/vms/${vmName}`, { method: 'DELETE' }); }
             async generateVagrantfile(projectId) { return this.request(`/projects/${projectId}/generate`, { method: 'POST' }); }
             async getBoxes() { return this.request('/vagrant/boxes'); }
@@ -332,9 +333,11 @@
                 // Modals
                 showCreateProjectModal: false,
                 showCreateVMModal: false,
+                showEditVMModal: false,
                 showVagrantfileModal: false,
                 showDeleteConfirmModal: false,
                 deleteTarget: null,
+                editingVM: null,
                 
                 // Forms
                 newProject: { name: '', description: '' },
@@ -572,6 +575,36 @@
                     }
                 },
 
+                async updateVM() {
+                    if (!this.validateVMForm(this.editingVM)) return;
+                    
+                    this.setLoading(true);
+                    try {
+                        const originalName = this.editingVM.originalName;
+                        
+                        // Create a clean VM object without the originalName property
+                        const vmData = { ...this.editingVM };
+                        delete vmData.originalName;
+                        
+                        const vm = await api.updateVM(this.currentProject.id, originalName, vmData);
+                        
+                        // Update VM in current project
+                        const vmIndex = this.currentProject.vms.findIndex(v => v.name === originalName);
+                        if (vmIndex !== -1) {
+                            this.currentProject.vms[vmIndex] = vm;
+                        }
+                        this.syncProjectInList();
+                        
+                        this.showEditVMModal = false;
+                        this.editingVM = null;
+                        this.setSuccess('VM updated successfully!');
+                    } catch (error) {
+                        this.setError('Failed to update VM: ' + error.message);
+                    } finally {
+                        this.setLoading(false);
+                    }
+                },
+
                 async deleteVM(vmName) {
                     this.setLoading(true);
                     try {
@@ -636,29 +669,30 @@
                     return Object.keys(this.validationErrors).length === 0;
                 },
 
-                validateVMForm() {
+                validateVMForm(vmData = null) {
                     this.validationErrors = {};
+                    const vm = vmData || this.newVM;
                     
-                    if (!this.newVM.name.trim()) {
-                        this.validationErrors.vmName = 'VM name is required';
-                    } else if (!/^[a-zA-Z0-9-_]+$/.test(this.newVM.name)) {
-                        this.validationErrors.vmName = 'VM name can only contain letters, numbers, hyphens, and underscores';
+                    if (!vm.name.trim()) {
+                        this.validationErrors.name = 'VM name is required';
+                    } else if (!/^[a-zA-Z0-9-_]+$/.test(vm.name)) {
+                        this.validationErrors.name = 'VM name can only contain letters, numbers, hyphens, and underscores';
                     }
                     
-                    if (!this.newVM.box) {
-                        this.validationErrors.vmBox = 'Box selection is required';
+                    if (!vm.box) {
+                        this.validationErrors.box = 'Box selection is required';
                     }
                     
-                    if (this.newVM.memory < 512) {
-                        this.validationErrors.vmMemory = 'Memory must be at least 512 MB';
-                    } else if (this.newVM.memory > 16384) {
-                        this.validationErrors.vmMemory = 'Memory cannot exceed 16 GB';
+                    if (vm.memory < 512) {
+                        this.validationErrors.memory = 'Memory must be at least 512 MB';
+                    } else if (vm.memory > 16384) {
+                        this.validationErrors.memory = 'Memory cannot exceed 16 GB';
                     }
                     
-                    if (this.newVM.cpus < 1) {
-                        this.validationErrors.vmCpus = 'Must have at least 1 CPU';
-                    } else if (this.newVM.cpus > 8) {
-                        this.validationErrors.vmCpus = 'Cannot exceed 8 CPUs';
+                    if (vm.cpus < 1) {
+                        this.validationErrors.cpus = 'Must have at least 1 CPU';
+                    } else if (vm.cpus > 8) {
+                        this.validationErrors.cpus = 'Cannot exceed 8 CPUs';
                     }
                     
                     return Object.keys(this.validationErrors).length === 0;
@@ -695,6 +729,12 @@
                     this.validationErrors = {};
                     this.activeFormSection = 'general';
                     this.showCreateVMModal = true;
+                },
+                openEditVMModal(vm) {
+                    this.editingVM = { ...vm, originalName: vm.name };
+                    this.validationErrors = {};
+                    this.activeFormSection = 'general';
+                    this.showEditVMModal = true;
                 },
                 openDeleteConfirmModal(target, type) {
                     this.deleteTarget = { ...target, type };
@@ -1138,12 +1178,20 @@
                                         <p class="text-sm text-gray-500">Virtual Machine</p>
                                     </div>
                                 </div>
-                                <button @click="openDeleteConfirmModal(vm, 'vm')" 
-                                        class="opacity-0 group-hover:opacity-100 transition-opacity text-red-500 hover:text-red-700 p-2 rounded-lg hover:bg-red-50">
-                                    <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                                        <path fill-rule="evenodd" d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9zM4 5a2 2 0 012-2h8a2 2 0 012 2v6a2 2 0 01-2 2H6a2 2 0 01-2-2V5zm3 4a1 1 0 102 0v3a1 1 0 11-2 0V9zm4 0a1 1 0 10-2 0v3a1 1 0 102 0V9z" clip-rule="evenodd"></path>
-                                    </svg>
-                                </button>
+                                <div class="flex space-x-1">
+                                    <button @click="openEditVMModal(vm)" 
+                                            class="opacity-0 group-hover:opacity-100 transition-opacity text-blue-500 hover:text-blue-700 p-2 rounded-lg hover:bg-blue-50">
+                                        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                            <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z"></path>
+                                        </svg>
+                                    </button>
+                                    <button @click="openDeleteConfirmModal(vm, 'vm')" 
+                                            class="opacity-0 group-hover:opacity-100 transition-opacity text-red-500 hover:text-red-700 p-2 rounded-lg hover:bg-red-50">
+                                        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                            <path fill-rule="evenodd" d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9zM4 5a2 2 0 012-2h8a2 2 0 012 2v6a2 2 0 01-2 2H6a2 2 0 01-2-2V5zm3 4a1 1 0 102 0v3a1 1 0 11-2 0V9zm4 0a1 1 0 10-2 0v3a1 1 0 102 0V9z" clip-rule="evenodd"></path>
+                                        </svg>
+                                    </button>
+                                </div>
                             </div>
                             
                             <div class="space-y-3">
@@ -1432,6 +1480,93 @@
                 <div class="flex justify-end space-x-3 pt-6 border-t border-gray-200 mt-8">
                     <button type="button" @click="showCreateVMModal = false" class="btn btn-secondary">Cancel</button>
                     <button type="submit" class="btn btn-success">Add VM</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Edit VM Modal -->
+    <div x-show="showEditVMModal" class="modal-overlay" @click.self="showEditVMModal = false">
+        <div class="modal-content max-w-4xl">
+            <div class="flex items-center justify-between p-6 border-b border-gray-200">
+                <h3 class="text-lg font-semibold text-gray-900">Edit Virtual Machine</h3>
+                <button @click="showEditVMModal = false" class="text-gray-400 hover:text-gray-600">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                </button>
+            </div>
+            <form @submit.prevent="updateVM()" class="p-6">
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                    <!-- General Settings -->
+                    <div class="space-y-6">
+                        <h4 class="text-lg font-medium text-gray-900 border-b border-gray-200 pb-2">General Settings</h4>
+                        
+                        <div>
+                            <label class="form-label">VM Name <span class="text-red-500">*</span></label>
+                            <input type="text" x-model="editingVM.name" required
+                                   class="form-input" 
+                                   :class="{ 'border-red-300': validationErrors.name }"
+                                   placeholder="e.g., web-server">
+                            <p x-show="validationErrors.name" class="validation-error" x-text="validationErrors.name"></p>
+                        </div>
+                        
+                        <div>
+                            <label class="form-label">Hostname</label>
+                            <input type="text" x-model="editingVM.hostname"
+                                   class="form-input" 
+                                   placeholder="Optional hostname">
+                        </div>
+                        
+                        <div>
+                            <label class="form-label">Box <span class="text-red-500">*</span></label>
+                            <select x-model="editingVM.box" required class="form-input"
+                                    :class="{ 'border-red-300': validationErrors.box }">
+                                <template x-for="box in availableBoxes" :key="box.name">
+                                    <option :value="box.name" x-text="`${box.name} (${box.version || 'latest'})`"></option>
+                                </template>
+                            </select>
+                            <p x-show="validationErrors.box" class="validation-error" x-text="validationErrors.box"></p>
+                        </div>
+                        
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="form-label">Memory (MB) <span class="text-red-500">*</span></label>
+                                <input type="number" x-model="editingVM.memory" min="512" step="256" required
+                                       class="form-input" placeholder="1024"
+                                       :class="{ 'border-red-300': validationErrors.memory }">
+                                <p x-show="validationErrors.memory" class="validation-error" x-text="validationErrors.memory"></p>
+                            </div>
+                            <div>
+                                <label class="form-label">CPUs <span class="text-red-500">*</span></label>
+                                <input type="number" x-model="editingVM.cpus" min="1" max="16" required
+                                       class="form-input" placeholder="1"
+                                       :class="{ 'border-red-300': validationErrors.cpus }">
+                                <p x-show="validationErrors.cpus" class="validation-error" x-text="validationErrors.cpus"></p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Advanced Settings -->
+                    <div class="space-y-6">
+                        <h4 class="text-lg font-medium text-gray-900 border-b border-gray-200 pb-2">Advanced Settings</h4>
+                        
+                        <!-- Placeholder for future advanced settings -->
+                        <div class="text-sm text-gray-500 bg-gray-50 p-4 rounded-lg">
+                            <p class="font-medium mb-2">Coming Soon:</p>
+                            <ul class="space-y-1">
+                                <li>• Network configuration</li>
+                                <li>• Port forwarding</li>
+                                <li>• Synced folders</li>
+                                <li>• Provisioning scripts</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex justify-end space-x-3 pt-6 border-t border-gray-200 mt-8">
+                    <button type="button" @click="showEditVMModal = false" class="btn btn-secondary">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Update VM</button>
                 </div>
             </form>
         </div>
