@@ -457,6 +457,23 @@
                                     <span class="text-sm font-medium text-gray-600">Hostname:</span>
                                     <span class="text-sm text-gray-900 font-semibold" x-text="vm.hostname"></span>
                                 </div>
+                                <div x-show="vm.network_interfaces && vm.network_interfaces.length > 0" class="border-t border-gray-200 pt-3 mt-3">
+                                    <div class="flex items-center justify-between mb-2">
+                                        <span class="text-sm font-medium text-gray-600">Network Interfaces:</span>
+                                        <span class="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full" x-text="vm.network_interfaces.length"></span>
+                                    </div>
+                                    <div class="space-y-1 max-h-20 overflow-y-auto">
+                                        <template x-for="interface in vm.network_interfaces.slice(0, 3)" :key="interface.id">
+                                            <div class="text-xs text-gray-600 bg-gray-50 px-2 py-1 rounded">
+                                                <span class="font-medium" x-text="getNetworkTypeDisplay(interface.type)"></span>: 
+                                                <span x-text="getNetworkConfigDisplay(interface)"></span>
+                                            </div>
+                                        </template>
+                                        <div x-show="vm.network_interfaces.length > 3" class="text-xs text-gray-500 italic">
+                                            +<span x-text="vm.network_interfaces.length - 3"></span> more...
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </template>
@@ -824,6 +841,119 @@
                                        placeholder="2">
                             </div>
                         </div>
+                        
+                        <!-- Network Configuration -->
+                        <div>
+                            <div class="flex items-center justify-between mb-4">
+                                <label class="block text-sm font-medium text-gray-700">Network Interfaces</label>
+                                <button type="button" @click="addNetworkInterface()" 
+                                        class="text-sm bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600 transition-colors">
+                                    <svg class="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                                    </svg>
+                                    Add Interface
+                                </button>
+                            </div>
+                            
+                            <div x-show="newVM.network_interfaces && newVM.network_interfaces.length > 0" class="space-y-3">
+                                <template x-for="(interface, index) in newVM.network_interfaces" :key="index">
+                                    <div class="border border-gray-200 rounded-lg p-4 bg-gray-50">
+                                        <div class="flex items-center justify-between mb-3">
+                                            <span class="text-sm font-medium text-gray-700" 
+                                                  x-text="`Interface ${index + 1}: ${getNetworkTypeDisplay(interface.type)}`"></span>
+                                            <button type="button" @click="removeNetworkInterface(index)" 
+                                                    class="text-red-500 hover:text-red-700">
+                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1-1H8a1 1 0 00-1 1v3M4 7h16"></path>
+                                                </svg>
+                                            </button>
+                                        </div>
+                                        
+                                        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                            <div>
+                                                <label class="block text-xs font-medium text-gray-600 mb-1">Type</label>
+                                                <select x-model="interface.type" class="w-full text-sm px-2 py-1 border border-gray-300 rounded">
+                                                    <option value="private_network">Private Network</option>
+                                                    <option value="public_network">Public Network</option>
+                                                    <option value="forwarded_port">Port Forwarding</option>
+                                                </select>
+                                            </div>
+                                            
+                                            <!-- Private Network Options -->
+                                            <div x-show="interface.type === 'private_network'">
+                                                <label class="block text-xs font-medium text-gray-600 mb-1">IP Assignment</label>
+                                                <select x-model="interface.ip_assignment" class="w-full text-sm px-2 py-1 border border-gray-300 rounded">
+                                                    <option value="dhcp">DHCP</option>
+                                                    <option value="static">Static IP</option>
+                                                </select>
+                                            </div>
+                                            
+                                            <!-- Static IP Address -->
+                                            <div x-show="interface.type === 'private_network' && interface.ip_assignment === 'static'" class="md:col-span-2">
+                                                <div class="grid grid-cols-2 gap-3">
+                                                    <div>
+                                                        <label class="block text-xs font-medium text-gray-600 mb-1">IP Address</label>
+                                                        <input type="text" x-model="interface.ip_address" 
+                                                               placeholder="192.168.33.10"
+                                                               class="w-full text-sm px-2 py-1 border border-gray-300 rounded">
+                                                    </div>
+                                                    <div>
+                                                        <label class="block text-xs font-medium text-gray-600 mb-1">Netmask</label>
+                                                        <input type="text" x-model="interface.netmask" 
+                                                               placeholder="255.255.255.0"
+                                                               class="w-full text-sm px-2 py-1 border border-gray-300 rounded">
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            
+                                            <!-- Public Network Options -->
+                                            <div x-show="interface.type === 'public_network'" class="md:col-span-2">
+                                                <label class="block text-xs font-medium text-gray-600 mb-1">Bridge Interface (optional)</label>
+                                                <input type="text" x-model="interface.bridge" 
+                                                       placeholder="eth0, wlan0, etc."
+                                                       class="w-full text-sm px-2 py-1 border border-gray-300 rounded">
+                                                <p class="text-xs text-gray-500 mt-1">Leave empty for auto-selection</p>
+                                            </div>
+                                            
+                                            <!-- Port Forwarding Options -->
+                                            <div x-show="interface.type === 'forwarded_port'" class="md:col-span-2">
+                                                <div class="grid grid-cols-3 gap-3">
+                                                    <div>
+                                                        <label class="block text-xs font-medium text-gray-600 mb-1">Host Port</label>
+                                                        <input type="number" x-model.number="interface.host_port" 
+                                                               min="1" max="65535" placeholder="8080"
+                                                               class="w-full text-sm px-2 py-1 border border-gray-300 rounded">
+                                                    </div>
+                                                    <div>
+                                                        <label class="block text-xs font-medium text-gray-600 mb-1">Guest Port</label>
+                                                        <input type="number" x-model.number="interface.guest_port" 
+                                                               min="1" max="65535" placeholder="80"
+                                                               class="w-full text-sm px-2 py-1 border border-gray-300 rounded">
+                                                    </div>
+                                                    <div>
+                                                        <label class="block text-xs font-medium text-gray-600 mb-1">Protocol</label>
+                                                        <select x-model="interface.protocol" class="w-full text-sm px-2 py-1 border border-gray-300 rounded">
+                                                            <option value="tcp">TCP</option>
+                                                            <option value="udp">UDP</option>
+                                                        </select>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="mt-2 text-xs text-gray-600">
+                                            <span class="font-medium">Config:</span> 
+                                            <span x-text="getNetworkConfigDisplay(interface)"></span>
+                                        </div>
+                                    </div>
+                                </template>
+                            </div>
+                            
+                            <div x-show="!newVM.network_interfaces || newVM.network_interfaces.length === 0" 
+                                 class="text-sm text-gray-500 italic bg-gray-50 p-4 rounded-lg text-center">
+                                No network interfaces configured. Click "Add Interface" to add one.
+                            </div>
+                        </div>
                     </div>
                 </div>
 
@@ -948,15 +1078,117 @@
                             <p class="text-xs text-gray-500 mt-1">Add labels to organize VMs (project-specific)</p>
                         </div>
                         
-                        <!-- Placeholder for future advanced settings -->
-                        <div class="text-sm text-gray-500 bg-gray-50 p-4 rounded-lg">
-                            <p class="font-medium mb-2">Coming Soon:</p>
-                            <ul class="space-y-1">
-                                <li>• Network configuration</li>
-                                <li>• Port forwarding</li>
-                                <li>• Synced folders</li>
-                                <li>• Provisioning scripts</li>
-                            </ul>
+                        <!-- Network Configuration -->
+                        <div>
+                            <div class="flex items-center justify-between mb-4">
+                                <label class="block text-sm font-medium text-gray-700">Network Interfaces</label>
+                                <button type="button" @click="addNetworkInterface(editingVM)" 
+                                        class="text-sm bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600 transition-colors">
+                                    <svg class="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                                    </svg>
+                                    Add Interface
+                                </button>
+                            </div>
+                            
+                            <div x-show="editingVM.network_interfaces && editingVM.network_interfaces.length > 0" class="space-y-3">
+                                <template x-for="(interface, index) in editingVM.network_interfaces" :key="index">
+                                    <div class="border border-gray-200 rounded-lg p-4 bg-gray-50">
+                                        <div class="flex items-center justify-between mb-3">
+                                            <span class="text-sm font-medium text-gray-700" 
+                                                  x-text="`Interface ${index + 1}: ${getNetworkTypeDisplay(interface.type)}`"></span>
+                                            <button type="button" @click="removeNetworkInterface(index, editingVM)" 
+                                                    class="text-red-500 hover:text-red-700">
+                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1-1H8a1 1 0 00-1 1v3M4 7h16"></path>
+                                                </svg>
+                                            </button>
+                                        </div>
+                                        
+                                        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                            <div>
+                                                <label class="block text-xs font-medium text-gray-600 mb-1">Type</label>
+                                                <select x-model="interface.type" class="w-full text-sm px-2 py-1 border border-gray-300 rounded">
+                                                    <option value="private_network">Private Network</option>
+                                                    <option value="public_network">Public Network</option>
+                                                    <option value="forwarded_port">Port Forwarding</option>
+                                                </select>
+                                            </div>
+                                            
+                                            <!-- Private Network Options -->
+                                            <div x-show="interface.type === 'private_network'">
+                                                <label class="block text-xs font-medium text-gray-600 mb-1">IP Assignment</label>
+                                                <select x-model="interface.ip_assignment" class="w-full text-sm px-2 py-1 border border-gray-300 rounded">
+                                                    <option value="dhcp">DHCP</option>
+                                                    <option value="static">Static IP</option>
+                                                </select>
+                                            </div>
+                                            
+                                            <!-- Static IP Address -->
+                                            <div x-show="interface.type === 'private_network' && interface.ip_assignment === 'static'" class="md:col-span-2">
+                                                <div class="grid grid-cols-2 gap-3">
+                                                    <div>
+                                                        <label class="block text-xs font-medium text-gray-600 mb-1">IP Address</label>
+                                                        <input type="text" x-model="interface.ip_address" 
+                                                               placeholder="192.168.33.10"
+                                                               class="w-full text-sm px-2 py-1 border border-gray-300 rounded">
+                                                    </div>
+                                                    <div>
+                                                        <label class="block text-xs font-medium text-gray-600 mb-1">Netmask</label>
+                                                        <input type="text" x-model="interface.netmask" 
+                                                               placeholder="255.255.255.0"
+                                                               class="w-full text-sm px-2 py-1 border border-gray-300 rounded">
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            
+                                            <!-- Public Network Options -->
+                                            <div x-show="interface.type === 'public_network'" class="md:col-span-2">
+                                                <label class="block text-xs font-medium text-gray-600 mb-1">Bridge Interface (optional)</label>
+                                                <input type="text" x-model="interface.bridge" 
+                                                       placeholder="eth0, wlan0, etc."
+                                                       class="w-full text-sm px-2 py-1 border border-gray-300 rounded">
+                                                <p class="text-xs text-gray-500 mt-1">Leave empty for auto-selection</p>
+                                            </div>
+                                            
+                                            <!-- Port Forwarding Options -->
+                                            <div x-show="interface.type === 'forwarded_port'" class="md:col-span-2">
+                                                <div class="grid grid-cols-3 gap-3">
+                                                    <div>
+                                                        <label class="block text-xs font-medium text-gray-600 mb-1">Host Port</label>
+                                                        <input type="number" x-model.number="interface.host_port" 
+                                                               min="1" max="65535" placeholder="8080"
+                                                               class="w-full text-sm px-2 py-1 border border-gray-300 rounded">
+                                                    </div>
+                                                    <div>
+                                                        <label class="block text-xs font-medium text-gray-600 mb-1">Guest Port</label>
+                                                        <input type="number" x-model.number="interface.guest_port" 
+                                                               min="1" max="65535" placeholder="80"
+                                                               class="w-full text-sm px-2 py-1 border border-gray-300 rounded">
+                                                    </div>
+                                                    <div>
+                                                        <label class="block text-xs font-medium text-gray-600 mb-1">Protocol</label>
+                                                        <select x-model="interface.protocol" class="w-full text-sm px-2 py-1 border border-gray-300 rounded">
+                                                            <option value="tcp">TCP</option>
+                                                            <option value="udp">UDP</option>
+                                                        </select>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="mt-2 text-xs text-gray-600">
+                                            <span class="font-medium">Config:</span> 
+                                            <span x-text="getNetworkConfigDisplay(interface)"></span>
+                                        </div>
+                                    </div>
+                                </template>
+                            </div>
+                            
+                            <div x-show="!editingVM.network_interfaces || editingVM.network_interfaces.length === 0" 
+                                 class="text-sm text-gray-500 italic bg-gray-50 p-4 rounded-lg text-center">
+                                No network interfaces configured. Click "Add Interface" to add one.
+                            </div>
                         </div>
                     </div>
                 </div>

@@ -66,6 +66,25 @@ class VagrantAPI {
     async updateBox(id, boxData) { return this.request(`/boxes/${id}`, { method: 'PUT', body: boxData }); }
     async deleteBox(id) { return this.request(`/boxes/${id}`, { method: 'DELETE' }); }
 
+    // Network interface management methods
+    async addNetworkInterface(projectId, vmName, interfaceData) { 
+        return this.request(`/projects/${projectId}/vms/${vmName}/network-interfaces`, { 
+            method: 'POST', 
+            body: interfaceData 
+        }); 
+    }
+    async updateNetworkInterface(projectId, vmName, interfaceId, interfaceData) { 
+        return this.request(`/projects/${projectId}/vms/${vmName}/network-interfaces/${interfaceId}`, { 
+            method: 'PUT', 
+            body: interfaceData 
+        }); 
+    }
+    async deleteNetworkInterface(projectId, vmName, interfaceId) { 
+        return this.request(`/projects/${projectId}/vms/${vmName}/network-interfaces/${interfaceId}`, { 
+            method: 'DELETE' 
+        }); 
+    }
+
     async downloadVagrantfile(projectId) {
         const response = await fetch(`${this.baseURL}/projects/${projectId}/download`);
         const blob = await response.blob();

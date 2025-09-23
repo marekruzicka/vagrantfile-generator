@@ -88,7 +88,22 @@ class VirtualMachineBase(BaseModel):
 
 class VirtualMachineCreate(VirtualMachineBase):
     """Schema for creating a new VM."""
-    pass
+    network_interfaces: List['NetworkInterface'] = Field(
+        default_factory=list,
+        description="Network interface configurations"
+    )
+    synced_folders: List['SyncedFolder'] = Field(
+        default_factory=list,
+        description="Host/guest folder mappings"
+    )
+    provisioners: List['Provisioner'] = Field(
+        default_factory=list,
+        description="Setup scripts and configurations"
+    )
+    plugins: List['PluginConfiguration'] = Field(
+        default_factory=list,
+        description="VM-specific plugin configurations"
+    )
 
 
 class VirtualMachine(VirtualMachineBase):

@@ -30,7 +30,8 @@ function vagrantApp() {
             labels: [],
             forwarded_ports: [],
             synced_folders: [],
-            private_networks: []
+            private_networks: [],
+            network_interfaces: []
         },
         
         vagrantfileContent: '',
@@ -66,6 +67,13 @@ function vagrantApp() {
         currentLabelInput: '', // Current label being typed for new VMs
         currentEditLabelInput: '', // Current label being typed for edit VM
         currentBulkLabelInput: '', // Current label being typed for bulk edit
+        
+        // Network Interface Management
+        showNetworkModal: false,
+        currentNetworkInterface: null,
+        editingNetworkInterface: null,
+        isEditingNetworkInterface: false,
+        
         showBulkEditModal: false,
         showBulkDeleteModal: false,
         showLabelModal: false,
@@ -313,6 +321,30 @@ function vagrantApp() {
                 for (let i = 1; i <= count; i++) {
                     const vmData = { ...this.newVM };
                     
+                    // Clean up network interfaces data
+                    if (vmData.network_interfaces) {
+                        vmData.network_interfaces = vmData.network_interfaces.map(interface => {
+                            const cleanInterface = { ...interface };
+                            
+                            // Remove empty string values that should be null
+                            Object.keys(cleanInterface).forEach(key => {
+                                if (cleanInterface[key] === '') {
+                                    cleanInterface[key] = null;
+                                }
+                            });
+                            
+                            // Convert port numbers to integers
+                            if (cleanInterface.host_port !== null) {
+                                cleanInterface.host_port = parseInt(cleanInterface.host_port) || null;
+                            }
+                            if (cleanInterface.guest_port !== null) {
+                                cleanInterface.guest_port = parseInt(cleanInterface.guest_port) || null;
+                            }
+                            
+                            return cleanInterface;
+                        });
+                    }
+                    
                     // Ensure numeric values
                     vmData.memory = parseInt(vmData.memory) || 1024;
                     vmData.cpus = parseInt(vmData.cpus) || 1;
@@ -346,7 +378,24 @@ function vagrantApp() {
                     : `${count} VMs created successfully!`;
                 this.setSuccess(successMessage);
             } catch (error) {
-                this.setError('Failed to create VM: ' + error.message);
+                console.error('CreateVM Error:', error);
+                let errorMessage = 'Failed to create VM: ';
+                
+                if (error && typeof error === 'object') {
+                    if (error.message) {
+                        errorMessage += error.message;
+                    } else {
+                        try {
+                            errorMessage += JSON.stringify(error);
+                        } catch (stringifyError) {
+                            errorMessage += 'Unknown error occurred';
+                        }
+                    }
+                } else {
+                    errorMessage += String(error);
+                }
+                
+                this.setError(errorMessage);
             } finally {
                 this.setLoading(false);
             }
@@ -361,6 +410,30 @@ function vagrantApp() {
                 
                 // Create a clean VM object without the originalName property
                 const vmData = { ...this.editingVM };
+                
+                // Clean up network interfaces data
+                if (vmData.network_interfaces) {
+                    vmData.network_interfaces = vmData.network_interfaces.map(interface => {
+                        const cleanInterface = { ...interface };
+                        
+                        // Remove empty string values that should be null
+                        Object.keys(cleanInterface).forEach(key => {
+                            if (cleanInterface[key] === '') {
+                                cleanInterface[key] = null;
+                            }
+                        });
+                        
+                        // Convert port numbers to integers
+                        if (cleanInterface.host_port !== null) {
+                            cleanInterface.host_port = parseInt(cleanInterface.host_port) || null;
+                        }
+                        if (cleanInterface.guest_port !== null) {
+                            cleanInterface.guest_port = parseInt(cleanInterface.guest_port) || null;
+                        }
+                        
+                        return cleanInterface;
+                    });
+                }
                 
                 // Ensure numeric values
                 vmData.memory = parseInt(vmData.memory) || 1024;
@@ -385,7 +458,25 @@ function vagrantApp() {
                 this.editingVM = null;
                 this.setSuccess('VM updated successfully!');
             } catch (error) {
-                this.setError('Failed to update VM: ' + error.message);
+                console.error('UpdateVM Error:', error);
+                let errorMessage = 'Failed to update VM: ';
+                
+                if (error && typeof error === 'object') {
+                    if (error.message) {
+                        errorMessage += error.message;
+                    } else {
+                        // If error is an object, try to stringify it properly
+                        try {
+                            errorMessage += JSON.stringify(error);
+                        } catch (stringifyError) {
+                            errorMessage += 'Unknown error occurred';
+                        }
+                    }
+                } else {
+                    errorMessage += String(error);
+                }
+                
+                this.setError(errorMessage);
             } finally {
                 this.setLoading(false);
             }
@@ -509,6 +600,16 @@ function vagrantApp() {
         removeBulkLabel(index) { VagrantVMManager.removeBulkLabel(this, index); },
         toggleBulkLabel(label) { VagrantVMManager.toggleBulkLabel(this, label); },
         updateProjectLabels() { VagrantVMManager.updateProjectLabels(this); },
+
+        // Network Interface Management
+        addNetworkInterface(vmData = null) { return VagrantUIHelpers.addNetworkInterface(this, vmData); },
+        removeNetworkInterface(index, vmData = null) { VagrantUIHelpers.removeNetworkInterface(this, index, vmData); },
+        async removeNetworkInterfaceFromVM(vmName, interfaceId) { 
+            return VagrantUIHelpers.removeNetworkInterfaceFromVM(this, vmName, interfaceId); 
+        },
+        validateNetworkInterface(interface) { return VagrantUIHelpers.validateNetworkInterface(interface); },
+        getNetworkTypeDisplay(type) { return VagrantUIHelpers.getNetworkTypeDisplay(type); },
+        getNetworkConfigDisplay(interface) { return VagrantUIHelpers.getNetworkConfigDisplay(interface); },
 
         // UI helpers
         setLoading(loading) { VagrantUIHelpers.setLoading(this, loading); },

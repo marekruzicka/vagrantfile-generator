@@ -203,7 +203,8 @@ class NetworkInterface(NetworkInterfaceBase):
     def get_vagrant_config(self) -> str:
         """Generate Vagrant configuration string for this interface."""
         if self.type == NetworkType.FORWARDED_PORT:
-            return f'config.vm.network "forwarded_port", guest: {self.guest_port}, host: {self.host_port}, protocol: "{self.protocol}"'
+            protocol_str = self.protocol.value if hasattr(self.protocol, 'value') else str(self.protocol).lower()
+            return f'config.vm.network "forwarded_port", guest: {self.guest_port}, host: {self.host_port}, protocol: "{protocol_str}"'
         
         elif self.type == NetworkType.PRIVATE_NETWORK:
             if self.ip_assignment == IPAssignment.STATIC:

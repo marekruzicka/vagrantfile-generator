@@ -71,6 +71,109 @@ const VagrantUIHelpers = {
         app.newVM.private_networks.splice(index, 1);
     },
 
+    // Network Interface Management
+    addNetworkInterface(app, vmData = null) {
+        const vm = vmData || app.newVM;
+        const newInterface = {
+            id: this.generateId(),
+            type: 'private_network',
+            ip_assignment: 'dhcp',
+            ip_address: '',
+            netmask: '255.255.255.0',
+            bridge: '',
+            host_port: '',
+            guest_port: '',
+            protocol: 'tcp'
+        };
+        
+        if (!vm.network_interfaces) {
+            vm.network_interfaces = [];
+        }
+        vm.network_interfaces.push(newInterface);
+        return newInterface;
+    },
+    
+    removeNetworkInterface(app, index, vmData = null) {
+        const vm = vmData || app.newVM;
+        if (vm.network_interfaces && vm.network_interfaces[index]) {
+            vm.network_interfaces.splice(index, 1);
+        }
+    },
+    
+    async removeNetworkInterfaceFromVM(app, vmName, interfaceId) {
+        if (!app.currentProject) return;
+        
+        try {
+            await api.deleteNetworkInterface(app.currentProject.id, vmName, interfaceId);
+            
+            // Update local data
+            const vm = app.currentProject.vms.find(v => v.name === vmName);
+            if (vm && vm.network_interfaces) {
+                vm.network_interfaces = vm.network_interfaces.filter(ni => ni.id !== interfaceId);
+            }
+            
+            app.setSuccess('Network interface removed successfully');
+        } catch (error) {
+            app.setError(`Failed to remove network interface: ${error.message}`);
+        }
+    },
+
+    validateNetworkInterface(interface) {
+        const errors = {};
+        
+        if (interface.type === 'forwarded_port') {
+            if (!interface.host_port || interface.host_port < 1 || interface.host_port > 65535) {
+                errors.host_port = 'Host port must be between 1 and 65535';
+            }
+            if (!interface.guest_port || interface.guest_port < 1 || interface.guest_port > 65535) {
+                errors.guest_port = 'Guest port must be between 1 and 65535';
+            }
+        } else if (interface.type === 'private_network' && interface.ip_assignment === 'static') {
+            if (!interface.ip_address) {
+                errors.ip_address = 'IP address is required for static assignment';
+            } else if (!this.isValidIP(interface.ip_address)) {
+                errors.ip_address = 'Invalid IP address format';
+            }
+        } else if (interface.type === 'public_network' && interface.bridge && !interface.bridge.trim()) {
+            errors.bridge = 'Bridge name cannot be empty if specified';
+        }
+        
+        return errors;
+    },
+
+    isValidIP(ip) {
+        const ipPattern = /^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/;
+        return ipPattern.test(ip);
+    },
+
+    generateId() {
+        return 'ni_' + Math.random().toString(36).substr(2, 9);
+    },
+
+    getNetworkTypeDisplay(type) {
+        const types = {
+            'private_network': 'Private Network',
+            'public_network': 'Public Network',
+            'forwarded_port': 'Port Forwarding'
+        };
+        return types[type] || type;
+    },
+
+    getNetworkConfigDisplay(interface) {
+        if (interface.type === 'forwarded_port') {
+            return `${interface.host_port} → ${interface.guest_port} (${interface.protocol.toUpperCase()})`;
+        } else if (interface.type === 'private_network') {
+            if (interface.ip_assignment === 'static' && interface.ip_address) {
+                return `Static: ${interface.ip_address}`;
+            } else {
+                return 'DHCP';
+            }
+        } else if (interface.type === 'public_network') {
+            return interface.bridge ? `Bridge: ${interface.bridge}` : 'Auto-select';
+        }
+        return 'Unknown';
+    },
+
     // Modals
     openCreateProjectModal(app) {
         app.newProject = { name: '', description: '' };
@@ -89,7 +192,8 @@ const VagrantUIHelpers = {
             labels: [],
             forwarded_ports: [],
             synced_folders: [],
-            private_networks: []
+            private_networks: [],
+            network_interfaces: []
         };
         app.validationErrors = {};
         app.activeFormSection = 'general';
@@ -101,6 +205,10 @@ const VagrantUIHelpers = {
         // Ensure labels is always an array
         if (!app.editingVM.labels || !Array.isArray(app.editingVM.labels)) {
             app.editingVM.labels = [];
+        }
+        // Ensure network_interfaces is always an array
+        if (!app.editingVM.network_interfaces || !Array.isArray(app.editingVM.network_interfaces)) {
+            app.editingVM.network_interfaces = [];
         }
         app.validationErrors = {};
         app.activeFormSection = 'general';
@@ -192,7 +300,8 @@ const VagrantUIHelpers = {
             labels: [],
             forwarded_ports: [],
             synced_folders: [],
-            private_networks: []
+            private_networks: [],
+            network_interfaces: []
         };
     },
 
