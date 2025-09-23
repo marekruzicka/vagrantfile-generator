@@ -463,7 +463,18 @@ function vagrantApp() {
                 
                 if (error && typeof error === 'object') {
                     if (error.message) {
-                        errorMessage += error.message;
+                        // Try to parse validation errors from the message
+                        try {
+                            const parsed = JSON.parse(error.message);
+                            if (parsed.detail && Array.isArray(parsed.detail)) {
+                                const validationErrors = parsed.detail.map(err => err.msg).join(', ');
+                                errorMessage += validationErrors;
+                            } else {
+                                errorMessage += error.message;
+                            }
+                        } catch (parseError) {
+                            errorMessage += error.message;
+                        }
                     } else {
                         // If error is an object, try to stringify it properly
                         try {

@@ -91,6 +91,11 @@ class NetworkInterfaceBase(BaseModel):
                 raise ValueError("Multicast addresses not allowed")
             if ip.is_reserved:
                 raise ValueError("Reserved IP addresses not allowed")
+            
+            # Check for .1 addresses (typically network gateway)
+            if str(ip).endswith('.1'):
+                raise ValueError("IP addresses ending with .1 are not allowed (typically reserved for network gateway)")
+                
         except ipaddress.AddressValueError:
             raise ValueError(f"Invalid IPv4 address: {v}")
         

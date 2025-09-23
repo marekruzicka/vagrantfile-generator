@@ -39,7 +39,13 @@ class VagrantAPI {
             }
 
             if (!response.ok) {
-                throw new Error(data.detail || data.error || `HTTP ${response.status}`);
+                // Handle validation errors properly
+                if (data.detail && Array.isArray(data.detail)) {
+                    const validationErrors = data.detail.map(err => err.msg).join(', ');
+                    throw new Error(validationErrors);
+                } else {
+                    throw new Error(data.detail || data.error || `HTTP ${response.status}`);
+                }
             }
 
             return data;

@@ -131,8 +131,11 @@ const VagrantUIHelpers = {
         } else if (interface.type === 'private_network' && interface.ip_assignment === 'static') {
             if (!interface.ip_address) {
                 errors.ip_address = 'IP address is required for static assignment';
-            } else if (!this.isValidIP(interface.ip_address)) {
-                errors.ip_address = 'Invalid IP address format';
+            } else {
+                const ipValidation = this.validateIP(interface.ip_address);
+                if (!ipValidation.isValid) {
+                    errors.ip_address = ipValidation.error;
+                }
             }
         } else if (interface.type === 'public_network' && interface.bridge && !interface.bridge.trim()) {
             errors.bridge = 'Bridge name cannot be empty if specified';
@@ -141,9 +144,39 @@ const VagrantUIHelpers = {
         return errors;
     },
 
-    isValidIP(ip) {
+    validateIP(ip) {
+        // Basic IP format validation
         const ipPattern = /^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/;
-        return ipPattern.test(ip);
+        
+        if (!ipPattern.test(ip)) {
+            return { isValid: false, error: 'Invalid IP address format' };
+        }
+        
+        // Check for .1 addresses (typically network gateway)
+        if (ip.endsWith('.1')) {
+            return { isValid: false, error: 'IP addresses ending with .1 are not allowed (typically reserved for network gateway)' };
+        }
+        
+        // Additional validation for reserved ranges
+        const parts = ip.split('.').map(Number);
+        
+        // Check for private network ranges validity
+        if (parts[0] === 192 && parts[1] === 168) {
+            // 192.168.x.x is valid private range
+        } else if (parts[0] === 10) {
+            // 10.x.x.x is valid private range  
+        } else if (parts[0] === 172 && parts[1] >= 16 && parts[1] <= 31) {
+            // 172.16-31.x.x is valid private range
+        } else {
+            return { isValid: false, error: 'IP address should be in a private network range (192.168.x.x, 10.x.x.x, or 172.16-31.x.x)' };
+        }
+        
+        return { isValid: true };
+    },
+
+    // Backward compatibility
+    isValidIP(ip) {
+        return this.validateIP(ip).isValid;
     },
 
     generateId() {
