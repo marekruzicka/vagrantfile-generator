@@ -352,6 +352,8 @@
                     memory: 1024,
                     cpus: 1,
                     hostname: '',
+                    count: 1,
+                    labels: [],
                     forwarded_ports: [],
                     synced_folders: [],
                     private_networks: []
@@ -381,6 +383,26 @@
                     provider: 'libvirt',
                     version: '',
                     url: ''
+                },
+                
+                // VM labeling and selection state
+                selectedVMs: [],
+                projectLabels: [], // All available labels for current project
+                selectedLabels: [], // Labels used for quick filtering
+                currentLabelInput: '', // Current label being typed for new VMs
+                currentEditLabelInput: '', // Current label being typed for edit VM
+                currentBulkLabelInput: '', // Current label being typed for bulk edit
+                showBulkEditModal: false,
+                showBulkDeleteModal: false,
+                showLabelModal: false,
+                bulkEditForm: {
+                    memory: '',
+                    cpus: '',
+                    labels: []
+                },
+                labelForm: {
+                    name: '',
+                    color: '#3b82f6'
                 },
                 
                 // Init
@@ -584,6 +606,19 @@
                     try {
                         this.currentProject = await api.getProject(projectId);
                         this.currentView = 'project-detail';
+                        
+                        // Ensure all VMs have labels array (for backward compatibility)
+                        if (this.currentProject.vms) {
+                            this.currentProject.vms.forEach(vm => {
+                                if (!vm.labels || !Array.isArray(vm.labels)) {
+                                    vm.labels = [];
+                                }
+                            });
+                        }
+                        
+                        // Initialize project labels
+                        this.updateProjectLabels();
+                        
                         this.clearError();
                     } catch (error) {
                         this.setError('Failed to load project: ' + error.message);
@@ -598,13 +633,40 @@
                     
                     this.setLoading(true);
                     try {
-                        const vm = await api.createVM(this.currentProject.id, this.newVM);
-                        this.currentProject.vms.push(vm);
-                        this.syncProjectInList();
+                        const count = parseInt(this.newVM.count) || 1;
+                        const createdVMs = [];
                         
+                        for (let i = 1; i <= count; i++) {
+                            const vmData = { ...this.newVM };
+                            
+                            // Remove count from VM data
+                            delete vmData.count;
+                            
+                            // Append index to name and hostname if creating multiple VMs
+                            if (count > 1) {
+                                vmData.name = `${this.newVM.name}-${i}`;
+                                if (this.newVM.hostname) {
+                                    vmData.hostname = `${this.newVM.hostname}-${i}`;
+                                }
+                            }
+                            
+                            const vm = await api.createVM(this.currentProject.id, vmData);
+                            
+                            createdVMs.push(vm);
+                            this.currentProject.vms.push(vm);
+                        }
+                        
+                        // Update project labels list
+                        this.updateProjectLabels();
+                        
+                        this.syncProjectInList();
                         this.resetNewVM();
                         this.showCreateVMModal = false;
-                        this.setSuccess('VM created successfully!');
+                        
+                        const successMessage = count === 1 
+                            ? 'VM created successfully!' 
+                            : `${count} VMs created successfully!`;
+                        this.setSuccess(successMessage);
                     } catch (error) {
                         this.setError('Failed to create VM: ' + error.message);
                     } finally {
@@ -630,6 +692,10 @@
                         if (vmIndex !== -1) {
                             this.currentProject.vms[vmIndex] = vm;
                         }
+                        
+                        // Update project labels list
+                        this.updateProjectLabels();
+                        
                         this.syncProjectInList();
                         
                         this.showEditVMModal = false;
@@ -647,6 +713,10 @@
                     try {
                         await api.deleteVM(this.currentProject.id, vmName);
                         this.currentProject.vms = this.currentProject.vms.filter(vm => vm.name !== vmName);
+                        
+                        // Update project labels list
+                        this.updateProjectLabels();
+                        
                         this.syncProjectInList();
                         
                         this.setSuccess('VM deleted successfully!');
@@ -769,6 +839,10 @@
                 },
                 openEditVMModal(vm) {
                     this.editingVM = { ...vm, originalName: vm.name };
+                    // Ensure labels is always an array
+                    if (!this.editingVM.labels || !Array.isArray(this.editingVM.labels)) {
+                        this.editingVM.labels = [];
+                    }
                     this.validationErrors = {};
                     this.activeFormSection = 'general';
                     this.showEditVMModal = true;
@@ -849,10 +923,302 @@
                         memory: 1024,
                         cpus: 1,
                         hostname: '',
+                        count: 1,
+                        labels: [],
                         forwarded_ports: [],
                         synced_folders: [],
                         private_networks: []
                     };
+                },
+
+                // VM Selection and Grouping
+                toggleVMSelection(vmName) {
+                    const index = this.selectedVMs.indexOf(vmName);
+                    if (index === -1) {
+                        this.selectedVMs.push(vmName);
+                    } else {
+                        this.selectedVMs.splice(index, 1);
+                    }
+                },
+                
+                isVMSelected(vmName) {
+                    return this.selectedVMs.includes(vmName);
+                },
+                
+                selectAllVMs() {
+                    this.selectedVMs = this.currentProject?.vms?.map(vm => vm.name) || [];
+                },
+                
+                clearVMSelection() {
+                    this.selectedVMs = [];
+                },
+                
+                getSelectedVMs() {
+                    return this.currentProject?.vms?.filter(vm => this.selectedVMs.includes(vm.name)) || [];
+                },
+                
+                selectVMsByLabel(label) {
+                    if (!this.currentProject) return;
+                    
+                    const vmsWithLabel = this.currentProject.vms.filter(vm => 
+                        vm.labels && Array.isArray(vm.labels) && vm.labels.includes(label)
+                    );
+                    
+                    const vmNames = vmsWithLabel.map(vm => vm.name);
+                    // Toggle selection - if all VMs with this label are already selected, deselect them
+                    const allSelected = vmNames.every(name => this.selectedVMs.includes(name));
+                    
+                    if (allSelected) {
+                        this.selectedVMs = this.selectedVMs.filter(name => !vmNames.includes(name));
+                    } else {
+                        // Add unselected VMs with this label
+                        vmNames.forEach(name => {
+                            if (!this.selectedVMs.includes(name)) {
+                                this.selectedVMs.push(name);
+                            }
+                        });
+                    }
+                },
+                
+                isLabelFullySelected(label) {
+                    if (!this.currentProject) return false;
+                    
+                    const vmsWithLabel = this.currentProject.vms.filter(vm => 
+                        vm.labels && Array.isArray(vm.labels) && vm.labels.includes(label)
+                    );
+                    
+                    return vmsWithLabel.length > 0 && 
+                           vmsWithLabel.every(vm => this.selectedVMs.includes(vm.name));
+                },
+                
+                getVMCountByLabel(label) {
+                    if (!this.currentProject) return 0;
+                    
+                    return this.currentProject.vms.filter(vm => 
+                        vm.labels && Array.isArray(vm.labels) && vm.labels.includes(label)
+                    ).length;
+                },
+                
+                openBulkEditModal() {
+                    if (this.selectedVMs.length === 0) {
+                        this.setError('Please select at least one VM to edit');
+                        return;
+                    }
+                    this.showBulkEditModal = true;
+                },
+                
+                openBulkDeleteModal() {
+                    if (this.selectedVMs.length === 0) {
+                        this.setError('Please select at least one VM to delete');
+                        return;
+                    }
+                    this.showBulkDeleteModal = true;
+                },
+                
+                async bulkDeleteVMs() {
+                    const selectedVMs = this.getSelectedVMs();
+                    
+                    this.setLoading(true);
+                    try {
+                        const promises = selectedVMs.map(vm => 
+                            api.deleteVM(this.currentProject.id, vm.name)
+                        );
+                        
+                        await Promise.all(promises);
+                        
+                        // Remove deleted VMs from current project
+                        const deletedNames = selectedVMs.map(vm => vm.name);
+                        this.currentProject.vms = this.currentProject.vms.filter(vm => 
+                            !deletedNames.includes(vm.name)
+                        );
+                        
+                        // Update project labels
+                        this.updateProjectLabels();
+                        
+                        this.syncProjectInList();
+                        this.clearVMSelection();
+                        this.showBulkDeleteModal = false;
+                        
+                        this.setSuccess(`${selectedVMs.length} VMs deleted successfully!`);
+                    } catch (error) {
+                        this.setError('Failed to delete VMs: ' + error.message);
+                    } finally {
+                        this.setLoading(false);
+                    }
+                },
+                
+                async bulkUpdateVMs(updates) {
+                    const selectedVMs = this.getSelectedVMs();
+                    
+                    this.setLoading(true);
+                    try {
+                        const promises = selectedVMs.map(vm => {
+                            const vmData = { ...vm };
+                            
+                            // Apply updates, but only for fields that have values
+                            if (updates.memory && updates.memory.toString().trim()) {
+                                vmData.memory = parseInt(updates.memory);
+                            }
+                            if (updates.cpus && updates.cpus.toString().trim()) {
+                                vmData.cpus = parseInt(updates.cpus);
+                            }
+                            
+                            // Handle labels - merge new labels with existing ones
+                            if (updates.labels && updates.labels.length > 0) {
+                                const existingLabels = vmData.labels || [];
+                                const newLabels = [...new Set([...existingLabels, ...updates.labels])]; // Remove duplicates
+                                vmData.labels = newLabels;
+                            }
+                            
+                            delete vmData.originalName;
+                            return api.updateVM(this.currentProject.id, vm.name, vmData);
+                        });
+                        
+                        await Promise.all(promises);
+                        await this.loadProject(this.currentProject.id);
+                        
+                        // Update project labels
+                        this.updateProjectLabels();
+                        
+                        this.clearVMSelection();
+                        this.showBulkEditModal = false;
+                        
+                        // Reset bulk edit form
+                        this.bulkEditForm = {
+                            memory: '',
+                            cpus: '',
+                            labels: []
+                        };
+                        
+                        this.setSuccess(`${selectedVMs.length} VMs updated successfully!`);
+                    } catch (error) {
+                        this.setError('Failed to update VMs: ' + error.message);
+                    } finally {
+                        this.setLoading(false);
+                    }
+                },
+                
+                getVMGroup(vmName) {
+                    return this.vmGroups.find(group => group.vmNames.includes(vmName));
+                },
+                
+                // Label management methods
+                addLabel() {
+                    if (!this.currentLabelInput || !this.currentLabelInput.trim()) return;
+                    
+                    const label = this.currentLabelInput.trim();
+                    if (!this.newVM.labels) {
+                        this.newVM.labels = [];
+                    }
+                    
+                    if (!this.newVM.labels.includes(label)) {
+                        this.newVM.labels.push(label);
+                    }
+                    
+                    this.currentLabelInput = '';
+                },
+                
+                removeLabel(index) {
+                    if (this.newVM.labels && index >= 0 && index < this.newVM.labels.length) {
+                        this.newVM.labels.splice(index, 1);
+                    }
+                },
+                
+                toggleLabel(label) {
+                    if (!this.newVM.labels) {
+                        this.newVM.labels = [];
+                    }
+                    
+                    const index = this.newVM.labels.indexOf(label);
+                    if (index > -1) {
+                        this.newVM.labels.splice(index, 1);
+                    } else {
+                        this.newVM.labels.push(label);
+                    }
+                },
+                
+                // Edit VM label management methods
+                addEditLabel() {
+                    if (!this.currentEditLabelInput || !this.currentEditLabelInput.trim()) return;
+                    
+                    const label = this.currentEditLabelInput.trim();
+                    if (!this.editingVM.labels) {
+                        this.editingVM.labels = [];
+                    }
+                    
+                    if (!this.editingVM.labels.includes(label)) {
+                        this.editingVM.labels.push(label);
+                    }
+                    
+                    this.currentEditLabelInput = '';
+                },
+                
+                removeEditLabel(index) {
+                    if (this.editingVM.labels && index >= 0 && index < this.editingVM.labels.length) {
+                        this.editingVM.labels.splice(index, 1);
+                    }
+                },
+                
+                toggleEditLabel(label) {
+                    if (!this.editingVM.labels) {
+                        this.editingVM.labels = [];
+                    }
+                    
+                    const index = this.editingVM.labels.indexOf(label);
+                    if (index > -1) {
+                        this.editingVM.labels.splice(index, 1);
+                    } else {
+                        this.editingVM.labels.push(label);
+                    }
+                },
+                
+                // Bulk edit label management methods
+                addBulkLabel() {
+                    if (!this.currentBulkLabelInput || !this.currentBulkLabelInput.trim()) return;
+                    
+                    const label = this.currentBulkLabelInput.trim();
+                    if (!this.bulkEditForm.labels) {
+                        this.bulkEditForm.labels = [];
+                    }
+                    
+                    if (!this.bulkEditForm.labels.includes(label)) {
+                        this.bulkEditForm.labels.push(label);
+                    }
+                    
+                    this.currentBulkLabelInput = '';
+                },
+                
+                removeBulkLabel(index) {
+                    if (this.bulkEditForm.labels && index >= 0 && index < this.bulkEditForm.labels.length) {
+                        this.bulkEditForm.labels.splice(index, 1);
+                    }
+                },
+                
+                toggleBulkLabel(label) {
+                    if (!this.bulkEditForm.labels) {
+                        this.bulkEditForm.labels = [];
+                    }
+                    
+                    const index = this.bulkEditForm.labels.indexOf(label);
+                    if (index > -1) {
+                        this.bulkEditForm.labels.splice(index, 1);
+                    } else {
+                        this.bulkEditForm.labels.push(label);
+                    }
+                },
+
+                // Update project labels list
+                updateProjectLabels() {
+                    if (!this.currentProject) return;
+                    
+                    const allLabels = new Set();
+                    this.currentProject.vms.forEach(vm => {
+                        if (vm.labels && Array.isArray(vm.labels)) {
+                            vm.labels.forEach(label => allLabels.add(label));
+                        }
+                    });
+                    
+                    this.projectLabels = Array.from(allLabels).sort();
                 },
 
                 // UI helpers
@@ -1190,21 +1556,68 @@
             <!-- VMs Section -->
             <div class="space-y-6">
                 <div class="flex justify-between items-center">
-                    <h3 class="text-2xl font-bold text-gray-900">Virtual Machines</h3>
-                    <button @click="openCreateVMModal()" class="btn btn-success">
-                        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                            <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd"></path>
-                        </svg>
-                        Add VM
-                    </button>
+                    <div class="flex items-center space-x-4">
+                        <h3 class="text-2xl font-bold text-gray-900">Virtual Machines</h3>
+                        <div x-show="selectedVMs.length > 0" class="flex items-center space-x-2">
+                            <span class="text-sm text-gray-600" x-text="`${selectedVMs.length} selected`"></span>
+                            <button @click="openBulkEditModal()" class="btn btn-secondary text-sm">
+                                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                    <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z"></path>
+                                </svg>
+                                Bulk Edit
+                            </button>
+                            <button @click="openBulkDeleteModal()" class="btn btn-danger text-sm">
+                                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd"></path>
+                                </svg>
+                                Bulk Delete
+                            </button>
+                            <button @click="clearVMSelection()" class="btn btn-secondary text-sm">
+                                Clear Selection
+                            </button>
+                        </div>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                        <button x-show="currentProject?.vms?.length > 0" @click="selectAllVMs()" class="btn btn-secondary text-sm">
+                            Select All
+                        </button>
+                        <button @click="openCreateVMModal()" class="btn btn-success">
+                            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd"></path>
+                            </svg>
+                            Add VM
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Label-based Quick Selection -->
+                <div x-show="projectLabels && projectLabels.length > 0" class="bg-gray-50 border border-gray-200 rounded-lg p-4 mb-6">
+                    <h4 class="text-sm font-medium text-gray-700 mb-3">Quick Select by Labels:</h4>
+                    <div class="flex flex-wrap gap-2">
+                        <template x-for="label in projectLabels" :key="label">
+                            <button @click="selectVMsByLabel(label)"
+                                    class="inline-flex items-center px-3 py-1 rounded-lg text-sm border transition-colors"
+                                    :class="isLabelFullySelected(label) ? 
+                                           'bg-blue-500 text-white border-blue-500' : 
+                                           'bg-white text-gray-700 border-gray-300 hover:bg-gray-100'">
+                                <span x-text="label"></span>
+                                <span class="ml-1 text-xs opacity-75" x-text="`(${getVMCountByLabel(label)})`"></span>
+                            </button>
+                        </template>
+                    </div>
+                    <p class="text-xs text-gray-500 mt-2">Click a label to select/deselect all VMs with that label</p>
                 </div>
 
                 <!-- VMs Grid -->
                 <div x-show="currentProject?.vms?.length > 0" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     <template x-for="vm in currentProject?.vms" :key="vm.name">
-                        <div class="vm-card group">
+                        <div class="vm-card group" :class="{ 'ring-2 ring-blue-500': isVMSelected(vm.name) }">
                             <div class="flex justify-between items-start mb-4">
                                 <div class="flex items-center space-x-3">
+                                    <input type="checkbox" 
+                                           :checked="isVMSelected(vm.name)"
+                                           @change="toggleVMSelection(vm.name)"
+                                           class="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500">
                                     <div class="w-10 h-10 bg-gradient-to-br from-green-500 to-emerald-600 rounded-lg flex items-center justify-center">
                                         <svg class="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
                                             <path fill-rule="evenodd" d="M3 5a2 2 0 012-2h10a2 2 0 012 2v8a2 2 0 01-2 2h-2.22l.123.489.804.804A1 1 0 0113 18H7a1 1 0 01-.707-1.707l.804-.804L7.22 15H5a2 2 0 01-2-2V5zm5.771 7H5V5h10v7H8.771z" clip-rule="evenodd"></path>
@@ -1212,7 +1625,19 @@
                                     </div>
                                     <div>
                                         <h4 class="text-lg font-bold text-gray-900" x-text="vm.name"></h4>
-                                        <p class="text-sm text-gray-500">Virtual Machine</p>
+                                        <p class="text-sm text-gray-500 mb-2">Virtual Machine</p>
+                                        <!-- VM Labels Display -->
+                                        <div class="min-h-[24px]">
+                                            <div x-show="vm.labels && vm.labels.length > 0" class="flex flex-wrap gap-1">
+                                                <template x-for="label in vm.labels" :key="label">
+                                                    <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800"
+                                                          x-text="label"></span>
+                                                </template>
+                                            </div>
+                                            <div x-show="!vm.labels || vm.labels.length === 0" class="text-xs text-gray-400 italic">
+                                                No labels
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
                                 <div class="flex space-x-1">
@@ -1537,6 +1962,64 @@
                                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                                        placeholder="Optional hostname">
                             </div>
+                            <div class="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Count</label>
+                                    <input type="number" x-model="newVM.count" min="1" max="20" required
+                                           class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                           placeholder="1">
+                                    <p class="text-xs text-gray-500 mt-1">Number of VMs to create</p>
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Labels</label>
+                                    <div class="space-y-2">
+                                        <!-- Current labels input -->
+                                        <input type="text" x-model="currentLabelInput" @keydown.enter.prevent="addLabel()"
+                                               class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                               placeholder="Type label and press Enter">
+                                        
+                                        <!-- Selected labels display -->
+                                        <div x-show="newVM.labels && newVM.labels.length > 0" class="flex flex-wrap gap-1 mt-2">
+                                            <template x-for="(label, index) in newVM.labels" :key="index">
+                                                <span class="inline-flex items-center bg-blue-100 text-blue-800 px-2 py-1 rounded-lg text-xs">
+                                                    <span x-text="label"></span>
+                                                    <button type="button" @click="removeLabel(index)" class="ml-1 text-blue-600 hover:text-blue-800">
+                                                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                                                        </svg>
+                                                    </button>
+                                                </span>
+                                            </template>
+                                        </div>
+                                        
+                                        <!-- Quick select from existing labels -->
+                                        <div x-show="projectLabels && projectLabels.length > 0" class="mt-2">
+                                            <p class="text-xs text-gray-500 mb-1">Quick select from existing labels:</p>
+                                            <div class="flex flex-wrap gap-1">
+                                                <template x-for="label in projectLabels" :key="label">
+                                                    <button type="button" @click="toggleLabel(label)"
+                                                            class="px-2 py-1 rounded text-xs border transition-colors"
+                                                            :class="(newVM.labels && newVM.labels.includes(label)) ? 
+                                                                   'bg-blue-500 text-white border-blue-500' : 
+                                                                   'bg-gray-100 text-gray-700 border-gray-300 hover:bg-gray-200'">
+                                                        <span x-text="label"></span>
+                                                    </button>
+                                                </template>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <p class="text-xs text-gray-500 mt-1">Add labels to organize VMs (project-specific)</p>
+                                </div>
+                            </div>
+                            <div x-show="newVM.count > 1" class="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                                <p class="text-sm text-blue-800">
+                                    <strong>Bulk Creation:</strong> Creating <span x-text="newVM.count"></span> VMs with names:
+                                    <template x-for="i in parseInt(newVM.count || 1)" :key="i">
+                                        <span class="inline-block bg-blue-100 text-blue-800 px-2 py-1 rounded text-xs mr-1 mt-1" 
+                                              x-text="`${newVM.name || 'vm'}-${i}`"></span>
+                                    </template>
+                                </p>
+                            </div>
                         </div>
                     </div>
 
@@ -1634,6 +2117,53 @@
                     <div class="space-y-6">
                         <h4 class="text-lg font-medium text-gray-900 border-b border-gray-200 pb-2">Advanced Settings</h4>
                         
+                        <!-- Labels -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Labels</label>
+                            <div class="space-y-2">
+                                <!-- Current labels input -->
+                                <input type="text" x-model="currentEditLabelInput" @keydown.enter.prevent="addEditLabel()"
+                                       class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                       placeholder="Type label and press Enter">
+                                
+                                <!-- Selected labels display -->
+                                <div x-show="editingVM.labels && editingVM.labels.length > 0" class="flex flex-wrap gap-1 mt-2">
+                                    <template x-for="(label, index) in editingVM.labels" :key="index">
+                                        <span class="inline-flex items-center bg-blue-100 text-blue-800 px-2 py-1 rounded-lg text-xs">
+                                            <span x-text="label"></span>
+                                            <button type="button" @click="removeEditLabel(index)" class="ml-1 text-blue-600 hover:text-blue-800">
+                                                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                                                </svg>
+                                            </button>
+                                        </span>
+                                    </template>
+                                </div>
+                                
+                                <!-- No labels message -->
+                                <div x-show="!editingVM.labels || editingVM.labels.length === 0" class="text-sm text-gray-500 italic bg-gray-50 p-2 rounded">
+                                    No labels assigned to this VM
+                                </div>
+                                
+                                <!-- Quick select from existing labels -->
+                                <div x-show="projectLabels && projectLabels.length > 0" class="mt-2">
+                                    <p class="text-xs text-gray-500 mb-1">Quick select from existing labels:</p>
+                                    <div class="flex flex-wrap gap-1">
+                                        <template x-for="label in projectLabels" :key="label">
+                                            <button type="button" @click="toggleEditLabel(label)"
+                                                    class="px-2 py-1 rounded text-xs border transition-colors"
+                                                    :class="(editingVM.labels && editingVM.labels.includes(label)) ? 
+                                                           'bg-blue-500 text-white border-blue-500' : 
+                                                           'bg-gray-100 text-gray-700 border-gray-300 hover:bg-gray-200'">
+                                                <span x-text="label"></span>
+                                            </button>
+                                        </template>
+                                    </div>
+                                </div>
+                            </div>
+                            <p class="text-xs text-gray-500 mt-1">Add labels to organize VMs (project-specific)</p>
+                        </div>
+                        
                         <!-- Placeholder for future advanced settings -->
                         <div class="text-sm text-gray-500 bg-gray-50 p-4 rounded-lg">
                             <p class="font-medium mb-2">Coming Soon:</p>
@@ -1677,6 +2207,130 @@
             <div class="p-6">
                 <div class="bg-gray-900 rounded-lg p-4 overflow-auto max-h-96">
                     <pre><code class="text-green-400 text-sm font-mono whitespace-pre" x-text="vagrantfileContent"></code></pre>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bulk Edit VMs Modal -->
+    <div x-show="showBulkEditModal" class="modal-overlay" @click.self="showBulkEditModal = false">
+        <div class="modal-content max-w-2xl">
+            <div class="flex items-center justify-between p-6 border-b border-gray-200">
+                <h3 class="text-lg font-semibold text-gray-900">
+                    Bulk Edit VMs 
+                    <span class="text-sm font-normal text-gray-500">
+                        (<span x-text="selectedVMs.length"></span> selected)
+                    </span>
+                </h3>
+                <button @click="showBulkEditModal = false" class="text-gray-400 hover:text-gray-600">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                </button>
+            </div>
+            <form @submit.prevent="bulkUpdateVMs(bulkEditForm)" class="p-6">
+                <div class="space-y-6">
+                    <div class="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                        <p class="text-sm text-blue-800">
+                            <strong>Bulk editing VMs:</strong>
+                            <template x-for="vmName in selectedVMs" :key="vmName">
+                                <span class="inline-block bg-blue-100 text-blue-800 px-2 py-1 rounded text-xs mr-1 mt-1" 
+                                      x-text="vmName"></span>
+                            </template>
+                        </p>
+                        <p class="text-xs text-blue-600 mt-2">Only fields with values will be updated. Leave fields empty to keep current values.</p>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="form-label">Memory (MB)</label>
+                            <input type="number" x-model="bulkEditForm.memory" :min="config.minMemoryMB" :max="config.maxMemoryMB" :step="config.memoryStep"
+                                   class="form-input" placeholder="Leave empty to keep current">
+                        </div>
+                        <div>
+                            <label class="form-label">CPUs</label>
+                            <input type="number" x-model="bulkEditForm.cpus" min="1" :max="config.maxCpus"
+                                   class="form-input" placeholder="Leave empty to keep current">
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Labels</label>
+                        <div class="space-y-2">
+                            <!-- Current labels input -->
+                            <input type="text" x-model="currentBulkLabelInput" @keydown.enter.prevent="addBulkLabel()"
+                                   class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                   placeholder="Type label and press Enter to add">
+                            
+                            <!-- Selected labels display -->
+                            <div x-show="bulkEditForm.labels && bulkEditForm.labels.length > 0" class="flex flex-wrap gap-1 mt-2">
+                                <template x-for="(label, index) in bulkEditForm.labels" :key="index">
+                                    <span class="inline-flex items-center bg-green-100 text-green-800 px-2 py-1 rounded-lg text-xs">
+                                        <span x-text="label"></span>
+                                        <button type="button" @click="removeBulkLabel(index)" class="ml-1 text-green-600 hover:text-green-800">
+                                            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                                            </svg>
+                                        </button>
+                                    </span>
+                                </template>
+                            </div>
+                            
+                            <!-- Quick select from existing labels -->
+                            <div x-show="projectLabels && projectLabels.length > 0" class="mt-2">
+                                <p class="text-xs text-gray-500 mb-1">Quick select from existing labels:</p>
+                                <div class="flex flex-wrap gap-1">
+                                    <template x-for="label in projectLabels" :key="label">
+                                        <button type="button" @click="toggleBulkLabel(label)"
+                                                class="px-2 py-1 rounded text-xs border transition-colors"
+                                                :class="(bulkEditForm.labels && bulkEditForm.labels.includes(label)) ? 
+                                                       'bg-green-500 text-white border-green-500' : 
+                                                       'bg-gray-100 text-gray-700 border-gray-300 hover:bg-gray-200'">
+                                            <span x-text="label"></span>
+                                        </button>
+                                    </template>
+                                </div>
+                            </div>
+                        </div>
+                        <p class="text-xs text-gray-500 mt-1">These labels will be <strong>added</strong> to all selected VMs (existing labels will be preserved)</p>
+                    </div>
+                </div>
+
+                <div class="flex justify-end space-x-3 pt-6 border-t border-gray-200 mt-8">
+                    <button type="button" @click="showBulkEditModal = false" class="btn btn-secondary">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Update Selected VMs</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Bulk Delete VMs Modal -->
+    <div x-show="showBulkDeleteModal" class="modal-overlay" @click.self="showBulkDeleteModal = false">
+        <div class="modal-content max-w-md">
+            <div class="p-6">
+                <div class="flex items-center justify-center w-12 h-12 mx-auto mb-4 bg-red-100 rounded-full">
+                    <svg class="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.082 16.5c-.77.833.192 2.5 1.732 2.5z"></path>
+                    </svg>
+                </div>
+                <h3 class="text-lg font-semibold text-gray-900 text-center mb-2">Delete Multiple VMs</h3>
+                <p class="text-sm text-gray-500 text-center mb-4">
+                    Are you sure you want to delete <strong x-text="selectedVMs.length"></strong> VMs? This action cannot be undone.
+                </p>
+                
+                <div class="bg-gray-50 rounded-lg p-3 mb-4">
+                    <p class="text-xs text-gray-600 mb-2"><strong>VMs to be deleted:</strong></p>
+                    <div class="flex flex-wrap gap-1">
+                        <template x-for="vmName in selectedVMs" :key="vmName">
+                            <span class="inline-block bg-red-100 text-red-800 px-2 py-1 rounded text-xs" 
+                                  x-text="vmName"></span>
+                        </template>
+                    </div>
+                </div>
+                
+                <div class="flex space-x-3">
+                    <button @click="showBulkDeleteModal = false" class="flex-1 btn btn-secondary">Cancel</button>
+                    <button @click="bulkDeleteVMs()" class="flex-1 btn btn-danger">Delete All</button>
                 </div>
             </div>
         </div>
