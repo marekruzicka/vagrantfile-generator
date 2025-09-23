@@ -44,7 +44,8 @@ function vagrantApp() {
             maxCpus: 8,
             maxMemoryMB: 16384,
             minMemoryMB: 512,
-            memoryStep: 256
+            memoryStep: 256,
+            allowPublicIPsInPrivateNetworks: false
         },
         
         // Box management state
@@ -101,6 +102,8 @@ function vagrantApp() {
                 if (savedConfig) {
                     const config = JSON.parse(savedConfig);
                     this.config = { ...this.config, ...config };
+                    // Update API configuration
+                    api.setConfig(this.config);
                 }
             } catch (error) {
                 console.error('Failed to load configuration:', error);
@@ -110,6 +113,8 @@ function vagrantApp() {
         saveConfiguration() {
             try {
                 localStorage.setItem('vagrantfile-generator-config', JSON.stringify(this.config));
+                // Update API configuration
+                api.setConfig(this.config);
                 this.setSuccess('Configuration saved successfully!');
             } catch (error) {
                 console.error('Failed to save configuration:', error);
@@ -316,12 +321,22 @@ function vagrantApp() {
             this.setLoading(true);
             try {
                 const count = parseInt(this.newVM.count) || 1;
+                
+                // Pre-validate bulk IP creation if needed
+                if (count > 1) {
+                    const bulkValidationErrors = this.validateBulkIPRanges(count);
+                    if (bulkValidationErrors.length > 0) {
+                        this.setError(`Bulk creation validation failed: ${bulkValidationErrors.join(', ')}`);
+                        return;
+                    }
+                }
+                
                 const createdVMs = [];
                 
                 for (let i = 1; i <= count; i++) {
                     const vmData = { ...this.newVM };
                     
-                    // Clean up network interfaces data
+                    // Clean up and increment network interfaces data
                     if (vmData.network_interfaces) {
                         vmData.network_interfaces = vmData.network_interfaces.map(interface => {
                             const cleanInterface = { ...interface };
@@ -339,6 +354,15 @@ function vagrantApp() {
                             }
                             if (cleanInterface.guest_port !== null) {
                                 cleanInterface.guest_port = parseInt(cleanInterface.guest_port) || null;
+                            }
+                            
+                            // Handle IP address incrementing for bulk creation
+                            if (count > 1 && cleanInterface.type === 'private_network' && 
+                                cleanInterface.ip_assignment === 'static' && cleanInterface.ip_address) {
+                                const incrementedIP = VagrantUIHelpers.incrementIP(cleanInterface.ip_address, i - 1);
+                                if (incrementedIP) {
+                                    cleanInterface.ip_address = incrementedIP;
+                                }
                             }
                             
                             return cleanInterface;
@@ -557,6 +581,36 @@ function vagrantApp() {
             return VagrantUIHelpers.validateVMForm(this, vmData);
         },
 
+        validateBulkIPRanges(count) {
+            const errors = [];
+            
+            if (!this.newVM.network_interfaces) {
+                return errors;
+            }
+            
+            this.newVM.network_interfaces.forEach((interface, index) => {
+                if (interface.type === 'private_network' && 
+                    interface.ip_assignment === 'static' && 
+                    interface.ip_address) {
+                    
+                    const validation = VagrantUIHelpers.validateBulkIPCreation(
+                        interface.ip_address, 
+                        interface.netmask || '255.255.255.0', 
+                        count,
+                        this
+                    );
+                    
+                    if (!validation.isValid) {
+                        validation.errors.forEach(error => {
+                            errors.push(`Network interface ${index + 1}: ${error}`);
+                        });
+                    }
+                }
+            });
+            
+            return errors;
+        },
+
         // Array Management
         addForwardedPort() { VagrantUIHelpers.addForwardedPort(this); },
         removeForwardedPort(index) { VagrantUIHelpers.removeForwardedPort(this, index); },
@@ -618,7 +672,7 @@ function vagrantApp() {
         async removeNetworkInterfaceFromVM(vmName, interfaceId) { 
             return VagrantUIHelpers.removeNetworkInterfaceFromVM(this, vmName, interfaceId); 
         },
-        validateNetworkInterface(interface) { return VagrantUIHelpers.validateNetworkInterface(interface); },
+        validateNetworkInterface(interface) { return VagrantUIHelpers.validateNetworkInterface(interface, this); },
         getNetworkTypeDisplay(type) { return VagrantUIHelpers.getNetworkTypeDisplay(type); },
         getNetworkConfigDisplay(interface) { return VagrantUIHelpers.getNetworkConfigDisplay(interface); },
 

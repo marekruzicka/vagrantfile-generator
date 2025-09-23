@@ -118,7 +118,7 @@ const VagrantUIHelpers = {
         }
     },
 
-    validateNetworkInterface(interface) {
+    validateNetworkInterface(interface, app = null) {
         const errors = {};
         
         if (interface.type === 'forwarded_port') {
@@ -132,7 +132,7 @@ const VagrantUIHelpers = {
             if (!interface.ip_address) {
                 errors.ip_address = 'IP address is required for static assignment';
             } else {
-                const ipValidation = this.validateIP(interface.ip_address);
+                const ipValidation = this.validateIP(interface.ip_address, app);
                 if (!ipValidation.isValid) {
                     errors.ip_address = ipValidation.error;
                 }
@@ -144,7 +144,7 @@ const VagrantUIHelpers = {
         return errors;
     },
 
-    validateIP(ip) {
+    validateIP(ip, app = null) {
         // Basic IP format validation
         const ipPattern = /^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/;
         
@@ -157,26 +157,130 @@ const VagrantUIHelpers = {
             return { isValid: false, error: 'IP addresses ending with .1 are not allowed (typically reserved for network gateway)' };
         }
         
-        // Additional validation for reserved ranges
-        const parts = ip.split('.').map(Number);
+        // Check private network ranges if the setting is disabled (default behavior)
+        const allowPublicIPs = app && app.config && app.config.allowPublicIPsInPrivateNetworks;
         
-        // Check for private network ranges validity
-        if (parts[0] === 192 && parts[1] === 168) {
-            // 192.168.x.x is valid private range
-        } else if (parts[0] === 10) {
-            // 10.x.x.x is valid private range  
-        } else if (parts[0] === 172 && parts[1] >= 16 && parts[1] <= 31) {
-            // 172.16-31.x.x is valid private range
-        } else {
-            return { isValid: false, error: 'IP address should be in a private network range (192.168.x.x, 10.x.x.x, or 172.16-31.x.x)' };
+        if (!allowPublicIPs) {
+            // Additional validation for reserved ranges
+            const parts = ip.split('.').map(Number);
+            
+            // Check for private network ranges validity
+            if (parts[0] === 192 && parts[1] === 168) {
+                // 192.168.x.x is valid private range
+            } else if (parts[0] === 10) {
+                // 10.x.x.x is valid private range  
+            } else if (parts[0] === 172 && parts[1] >= 16 && parts[1] <= 31) {
+                // 172.16-31.x.x is valid private range
+            } else {
+                return { isValid: false, error: 'IP address should be in a private network range (192.168.x.x, 10.x.x.x, or 172.16-31.x.x). Enable "Allow public IPs in private networks" in Settings to use other ranges.' };
+            }
         }
         
         return { isValid: true };
     },
 
     // Backward compatibility
-    isValidIP(ip) {
-        return this.validateIP(ip).isValid;
+    isValidIP(ip, app = null) {
+        return this.validateIP(ip, app).isValid;
+    },
+
+    // IP address increment utilities for bulk VM creation
+    incrementIP(ip, increment = 1) {
+        const parts = ip.split('.').map(Number);
+        let carry = increment;
+        
+        // Start from the last octet and work backwards
+        for (let i = 3; i >= 0 && carry > 0; i--) {
+            parts[i] += carry;
+            if (parts[i] > 255) {
+                carry = Math.floor(parts[i] / 256);
+                parts[i] = parts[i] % 256;
+            } else {
+                carry = 0;
+            }
+        }
+        
+        // If there's still carry, the IP range overflowed
+        if (carry > 0) {
+            return null; // Invalid IP
+        }
+        
+        return parts.join('.');
+    },
+
+    calculateNetworkRange(ip, netmask) {
+        const ipParts = ip.split('.').map(Number);
+        const maskParts = netmask.split('.').map(Number);
+        
+        // Calculate network address
+        const networkParts = ipParts.map((part, index) => part & maskParts[index]);
+        
+        // Calculate broadcast address
+        const broadcastParts = ipParts.map((part, index) => part | (255 - maskParts[index]));
+        
+        // Calculate total available addresses (excluding network and broadcast)
+        let totalAddresses = 1;
+        for (let i = 0; i < 4; i++) {
+            totalAddresses *= (256 - maskParts[i]);
+        }
+        
+        return {
+            network: networkParts.join('.'),
+            broadcast: broadcastParts.join('.'),
+            totalAddresses: totalAddresses - 2, // Exclude network and broadcast addresses
+            usableStart: this.incrementIP(networkParts.join('.'), 1),
+            usableEnd: this.incrementIP(broadcastParts.join('.'), -1)
+        };
+    },
+
+    validateBulkIPCreation(baseIP, netmask, count, app = null) {
+        const errors = [];
+        
+        // Validate base IP
+        const ipValidation = this.validateIP(baseIP, app);
+        if (!ipValidation.isValid) {
+            errors.push(`Base IP address invalid: ${ipValidation.error}`);
+            return { isValid: false, errors };
+        }
+        
+        // Calculate network range
+        const range = this.calculateNetworkRange(baseIP, netmask || '255.255.255.0');
+        
+        // Check if we have enough addresses
+        if (count > range.totalAddresses) {
+            errors.push(`Not enough IP addresses in network range. Need ${count} addresses, but only ${range.totalAddresses} are available in ${range.network}/${netmask}`);
+        }
+        
+        // Check if the base IP + count would exceed the network range
+        const lastIP = this.incrementIP(baseIP, count - 1);
+        if (!lastIP) {
+            errors.push(`IP range would overflow beyond valid IPv4 addresses`);
+        } else {
+            // Verify last IP is within the network range
+            const lastIPParts = lastIP.split('.').map(Number);
+            const broadcastParts = range.broadcast.split('.').map(Number);
+            
+            for (let i = 0; i < 4; i++) {
+                if (lastIPParts[i] > broadcastParts[i]) {
+                    errors.push(`IP range would exceed network boundary. Last IP ${lastIP} exceeds broadcast address ${range.broadcast}`);
+                    break;
+                }
+            }
+            
+            // Check for .1 addresses in the range
+            for (let i = 0; i < count; i++) {
+                const testIP = this.incrementIP(baseIP, i);
+                if (testIP && testIP.endsWith('.1')) {
+                    errors.push(`IP ${testIP} (VM ${i + 1}) would end with .1, which is not allowed (typically reserved for network gateway)`);
+                }
+            }
+        }
+        
+        return {
+            isValid: errors.length === 0,
+            errors,
+            range
+        };
     },
 
     generateId() {

@@ -7,7 +7,7 @@ This module contains API endpoints for managing virtual machines within projects
 from uuid import UUID
 from typing import Dict, Any
 
-from fastapi import APIRouter, HTTPException, Depends
+from fastapi import APIRouter, HTTPException, Depends, Request
 
 from ..models import VirtualMachine, VirtualMachineCreate
 from ..services import ProjectService, ProjectNotFoundError
@@ -22,13 +22,24 @@ def get_project_service() -> ProjectService:
 @router.post("/projects/{project_id}/vms", response_model=VirtualMachine, status_code=201)
 async def create_vm(
     project_id: UUID,
-    vm_data: VirtualMachineCreate,
+    vm_data: dict,  # Accept raw dict instead of VirtualMachineCreate to bypass validation
+    request: Request,
     project_service: ProjectService = Depends(get_project_service)
 ):
     """Add a new VM to a project."""
     try:
-        # Create VirtualMachine instance from the data
-        vm = VirtualMachine(**vm_data.dict())
+        # Set validation configuration based on request headers BEFORE validation
+        from ..models.network_interface import set_validation_config, get_validation_config
+        validation_config = {
+            "allow_public_ips_in_private_networks": request.headers.get("X-Allow-Public-IPs") == "true"
+        }
+        set_validation_config(validation_config)
+        
+        # Now create VirtualMachineCreate from the dict (validation happens here)
+        vm_create = VirtualMachineCreate(**vm_data)
+        
+        # Create VirtualMachine instance from the validated data
+        vm = VirtualMachine(**vm_create.dict())
         
         # Add to project
         project = project_service.add_vm_to_project(project_id, vm)
@@ -49,16 +60,27 @@ async def create_vm(
 async def update_vm(
     project_id: UUID,
     vm_name: str,
-    vm_data: VirtualMachineCreate,
+    vm_data: dict,  # Accept raw dict instead of VirtualMachineCreate to bypass validation
+    request: Request,
     project_service: ProjectService = Depends(get_project_service)
 ):
     """Update a VM in a project."""
     try:
-        # Update VM in project
+        # Set validation configuration based on request headers BEFORE validation
+        from ..models.network_interface import set_validation_config
+        validation_config = {
+            "allow_public_ips_in_private_networks": request.headers.get("X-Allow-Public-IPs") == "true"
+        }
+        set_validation_config(validation_config)
+        
+        # Now create VirtualMachineCreate from the dict (validation happens here)
+        vm_create = VirtualMachineCreate(**vm_data)
+        
+        # Update VM in project (validation happens during model creation)
         project = project_service.update_vm_in_project(
             project_id, 
             vm_name, 
-            vm_data.dict()
+            vm_create.dict()
         )
         
         # Return the updated VM
@@ -94,10 +116,18 @@ async def add_network_interface(
     project_id: UUID,
     vm_name: str,
     interface_data: Dict[str, Any],
+    request: Request,
     project_service: ProjectService = Depends(get_project_service)
 ):
     """Add a network interface to a VM."""
     try:
+        # Set validation configuration based on request headers BEFORE creating interface
+        from ..models.network_interface import set_validation_config
+        validation_config = {
+            "allow_public_ips_in_private_networks": request.headers.get("X-Allow-Public-IPs") == "true"
+        }
+        set_validation_config(validation_config)
+        
         # This is a simplified implementation
         # In a full implementation, you would create a NetworkInterface model
         # and add it to the VM
@@ -129,10 +159,18 @@ async def update_network_interface(
     vm_name: str,
     interface_id: str,
     interface_data: Dict[str, Any],
+    request: Request,
     project_service: ProjectService = Depends(get_project_service)
 ):
     """Update a network interface on a VM."""
     try:
+        # Set validation configuration based on request headers BEFORE validation
+        from ..models.network_interface import set_validation_config
+        validation_config = {
+            "allow_public_ips_in_private_networks": request.headers.get("X-Allow-Public-IPs") == "true"
+        }
+        set_validation_config(validation_config)
+        
         project = project_service.get_project(project_id)
         vm = project.get_vm(vm_name)
         

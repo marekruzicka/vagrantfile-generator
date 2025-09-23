@@ -2,6 +2,11 @@
 class VagrantAPI {
     constructor(baseURL = 'http://localhost:8000/api') {
         this.baseURL = baseURL;
+        this.config = {};
+    }
+
+    setConfig(config) {
+        this.config = config;
     }
 
     async request(endpoint, options = {}) {
@@ -13,6 +18,11 @@ class VagrantAPI {
             },
             ...options,
         };
+
+        // Add configuration headers
+        if (this.config.allowPublicIPsInPrivateNetworks) {
+            config.headers['X-Allow-Public-IPs'] = 'true';
+        }
 
         if (config.body && typeof config.body === 'object') {
             config.body = JSON.stringify(config.body);

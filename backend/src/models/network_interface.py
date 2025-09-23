@@ -11,6 +11,20 @@ import re
 
 from pydantic import BaseModel, Field, field_validator, ValidationInfo
 
+# Global configuration for validation
+_validation_config = {
+    "allow_public_ips_in_private_networks": False
+}
+
+def set_validation_config(config: dict):
+    """Set global validation configuration."""
+    global _validation_config
+    _validation_config.update(config)
+
+def get_validation_config() -> dict:
+    """Get current validation configuration."""
+    return _validation_config.copy()
+
 
 class NetworkType(str, Enum):
     """Network interface types supported by Vagrant."""
@@ -95,6 +109,29 @@ class NetworkInterfaceBase(BaseModel):
             # Check for .1 addresses (typically network gateway)
             if str(ip).endswith('.1'):
                 raise ValueError("IP addresses ending with .1 are not allowed (typically reserved for network gateway)")
+            
+            # Check for private network ranges validity (for private_network type)
+            if info.data.get('type') == 'private_network':
+                # Get current validation configuration
+                config = get_validation_config()
+                
+                if not config.get('allow_public_ips_in_private_networks', False):
+                    ip_parts = [int(part) for part in str(ip).split('.')]
+                    is_private = False
+                    
+                    # 192.168.x.x
+                    if ip_parts[0] == 192 and ip_parts[1] == 168:
+                        is_private = True
+                    # 10.x.x.x
+                    elif ip_parts[0] == 10:
+                        is_private = True
+                    # 172.16-31.x.x
+                    elif ip_parts[0] == 172 and 16 <= ip_parts[1] <= 31:
+                        is_private = True
+                    
+                    if not is_private:
+                        raise ValueError("Private network IP address should be in a private network range (192.168.x.x, 10.x.x.x, or 172.16-31.x.x)")
+                # If allow_public_ips_in_private_networks is True, skip private range validation
                 
         except ipaddress.AddressValueError:
             raise ValueError(f"Invalid IPv4 address: {v}")
