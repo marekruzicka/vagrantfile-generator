@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Debug Alpine.js</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        .test { margin: 10px 0; padding: 10px; border: 1px solid #ccc; }
+        .success { background-color: #d4edda; }
+        .error { background-color: #f8d7da; }
+    </style>
+</head>
+<body>
+    <h1>Alpine.js Debug Test</h1>
+    
+    <div class="test">
+        <h3>1. Basic Alpine.js Test</h3>
+        <div x-data="{ message: 'Alpine.js is working!' }">
+            <p x-text="message"></p>
+            <button @click="message = 'Button clicked!'">Click me</button>
+        </div>
+    </div>
+
+    <div class="test">
+        <h3>2. Window Objects Test</h3>
+        <div id="window-test">
+            <p>Checking window objects...</p>
+        </div>
+    </div>
+
+    <div class="test">
+        <h3>3. Module Import Test</h3>
+        <div id="module-test">
+            <p>Testing module imports...</p>
+        </div>
+    </div>
+
+    <script type="module">
+        // Test window objects
+        const windowTest = document.getElementById('window-test');
+        let windowStatus = '';
+        
+        if (typeof window.Alpine !== 'undefined') {
+            windowStatus += '✅ window.Alpine is available<br>';
+        } else {
+            windowStatus += '❌ window.Alpine is NOT available<br>';
+        }
+        
+        if (typeof window.vagrantApp !== 'undefined') {
+            windowStatus += '✅ window.vagrantApp is available<br>';
+        } else {
+            windowStatus += '❌ window.vagrantApp is NOT available<br>';
+        }
+        
+        windowTest.innerHTML = windowStatus;
+
+        // Test module imports
+        const moduleTest = document.getElementById('module-test');
+        
+        try {
+            const Alpine = await import('/@fs/app/node_modules/.vite/deps/alpinejs.js?v=1735b7a9');
+            moduleTest.innerHTML = '✅ Alpine.js module imported successfully';
+            
+            // Test VagrantAPI import
+            try {
+                const { VagrantAPI } = await import('/services/api.js');
+                moduleTest.innerHTML += '<br>✅ VagrantAPI imported successfully';
+                
+                // Test API instantiation
+                const api = new VagrantAPI();
+                moduleTest.innerHTML += '<br>✅ VagrantAPI instantiated successfully';
+                
+            } catch (apiError) {
+                moduleTest.innerHTML += '<br>❌ VagrantAPI import failed: ' + apiError.message;
+            }
+            
+        } catch (alpineError) {
+            moduleTest.innerHTML = '❌ Alpine.js import failed: ' + alpineError.message;
+        }
+
+        // Test console for errors
+        const originalError = console.error;
+        const errors = [];
+        console.error = function(...args) {
+            errors.push(args.join(' '));
+            originalError.apply(console, args);
+        };
+
+        setTimeout(() => {
+            if (errors.length > 0) {
+                document.body.innerHTML += '<div class="test error"><h3>Console Errors:</h3><pre>' + errors.join('\n') + '</pre></div>';
+            }
+        }, 2000);
+    </script>
+
+    <script type="module" src="./main.js"></script>
+</body>
+</html>

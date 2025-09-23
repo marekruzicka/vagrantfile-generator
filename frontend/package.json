@@ -1,0 +1,22 @@
+{
+  "name": "vagrantfile-generator-frontend",
+  "version": "0.1.0",
+  "description": "Frontend for Vagrantfile Generator",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "tailwind": "tailwindcss -i ./src/styles/input.css -o ./src/styles/output.css",
+    "tailwind:watch": "tailwindcss -i ./src/styles/input.css -o ./src/styles/output.css --watch"
+  },
+  "devDependencies": {
+    "vite": "^5.0.0",
+    "tailwindcss": "^3.3.0",
+    "autoprefixer": "^10.4.0",
+    "postcss": "^8.4.0",
+    "@tailwindcss/forms": "^0.5.0"
+  },
+  "dependencies": {
+    "alpinejs": "^3.13.0"
+  }
+}
