@@ -1236,19 +1236,17 @@
                                     <span class="text-sm font-medium text-gray-600">Box:</span>
                                     <span class="text-sm text-gray-900 font-mono bg-gray-100 px-2 py-1 rounded" x-text="vm.box"></span>
                                 </div>
-                                <div class="grid grid-cols-2 gap-3">
-                                    <div class="flex items-center justify-between">
-                                        <span class="text-sm font-medium text-gray-600">Memory:</span>
-                                        <span class="text-sm text-gray-900" x-text="`${vm.memory} MB`"></span>
-                                    </div>
-                                    <div class="flex items-center justify-between">
-                                        <span class="text-sm font-medium text-gray-600">CPUs:</span>
-                                        <span class="text-sm text-gray-900" x-text="vm.cpus"></span>
-                                    </div>
+                                <div class="flex items-center justify-between">
+                                    <span class="text-sm font-medium text-gray-600">Memory:</span>
+                                    <span class="text-sm text-gray-900 font-semibold" x-text="`${vm.memory} MB`"></span>
+                                </div>
+                                <div class="flex items-center justify-between">
+                                    <span class="text-sm font-medium text-gray-600">CPUs:</span>
+                                    <span class="text-sm text-gray-900 font-semibold" x-text="vm.cpus"></span>
                                 </div>
                                 <div x-show="vm.hostname" class="flex items-center justify-between">
                                     <span class="text-sm font-medium text-gray-600">Hostname:</span>
-                                    <span class="text-sm text-gray-900" x-text="vm.hostname"></span>
+                                    <span class="text-sm text-gray-900 font-semibold" x-text="vm.hostname"></span>
                                 </div>
                             </div>
                         </div>
