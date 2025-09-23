@@ -27,15 +27,19 @@ const VagrantUIHelpers = {
             app.validationErrors.box = 'Box selection is required';
         }
         
-        if (vm.memory < app.config.minMemoryMB) {
+        // Convert memory to number for proper comparison
+        const memoryValue = parseInt(vm.memory) || 0;
+        if (memoryValue < app.config.minMemoryMB) {
             app.validationErrors.memory = `Memory must be at least ${app.config.minMemoryMB} MB`;
-        } else if (vm.memory > app.config.maxMemoryMB) {
+        } else if (memoryValue > app.config.maxMemoryMB) {
             app.validationErrors.memory = `Memory cannot exceed ${app.config.maxMemoryMB} MB (${app.config.maxMemoryMB / 1024} GB)`;
         }
         
-        if (vm.cpus < 1) {
+        // Convert cpus to number for proper comparison
+        const cpusValue = parseInt(vm.cpus) || 0;
+        if (cpusValue < 1) {
             app.validationErrors.cpus = 'Must have at least 1 CPU';
-        } else if (vm.cpus > app.config.maxCpus) {
+        } else if (cpusValue > app.config.maxCpus) {
             app.validationErrors.cpus = `Cannot exceed ${app.config.maxCpus} CPUs`;
         }
         

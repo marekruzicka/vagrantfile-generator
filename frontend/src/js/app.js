@@ -313,6 +313,10 @@ function vagrantApp() {
                 for (let i = 1; i <= count; i++) {
                     const vmData = { ...this.newVM };
                     
+                    // Ensure numeric values
+                    vmData.memory = parseInt(vmData.memory) || 1024;
+                    vmData.cpus = parseInt(vmData.cpus) || 1;
+                    
                     // Remove count from VM data
                     delete vmData.count;
                     
@@ -357,6 +361,11 @@ function vagrantApp() {
                 
                 // Create a clean VM object without the originalName property
                 const vmData = { ...this.editingVM };
+                
+                // Ensure numeric values
+                vmData.memory = parseInt(vmData.memory) || 1024;
+                vmData.cpus = parseInt(vmData.cpus) || 1;
+                
                 delete vmData.originalName;
                 
                 const vm = await api.updateVM(this.currentProject.id, originalName, vmData);
