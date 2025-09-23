@@ -295,6 +295,13 @@
             async deleteVM(projectId, vmName) { return this.request(`/projects/${projectId}/vms/${vmName}`, { method: 'DELETE' }); }
             async generateVagrantfile(projectId) { return this.request(`/projects/${projectId}/generate`, { method: 'POST' }); }
             async getBoxes() { return this.request('/vagrant/boxes'); }
+            
+            // Box management methods
+            async getBoxesList() { return this.request('/boxes'); }
+            async getBox(id) { return this.request(`/boxes/${id}`); }
+            async createBox(boxData) { return this.request('/boxes', { method: 'POST', body: boxData }); }
+            async updateBox(id, boxData) { return this.request(`/boxes/${id}`, { method: 'PUT', body: boxData }); }
+            async deleteBox(id) { return this.request(`/boxes/${id}`, { method: 'DELETE' }); }
 
             async downloadVagrantfile(projectId) {
                 const response = await fetch(`${this.baseURL}/projects/${projectId}/download`);
@@ -347,6 +354,19 @@
                 validationErrors: {},
                 activeFormSection: 'general',
                 
+                // Box management state
+                showBoxModal: false,
+                showDeleteBoxConfirmModal: false,
+                boxToDelete: null,
+                editingBox: null,
+                boxForm: {
+                    name: '',
+                    description: '',
+                    provider: 'libvirt',
+                    version: '',
+                    url: ''
+                },
+                
                 // Init
                 async init() {
                     await this.loadProjects();
@@ -355,10 +375,117 @@
                 
                 async loadBoxes() {
                     try {
-                        const result = await api.getBoxes();
-                        this.availableBoxes = result.boxes || [];
+                        const result = await api.getBoxesList();
+                        this.availableBoxes = result || [];
                     } catch (error) {
                         console.error('Failed to load boxes:', error);
+                    }
+                },
+                
+                // Box management methods
+                openAddBoxModal() {
+                    this.editingBox = null;
+                    this.boxForm = {
+                        name: '',
+                        description: '',
+                        provider: 'libvirt',
+                        version: '',
+                        url: ''
+                    };
+                    this.showBoxModal = true;
+                },
+                
+                openEditBoxModal(box) {
+                    this.editingBox = box;
+                    // Fetch full box details including version and url
+                    this.loadBoxForEdit(box.id);
+                    this.showBoxModal = true;
+                },
+                
+                async loadBoxForEdit(boxId) {
+                    try {
+                        const fullBox = await api.getBox(boxId);
+                        this.boxForm = {
+                            name: fullBox.name || '',
+                            description: fullBox.description || '',
+                            provider: fullBox.provider || 'libvirt',
+                            version: fullBox.version || '',
+                            url: fullBox.url || ''
+                        };
+                    } catch (error) {
+                        console.error('Failed to load box details:', error);
+                        // Fallback to summary data
+                        this.boxForm = {
+                            name: this.editingBox.name || '',
+                            description: this.editingBox.description || '',
+                            provider: this.editingBox.provider || 'libvirt',
+                            version: '',
+                            url: ''
+                        };
+                    }
+                },
+                
+                closeBoxModal() {
+                    this.showBoxModal = false;
+                    this.editingBox = null;
+                    this.boxForm = {
+                        name: '',
+                        description: '',
+                        provider: 'libvirt',
+                        version: '',
+                        url: ''
+                    };
+                },
+                
+                async saveBox() {
+                    try {
+                        if (!this.boxForm.name.trim() || !this.boxForm.description.trim()) {
+                            alert('Box name and description are required');
+                            return;
+                        }
+                        
+                        const boxData = {
+                            name: this.boxForm.name.trim(),
+                            description: this.boxForm.description.trim(),
+                            provider: this.boxForm.provider,
+                            version: this.boxForm.version.trim() || null,
+                            url: this.boxForm.url.trim() || null
+                        };
+                        
+                        if (this.editingBox) {
+                            await api.updateBox(this.editingBox.id, boxData);
+                        } else {
+                            await api.createBox(boxData);
+                        }
+                        
+                        await this.loadBoxes();
+                        this.closeBoxModal();
+                    } catch (error) {
+                        console.error('Failed to save box:', error);
+                        alert('Failed to save box: ' + (error.message || 'Unknown error'));
+                    }
+                },
+                
+                confirmDeleteBox(box) {
+                    this.boxToDelete = box;
+                    this.showDeleteBoxConfirmModal = true;
+                },
+                
+                closeDeleteBoxModal() {
+                    this.showDeleteBoxConfirmModal = false;
+                    this.boxToDelete = null;
+                },
+                
+                async deleteBox() {
+                    if (!this.boxToDelete) return;
+                    
+                    try {
+                        await api.deleteBox(this.boxToDelete.id);
+                        await this.loadBoxes();
+                        this.closeDeleteBoxModal();
+                    } catch (error) {
+                        console.error('Failed to delete box:', error);
+                        alert('Failed to delete box: ' + (error.message || 'Unknown error'));
                     }
                 },
                 
@@ -433,6 +560,8 @@
                     try {
                         const vm = await api.createVM(this.currentProject.id, this.newVM);
                         this.currentProject.vms.push(vm);
+                        this.syncProjectInList();
+                        
                         this.resetNewVM();
                         this.showCreateVMModal = false;
                         this.setSuccess('VM created successfully!');
@@ -448,6 +577,8 @@
                     try {
                         await api.deleteVM(this.currentProject.id, vmName);
                         this.currentProject.vms = this.currentProject.vms.filter(vm => vm.name !== vmName);
+                        this.syncProjectInList();
+                        
                         this.setSuccess('VM deleted successfully!');
                     } catch (error) {
                         this.setError('Failed to delete VM: ' + error.message);
@@ -576,16 +707,56 @@
                 async confirmDelete() {
                     if (!this.deleteTarget) return;
                     
-                    if (this.deleteTarget.type === 'project') {
-                        await this.deleteProject(this.deleteTarget.id);
-                    } else if (this.deleteTarget.type === 'vm') {
-                        await this.deleteVM(this.deleteTarget.name);
+                    this.setLoading(true);
+                    try {
+                        if (this.deleteTarget.type === 'project') {
+                            await this.deleteProject(this.deleteTarget.id);
+                            this.setSuccess(`Project "${this.deleteTarget.name}" deleted successfully`);
+                        } else if (this.deleteTarget.type === 'vm') {
+                            await this.deleteVM(this.deleteTarget.name);
+                            this.setSuccess(`VM "${this.deleteTarget.name}" deleted successfully`);
+                        }
+                        this.closeDeleteConfirmModal();
+                    } catch (error) {
+                        this.setError(`Failed to delete ${this.deleteTarget.type}: ${error.message}`);
+                    } finally {
+                        this.setLoading(false);
                     }
+                },
+
+                // Helper methods
+                syncProjectInList() {
+                    // Sync currentProject VM count back to projects list
+                    if (this.currentProject) {
+                        const projectIndex = this.projects.findIndex(p => p.id === this.currentProject.id);
+                        if (projectIndex !== -1) {
+                            this.projects[projectIndex].vm_count = this.currentProject.vms.length;
+                        }
+                    }
+                },
+                
+                getDeleteMessage() {
+                    if (!this.deleteTarget) return '';
+                    
+                    if (this.deleteTarget.type === 'project') {
+                        const vmCount = this.deleteTarget.vm_count || 0;
+                        const vmText = vmCount === 1 ? '1 VM' : `${vmCount} VMs`;
+                        return `Are you sure you want to delete the project "${this.deleteTarget.name}"? This will also delete ${vmText} and cannot be undone.`;
+                    } else if (this.deleteTarget.type === 'vm') {
+                        return `Are you sure you want to delete the VM "${this.deleteTarget.name}"? This action cannot be undone.`;
+                    }
+                    return 'Are you sure you want to delete this item?';
                 },
 
                 // Navigation
                 showProjects() {
                     this.currentView = 'projects';
+                    this.currentProject = null;
+                    this.clearMessages();
+                },
+
+                showSettings() {
+                    this.currentView = 'settings';
                     this.currentProject = null;
                     this.clearMessages();
                 },
@@ -664,6 +835,11 @@
                                 <a @click="showProjects()" 
                                    :class="currentView === 'projects' ? 'text-blue-600 font-semibold' : 'text-gray-500 hover:text-gray-700'"
                                    class="cursor-pointer transition-colors">Projects</a>
+                            </li>
+                            <li>
+                                <a @click="showSettings()" 
+                                   :class="currentView === 'settings' ? 'text-blue-600 font-semibold' : 'text-gray-500 hover:text-gray-700'"
+                                   class="cursor-pointer transition-colors">Settings</a>
                             </li>
                             <li x-show="currentView === 'project-detail'" class="flex items-center">
                                 <svg class="w-4 h-4 text-gray-400 mx-2" fill="currentColor" viewBox="0 0 20 20">
@@ -843,9 +1019,9 @@
                                     <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
                                         <path fill-rule="evenodd" d="M3 5a2 2 0 012-2h10a2 2 0 012 2v8a2 2 0 01-2 2h-2.22l.123.489.804.804A1 1 0 0113 18H7a1 1 0 01-.707-1.707l.804-.804L7.22 15H5a2 2 0 01-2-2V5zm5.771 7H5V5h10v7H8.771z" clip-rule="evenodd"></path>
                                     </svg>
-                                    <span class="text-sm font-medium" x-text="`${project.vms ? project.vms.length : 0} VMs`"></span>
+                                    <span class="text-sm font-medium" x-text="`${project.vm_count || 0} VMs`"></span>
                                 </div>
-                                <div x-show="project.vms && project.vms.length > 0" class="status-badge bg-green-100 text-green-800">
+                                <div x-show="project.vm_count > 0" class="status-badge bg-green-100 text-green-800">
                                     <div class="w-2 h-2 bg-green-500 rounded-full mr-2"></div>
                                     <span class="text-xs">Ready</span>
                                 </div>
@@ -1003,6 +1179,150 @@
                 </div>
             </div>
         </div>
+
+        <!-- Settings View -->
+        <div x-show="currentView === 'settings'" class="space-y-8">
+            <!-- Settings Header -->
+            <div class="card">
+                <div class="flex items-center justify-between mb-6">
+                    <div class="flex items-center space-x-4">
+                        <button @click="showProjects()" 
+                                class="text-gray-500 hover:text-gray-700 p-2 rounded-lg hover:bg-gray-100 transition-colors">
+                            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clip-rule="evenodd"></path>
+                            </svg>
+                        </button>
+                        <div>
+                            <h2 class="text-3xl font-bold text-gray-900">Settings</h2>
+                            <p class="text-gray-600 mt-1">Configure Vagrant boxes and application preferences</p>
+                        </div>
+                    </div>
+                    <div class="flex items-center space-x-3">
+                        <button @click="loadBoxes()" class="btn btn-primary">
+                            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z" clip-rule="evenodd"></path>
+                            </svg>
+                            Refresh Boxes
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Vagrant Boxes Section -->
+            <div class="card">
+                <div class="flex justify-between items-center mb-6">
+                    <div>
+                        <h3 class="text-2xl font-bold text-gray-900">Vagrant Boxes</h3>
+                        <p class="text-gray-600 mt-1">Manage available box images for virtual machines</p>
+                    </div>
+                    <div class="flex items-center space-x-3">
+                        <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800">
+                            <span x-text="`${availableBoxes.length} boxes available`"></span>
+                        </span>
+                        <button @click="openAddBoxModal()" class="btn btn-primary">
+                            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd"></path>
+                            </svg>
+                            Add Box
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Boxes Grid -->
+                <div x-show="availableBoxes.length > 0" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <template x-for="box in availableBoxes" :key="box.id">
+                        <div class="border border-gray-200 rounded-lg p-4 hover:border-blue-300 transition-colors">
+                            <div class="flex items-start justify-between mb-3">
+                                <div class="flex items-center space-x-3">
+                                    <div class="w-10 h-10 bg-gradient-to-br from-purple-500 to-blue-600 rounded-lg flex items-center justify-center">
+                                        <svg class="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
+                                            <path fill-rule="evenodd" d="M2 5a2 2 0 012-2h8a2 2 0 012 2v10a2 2 0 002 2H4a2 2 0 01-2-2V5zm3 1h6v4H5V6zm6 6H5v2h6v-2z" clip-rule="evenodd"></path>
+                                            <path d="M15 7h1a2 2 0 012 2v5.5a1.5 1.5 0 01-3 0V9a1 1 0 00-1-1h-1v1z"></path>
+                                        </svg>
+                                    </div>
+                                    <div>
+                                        <h4 class="text-lg font-semibold text-gray-900" x-text="box.name"></h4>
+                                        <p class="text-sm text-gray-500" x-text="box.provider"></p>
+                                    </div>
+                                </div>
+                                <div class="flex space-x-1">
+                                    <button @click="openEditBoxModal(box)" 
+                                            class="p-1 text-gray-400 hover:text-blue-600 transition-colors">
+                                        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                            <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z"></path>
+                                        </svg>
+                                    </button>
+                                    <button @click="confirmDeleteBox(box)" 
+                                            class="p-1 text-gray-400 hover:text-red-600 transition-colors">
+                                        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                            <path fill-rule="evenodd" d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z" clip-rule="evenodd"></path>
+                                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8 7a1 1 0 012 0v4a1 1 0 11-2 0V7zM12 7a1 1 0 012 0v4a1 1 0 11-2 0V7z" clip-rule="evenodd"></path>
+                                        </svg>
+                                    </button>
+                                </div>
+                            </div>
+                            <p class="text-gray-600 text-sm mb-3" x-text="box.description"></p>
+                            <div class="flex items-center justify-between">
+                                <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                    Available
+                                </span>
+                                <div x-show="box.version" class="text-xs text-gray-500">
+                                    v<span x-text="box.version"></span>
+                                </div>
+                            </div>
+                        </div>
+                    </template>
+                </div>
+
+                <!-- Empty Boxes State -->
+                <div x-show="availableBoxes.length === 0" class="text-center py-12">
+                    <div class="mx-auto h-24 w-24 bg-gradient-to-br from-gray-100 to-gray-200 rounded-full flex items-center justify-center mb-6">
+                        <svg class="h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path>
+                        </svg>
+                    </div>
+                    <h3 class="text-lg font-medium text-gray-900 mb-2">No boxes available</h3>
+                    <p class="text-gray-500 mb-6">Add your first Vagrant box to get started.</p>
+                    <button @click="openAddBoxModal()" class="btn btn-primary">
+                        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd"></path>
+                        </svg>
+                        Add First Box
+                    </button>
+                </div>
+            </div>
+
+            <!-- Future Settings Sections -->
+            <div class="card opacity-60">
+                <h3 class="text-xl font-bold text-gray-900 mb-4">Coming Soon</h3>
+                <div class="space-y-3 text-gray-600">
+                    <p class="flex items-center space-x-2">
+                        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
+                        </svg>
+                        <span>Custom box repositories</span>
+                    </p>
+                    <p class="flex items-center space-x-2">
+                        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
+                        </svg>
+                        <span>Default VM configurations</span>
+                    </p>
+                    <p class="flex items-center space-x-2">
+                        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
+                        </svg>
+                        <span>Project templates</span>
+                    </p>
+                    <p class="flex items-center space-x-2">
+                        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
+                        </svg>
+                        <span>Import/Export configurations</span>
+                    </p>
+                </div>
+            </div>
+        </div>
     </main>
 
     <!-- Modals -->
@@ -1066,8 +1386,8 @@
                                 <select x-model="newVM.box" required
                                         class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
                                     <option value="">Select a box...</option>
-                                    <template x-for="box in availableBoxes" :key="box">
-                                        <option :value="box" x-text="box"></option>
+                                    <template x-for="box in availableBoxes" :key="box.name">
+                                        <option :value="box.name" x-text="`${box.name} - ${box.description}`"></option>
                                     </template>
                                 </select>
                             </div>
@@ -1136,7 +1456,7 @@
     </div>
 
     <!-- Delete Confirmation Modal -->
-    <div x-show="showDeleteModal" class="modal-overlay" @click.self="showDeleteModal = false">
+    <div x-show="showDeleteConfirmModal" class="modal-overlay" @click.self="closeDeleteConfirmModal()">
         <div class="modal-content max-w-md">
             <div class="p-6">
                 <div class="flex items-center justify-center w-12 h-12 mx-auto mb-4 bg-red-100 rounded-full">
@@ -1145,11 +1465,162 @@
                     </svg>
                 </div>
                 <h3 class="text-lg font-semibold text-gray-900 text-center mb-2">Confirm Deletion</h3>
-                <p class="text-gray-600 text-center mb-6" x-text="deleteMessage"></p>
+                <p class="text-gray-600 text-center mb-6" x-text="getDeleteMessage()"></p>
                 <div class="flex justify-center space-x-3">
-                    <button @click="showDeleteModal = false" class="btn btn-secondary">Cancel</button>
-                    <button @click="confirmDelete()" class="btn btn-danger">Delete</button>
+                    <button @click="closeDeleteConfirmModal()" class="btn btn-secondary">Cancel</button>
+                    <button @click="confirmDelete()" class="btn btn-danger" :disabled="isLoading">
+                        <span x-show="!isLoading">Delete</span>
+                        <span x-show="isLoading" class="flex items-center">
+                            <div class="loading-spinner w-4 h-4 mr-2"></div>
+                            Deleting...
+                        </span>
+                    </button>
                 </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Box Add/Edit Modal -->
+    <div x-show="showBoxModal" 
+         x-transition:enter="transition ease-out duration-200"
+         x-transition:enter-start="opacity-0"
+         x-transition:enter-end="opacity-100"
+         x-transition:leave="transition ease-in duration-200"
+         x-transition:leave-start="opacity-100"
+         x-transition:leave-end="opacity-0"
+         class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div x-show="showBoxModal"
+             x-transition:enter="transition ease-out duration-200"
+             x-transition:enter-start="opacity-0 scale-95"
+             x-transition:enter-end="opacity-100 scale-100"
+             x-transition:leave="transition ease-in duration-200"
+             x-transition:leave-start="opacity-100 scale-100"
+             x-transition:leave-end="opacity-0 scale-95"
+             class="bg-white rounded-lg p-6 w-full max-w-md max-h-screen overflow-y-auto">
+            <div class="flex justify-between items-center mb-6">
+                <h3 class="text-xl font-bold text-gray-900" x-text="editingBox ? 'Edit Box' : 'Add New Box'"></h3>
+                <button @click="closeBoxModal()" class="text-gray-400 hover:text-gray-600">
+                    <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"></path>
+                    </svg>
+                </button>
+            </div>
+            
+            <form @submit.prevent="saveBox()" class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">
+                        Box Name <span class="text-red-500">*</span>
+                    </label>
+                    <input type="text" 
+                           x-model="boxForm.name"
+                           placeholder="e.g., generic/ubuntu2204"
+                           class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                           required>
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">
+                        Description <span class="text-red-500">*</span>
+                    </label>
+                    <textarea x-model="boxForm.description"
+                              placeholder="Brief description of the box"
+                              rows="3"
+                              class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                              required></textarea>
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">
+                        Provider
+                    </label>
+                    <select x-model="boxForm.provider" 
+                            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <option value="libvirt">libvirt</option>
+                        <option value="virtualbox">VirtualBox</option>
+                        <option value="vmware">VMware</option>
+                        <option value="hyperv">Hyper-V</option>
+                    </select>
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">
+                        Version (optional)
+                    </label>
+                    <input type="text" 
+                           x-model="boxForm.version"
+                           placeholder="e.g., 20230616.0.0"
+                           class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">
+                        Custom URL (optional)
+                    </label>
+                    <input type="url" 
+                           x-model="boxForm.url"
+                           placeholder="https://example.com/custom-box.box"
+                           class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                </div>
+                
+                <div class="flex justify-end space-x-3 pt-4">
+                    <button type="button" @click="closeBoxModal()" 
+                            class="px-4 py-2 text-gray-700 bg-gray-200 rounded-md hover:bg-gray-300 transition-colors">
+                        Cancel
+                    </button>
+                    <button type="submit" 
+                            class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors">
+                        <span x-text="editingBox ? 'Update Box' : 'Add Box'"></span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Delete Box Confirmation Modal -->
+    <div x-show="showDeleteBoxConfirmModal" 
+         x-transition:enter="transition ease-out duration-200"
+         x-transition:enter-start="opacity-0"
+         x-transition:enter-end="opacity-100"
+         x-transition:leave="transition ease-in duration-200"
+         x-transition:leave-start="opacity-100"
+         x-transition:leave-end="opacity-0"
+         class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div x-show="showDeleteBoxConfirmModal"
+             x-transition:enter="transition ease-out duration-200"
+             x-transition:enter-start="opacity-0 scale-95"
+             x-transition:enter-end="opacity-100 scale-100"
+             x-transition:leave="transition ease-in duration-200"
+             x-transition:leave-start="opacity-100 scale-100"
+             x-transition:leave-end="opacity-0 scale-95"
+             class="bg-white rounded-lg p-6 w-full max-w-md">
+            <div class="flex items-center mb-4">
+                <div class="flex-shrink-0 w-10 h-10 bg-red-100 rounded-full flex items-center justify-center">
+                    <svg class="w-6 h-6 text-red-600" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"></path>
+                    </svg>
+                </div>
+                <div class="ml-4">
+                    <h3 class="text-lg font-medium text-gray-900">Delete Box</h3>
+                    <p class="text-sm text-gray-500">This action cannot be undone.</p>
+                </div>
+            </div>
+            
+            <div class="mb-6">
+                <p class="text-gray-700">
+                    Are you sure you want to delete the box 
+                    <span class="font-medium" x-text="boxToDelete?.name"></span>?
+                </p>
+            </div>
+            
+            <div class="flex justify-end space-x-3">
+                <button @click="closeDeleteBoxModal()" 
+                        class="px-4 py-2 text-gray-700 bg-gray-200 rounded-md hover:bg-gray-300 transition-colors">
+                    Cancel
+                </button>
+                <button @click="deleteBox()" 
+                        class="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors">
+                    Delete Box
+                </button>
             </div>
         </div>
     </div>

@@ -10,7 +10,9 @@ from typing import Dict, Any
 from fastapi import APIRouter, HTTPException, Depends
 from fastapi.responses import PlainTextResponse
 
-from ..services import ProjectService, ProjectNotFoundError, VagrantfileGenerator
+from ..services.vagrantfile_generator import VagrantfileGenerator
+from ..services.box_service import BoxService
+from ..services.project_service import ProjectService, ProjectNotFoundError
 
 router = APIRouter()
 
@@ -64,42 +66,15 @@ async def download_vagrantfile(
 @router.get("/vagrant/boxes", response_model=dict)
 async def get_vagrant_boxes():
     """Get list of popular Vagrant boxes for autocomplete."""
-    # This is a static list for now, in production this could come from
-    # Vagrant Cloud API or a configurable list
-    boxes = [
-        {
-            "name": "generic/ubuntu2204",
-            "description": "Ubuntu 22.04 LTS (Jammy Jellyfish)",
-            "provider": "libvirt"
-        },
-        {
-            "name": "generic/ubuntu2004",
-            "description": "Ubuntu 20.04 LTS (Focal Fossa)",
-            "provider": "libvirt"
-        },
-        {
-            "name": "generic/centos7",
-            "description": "CentOS 7",
-            "provider": "libvirt"
-        },
-        {
-            "name": "generic/debian12",
-            "description": "Debian 12 (Bookworm)",
-            "provider": "libvirt"
-        },
-        {
-            "name": "generic/alpine318",
-            "description": "Alpine Linux 3.18",
-            "provider": "libvirt"
-        },
-        {
-            "name": "generic/fedora38",
-            "description": "Fedora 38",
-            "provider": "libvirt"
-        }
-    ]
-    
-    return {"boxes": boxes}
+    try:
+        box_service = BoxService()
+        boxes = box_service.get_boxes_for_api()
+        return {"boxes": boxes}
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to get boxes: {str(e)}"
+        )
 
 @router.get("/vagrant/plugins", response_model=dict)
 async def get_vagrant_plugins():

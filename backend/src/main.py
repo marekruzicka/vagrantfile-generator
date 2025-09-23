@@ -10,6 +10,7 @@ from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
 
 from .api import projects_router, vms_router, generation_router
+from .api.boxes import router as boxes_router
 from .services import ProjectNotFoundError
 
 # Create FastAPI application
@@ -34,6 +35,7 @@ app.add_middleware(
 app.include_router(projects_router, prefix="/api", tags=["projects"])
 app.include_router(vms_router, prefix="/api", tags=["vms"])
 app.include_router(generation_router, prefix="/api", tags=["generation"])
+app.include_router(boxes_router, prefix="/api", tags=["boxes"])
 
 # Global exception handlers
 @app.exception_handler(ProjectNotFoundError)
