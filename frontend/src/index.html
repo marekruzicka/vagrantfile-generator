@@ -788,17 +788,21 @@
                                 <label class="block text-sm font-medium text-gray-700 mb-2">VM Name</label>
                                 <input type="text" x-model="newVM.name" required
                                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                       :class="{ 'border-red-300': validationErrors.name }"
                                        placeholder="vm-name">
+                                <p x-show="validationErrors.name" class="text-xs text-red-600 mt-1" x-text="validationErrors.name"></p>
                             </div>
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 mb-2">Box</label>
                                 <select x-model="newVM.box" required
-                                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                        :class="{ 'border-red-300': validationErrors.box }">
                                     <option value="">Select a box...</option>
                                     <template x-for="box in availableBoxes" :key="box.name">
                                         <option :value="box.name" x-text="`${box.name} - ${box.description}`"></option>
                                     </template>
                                 </select>
+                                <p x-show="validationErrors.box" class="text-xs text-red-600 mt-1" x-text="validationErrors.box"></p>
                             </div>
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 mb-2">Hostname</label>
@@ -884,13 +888,17 @@
                                 <label class="block text-sm font-medium text-gray-700 mb-2">Memory (MB)</label>
                                 <input type="number" x-model.number="newVM.memory" :min="config.minMemoryMB" :max="config.maxMemoryMB" :step="config.memoryStep" required
                                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                       :class="{ 'border-red-300': validationErrors.memory }"
                                        placeholder="1024">
+                                <p x-show="validationErrors.memory" class="text-xs text-red-600 mt-1" x-text="validationErrors.memory"></p>
                             </div>
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 mb-2">CPUs</label>
                                 <input type="number" x-model.number="newVM.cpus" min="1" :max="config.maxCpus" required
                                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                       :class="{ 'border-red-300': validationErrors.cpus }"
                                        placeholder="2">
+                                <p x-show="validationErrors.cpus" class="text-xs text-red-600 mt-1" x-text="validationErrors.cpus"></p>
                             </div>
                         </div>
                         
@@ -947,7 +955,11 @@
                                                         <label class="block text-xs font-medium text-gray-600 mb-1">IP Address</label>
                                                         <input type="text" x-model="interface.ip_address" 
                                                                placeholder="192.168.33.10"
-                                                               class="w-full text-sm px-2 py-1 border border-gray-300 rounded">
+                                                               class="w-full text-sm px-2 py-1 border border-gray-300 rounded"
+                                                               :class="{ 'border-red-300': validationErrors.network_interfaces && validationErrors.network_interfaces[index] && validationErrors.network_interfaces[index].ip_address }">
+                                                        <p x-show="validationErrors.network_interfaces && validationErrors.network_interfaces[index] && validationErrors.network_interfaces[index].ip_address" 
+                                                           class="text-xs text-red-600 mt-1" 
+                                                           x-text="validationErrors.network_interfaces && validationErrors.network_interfaces[index] && validationErrors.network_interfaces[index].ip_address"></p>
                                                     </div>
                                                     <div>
                                                         <label class="block text-xs font-medium text-gray-600 mb-1">Netmask</label>
@@ -1009,6 +1021,39 @@
                     </div>
                 </div>
 
+                <!-- Validation Errors Display -->
+                <div x-show="Object.keys(validationErrors).length > 0" class="mt-6 p-4 bg-red-50 border border-red-200 rounded-lg">
+                    <h4 class="text-sm font-medium text-red-800 mb-2">Please correct the following errors:</h4>
+                    <div class="space-y-1">
+                        <!-- Basic field errors -->
+                        <template x-for="(error, field) in validationErrors" :key="field">
+                            <div x-show="typeof error === 'string'">
+                                <p class="text-xs text-red-700">
+                                    <span class="font-medium capitalize" x-text="field.replace('_', ' ')"></span>: 
+                                    <span x-text="error"></span>
+                                </p>
+                            </div>
+                        </template>
+                        
+                        <!-- Network interface errors -->
+                        <template x-if="validationErrors.network_interfaces">
+                            <div class="space-y-1">
+                                <template x-for="(interfaceErrors, index) in validationErrors.network_interfaces" :key="index">
+                                    <div>
+                                        <template x-for="(error, field) in interfaceErrors" :key="field">
+                                            <p class="text-xs text-red-700">
+                                                <span class="font-medium">Interface</span> <span x-text="parseInt(index) + 1"></span> 
+                                                <span class="font-medium" x-text="field.replace('_', ' ')"></span>: 
+                                                <span x-text="error"></span>
+                                            </p>
+                                        </template>
+                                    </div>
+                                </template>
+                            </div>
+                        </template>
+                    </div>
+                </div>
+
                 <div class="flex justify-end space-x-3 pt-6 border-t border-gray-200 mt-8">
                     <button type="button" @click="showCreateVMModal = false" class="btn btn-secondary">Cancel</button>
                     <button type="submit" class="btn btn-success">Add VM</button>
@@ -1018,11 +1063,11 @@
     </div>
 
     <!-- Edit VM Modal -->
-    <div x-show="showEditVMModal" class="modal-overlay" @click.self="showEditVMModal = false">
+    <div x-show="showEditVMModal" class="modal-overlay" @click.self="closeEditVMModal()">
         <div class="modal-content max-w-4xl">
             <div class="flex items-center justify-between p-6 border-b border-gray-200">
                 <h3 class="text-lg font-semibold text-gray-900">Edit Virtual Machine</h3>
-                <button @click="showEditVMModal = false" class="text-gray-400 hover:text-gray-600">
+                <button @click="closeEditVMModal()" class="text-gray-400 hover:text-gray-600">
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
                     </svg>
@@ -1143,7 +1188,7 @@
                                 </button>
                             </div>
                             
-                            <div x-show="editingVM.network_interfaces && editingVM.network_interfaces.length > 0" class="space-y-3">
+                                            <div x-show="editingVM.network_interfaces && editingVM.network_interfaces.length > 0" class="space-y-3">
                                 <template x-for="(interface, index) in editingVM.network_interfaces" :key="index">
                                     <div class="border border-gray-200 rounded-lg p-4 bg-gray-50">
                                         <div class="flex items-center justify-between mb-3">
@@ -1183,7 +1228,11 @@
                                                         <label class="block text-xs font-medium text-gray-600 mb-1">IP Address</label>
                                                         <input type="text" x-model="interface.ip_address" 
                                                                placeholder="192.168.33.10"
-                                                               class="w-full text-sm px-2 py-1 border border-gray-300 rounded">
+                                                               class="w-full text-sm px-2 py-1 border border-gray-300 rounded"
+                                                               :class="{ 'border-red-300': validationErrors.network_interfaces && validationErrors.network_interfaces[index] && validationErrors.network_interfaces[index].ip_address }">
+                                                        <p x-show="validationErrors.network_interfaces && validationErrors.network_interfaces[index] && validationErrors.network_interfaces[index].ip_address" 
+                                                           class="text-xs text-red-600 mt-1" 
+                                                           x-text="validationErrors.network_interfaces && validationErrors.network_interfaces[index] && validationErrors.network_interfaces[index].ip_address"></p>
                                                     </div>
                                                     <div>
                                                         <label class="block text-xs font-medium text-gray-600 mb-1">Netmask</label>
@@ -1245,8 +1294,41 @@
                     </div>
                 </div>
 
+                <!-- Validation Errors Display -->
+                <div x-show="Object.keys(validationErrors).length > 0" class="mt-6 p-4 bg-red-50 border border-red-200 rounded-lg">
+                    <h4 class="text-sm font-medium text-red-800 mb-2">Please correct the following errors:</h4>
+                    <div class="space-y-1">
+                        <!-- Basic field errors -->
+                        <template x-for="(error, field) in validationErrors" :key="field">
+                            <div x-show="typeof error === 'string'">
+                                <p class="text-xs text-red-700">
+                                    <span class="font-medium capitalize" x-text="field.replace('_', ' ')"></span>: 
+                                    <span x-text="error"></span>
+                                </p>
+                            </div>
+                        </template>
+                        
+                        <!-- Network interface errors -->
+                        <template x-if="validationErrors.network_interfaces">
+                            <div class="space-y-1">
+                                <template x-for="(interfaceErrors, index) in validationErrors.network_interfaces" :key="index">
+                                    <div>
+                                        <template x-for="(error, field) in interfaceErrors" :key="field">
+                                            <p class="text-xs text-red-700">
+                                                <span class="font-medium">Interface</span> <span x-text="parseInt(index) + 1"></span> 
+                                                <span class="font-medium" x-text="field.replace('_', ' ')"></span>: 
+                                                <span x-text="error"></span>
+                                            </p>
+                                        </template>
+                                    </div>
+                                </template>
+                            </div>
+                        </template>
+                    </div>
+                </div>
+
                 <div class="flex justify-end space-x-3 pt-6 border-t border-gray-200 mt-8">
-                    <button type="button" @click="showEditVMModal = false" class="btn btn-secondary">Cancel</button>
+                    <button type="button" @click="closeEditVMModal()" class="btn btn-secondary">Cancel</button>
                     <button type="submit" class="btn btn-primary">Update VM</button>
                 </div>
             </form>

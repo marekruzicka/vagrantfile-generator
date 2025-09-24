@@ -478,8 +478,7 @@ function vagrantApp() {
                 
                 this.syncProjectInList();
                 
-                this.showEditVMModal = false;
-                this.editingVM = null;
+                this.closeEditVMModal();
                 this.setSuccess('VM updated successfully!');
             } catch (error) {
                 console.error('UpdateVM Error:', error);
@@ -623,6 +622,7 @@ function vagrantApp() {
         openCreateProjectModal() { VagrantUIHelpers.openCreateProjectModal(this); },
         openCreateVMModal() { VagrantUIHelpers.openCreateVMModal(this); },
         openEditVMModal(vm) { VagrantUIHelpers.openEditVMModal(this, vm); },
+        closeEditVMModal() { VagrantUIHelpers.closeEditVMModal(this); },
         openDeleteConfirmModal(target, type) { VagrantUIHelpers.openDeleteConfirmModal(this, target, type); },
         closeDeleteConfirmModal() { VagrantUIHelpers.closeDeleteConfirmModal(this); },
         async confirmDelete() { return VagrantUIHelpers.confirmDelete(this); },

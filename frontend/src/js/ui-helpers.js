@@ -369,7 +369,10 @@ const VagrantUIHelpers = {
     },
     
     openEditVMModal(app, vm) {
-        app.editingVM = { ...vm, originalName: vm.name };
+        // Create a deep copy to avoid modifying the original VM data
+        app.editingVM = JSON.parse(JSON.stringify(vm));
+        app.editingVM.originalName = vm.name;
+        
         // Ensure labels is always an array
         if (!app.editingVM.labels || !Array.isArray(app.editingVM.labels)) {
             app.editingVM.labels = [];
@@ -381,6 +384,12 @@ const VagrantUIHelpers = {
         app.validationErrors = {};
         app.activeFormSection = 'general';
         app.showEditVMModal = true;
+    },
+
+    closeEditVMModal(app) {
+        app.showEditVMModal = false;
+        app.validationErrors = {};
+        app.editingVM = null;
     },
     
     openDeleteConfirmModal(app, target, type) {
