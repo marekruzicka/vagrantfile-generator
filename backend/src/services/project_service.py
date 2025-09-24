@@ -12,7 +12,7 @@ from pathlib import Path
 from typing import List, Optional, Dict, Any
 from uuid import UUID
 
-from ..models import Project, ProjectCreate, ProjectUpdate, ProjectSummary, VirtualMachine
+from ..models import Project, ProjectCreate, ProjectUpdate, ProjectSummary, VirtualMachine, NetworkInterface
 
 
 class ProjectNotFoundError(Exception):
@@ -37,8 +37,19 @@ class ProjectService:
         """Get the file path for a project's JSON file."""
         return self.data_dir / f"{project_id}.json"
 
+    def _construct_vm_without_validation(self, vm_data: Dict[str, Any]) -> VirtualMachine:
+        """Construct a VirtualMachine without validation for backward compatibility."""
+        # Handle network interfaces separately
+        network_interfaces = []
+        if 'network_interfaces' in vm_data:
+            for ni_data in vm_data['network_interfaces']:
+                network_interfaces.append(NetworkInterface.construct(**ni_data))
+            vm_data = {**vm_data, 'network_interfaces': network_interfaces}
+        
+        return VirtualMachine.construct(**vm_data)
+
     def _load_project_from_file(self, project_id: UUID) -> Project:
-        """Load a project from its JSON file."""
+        """Load a project from its JSON file with minimal validation for backward compatibility."""
         file_path = self._get_project_file_path(project_id)
         
         if not file_path.exists():
@@ -48,7 +59,22 @@ class ProjectService:
             with open(file_path, 'r', encoding='utf-8') as f:
                 data = json.load(f)
             
-            return Project(**data)
+            # Convert datetime strings to datetime objects if they exist
+            if 'created_at' in data and isinstance(data['created_at'], str):
+                data['created_at'] = datetime.fromisoformat(data['created_at'].replace('Z', '+00:00'))
+            if 'updated_at' in data and isinstance(data['updated_at'], str):
+                data['updated_at'] = datetime.fromisoformat(data['updated_at'].replace('Z', '+00:00'))
+            
+            # Handle VMs separately to avoid validation issues
+            vms = []
+            if 'vms' in data:
+                for vm_data in data['vms']:
+                    vms.append(self._construct_vm_without_validation(vm_data))
+                data = {**data, 'vms': vms}
+            
+            # Use construct() to create model without validation for existing data
+            # This maintains backward compatibility with legacy projects
+            return Project.construct(**data)
         except (json.JSONDecodeError, ValueError) as e:
             raise ValueError(f"Invalid project data in {file_path}: {e}")
 
