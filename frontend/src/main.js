@@ -14,13 +14,27 @@ function vagrantApp() {
     currentView: 'projects', // projects, project-detail
     isLoading: false,
     error: null,
+    availableBoxes: [],
     
     // Modal states
     showCreateProjectModal: false,
     showCreateVMModal: false,
     showVagrantfileModal: false,
     showDeleteConfirmModal: false,
+    showBoxModal: false,
+    showDeleteBoxConfirmModal: false,
     deleteTarget: null,
+    
+    // Box management state
+    editingBox: null,
+    boxToDelete: null,
+    boxForm: {
+      name: '',
+      description: '',
+      provider: 'libvirt',
+      version: '',
+      url: ''
+    },
     
     // Form data
     newProject: {
@@ -40,9 +54,20 @@ function vagrantApp() {
     // Generated Vagrantfile content
     vagrantfileContent: '',
     
+    // Configuration settings
+    config: {
+      allowPublicIPsInPrivateNetworks: false,
+      maxCpus: 8,
+      maxMemoryMB: 16384,
+      minMemoryMB: 512,
+      memoryStep: 256
+    },
+    
     // Initialization
     async init() {
+      console.log('Vagrantfile app initializing, currentView:', this.currentView)
       await this.loadProjects()
+      console.log('Vagrantfile app initialized, currentView:', this.currentView)
     },
     
     // Project Management
@@ -294,6 +319,58 @@ function vagrantApp() {
       }).catch(err => {
         console.error('Failed to copy to clipboard:', err)
       })
+    },
+    
+    // Settings/Box management stub methods (to prevent Alpine.js errors)
+    loadBoxes() {
+      console.log('loadBoxes() called - stub method')
+    },
+    
+    openAddBoxModal() {
+      this.showBoxModal = true
+      this.editingBox = null
+      this.boxForm = {
+        name: '',
+        description: '',
+        provider: 'libvirt',
+        version: '',
+        url: ''
+      }
+    },
+    
+    openEditBoxModal(box) {
+      this.showBoxModal = true
+      this.editingBox = box
+      this.boxForm = { ...box }
+    },
+    
+    confirmDeleteBox(box) {
+      this.boxToDelete = box
+      this.showDeleteBoxConfirmModal = true
+    },
+    
+    closeBoxModal() {
+      this.showBoxModal = false
+      this.editingBox = null
+    },
+    
+    closeDeleteBoxModal() {
+      this.showDeleteBoxConfirmModal = false
+      this.boxToDelete = null
+    },
+    
+    deleteBox() {
+      console.log('deleteBox() called - stub method')
+      this.closeDeleteBoxModal()
+    },
+    
+    saveConfiguration() {
+      console.log('saveConfiguration() called - stub method')
+    },
+    
+    saveBox() {
+      console.log('saveBox() called - stub method')
+      this.closeBoxModal()
     }
   }
 }

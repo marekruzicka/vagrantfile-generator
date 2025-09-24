@@ -1,0 +1,24 @@
+    <div x-show="showDeleteConfirmModal" class="modal-overlay" @click.self="closeDeleteConfirmModal()">
+        <div class="modal-content max-w-md">
+            <div class="p-6">
+                <div class="flex items-center justify-center w-12 h-12 mx-auto mb-4 bg-red-100 rounded-full">
+                    <svg class="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z"></path>
+                    </svg>
+                </div>
+                <h3 class="text-lg font-semibold text-gray-900 text-center mb-2">Confirm Deletion</h3>
+                <p class="text-gray-600 text-center mb-6" x-text="getDeleteMessage()"></p>
+                <div class="flex justify-center space-x-3">
+                    <button @click="closeDeleteConfirmModal()" class="btn btn-secondary">Cancel</button>
+                    <button @click="confirmDelete()" class="btn btn-danger" :disabled="isLoading">
+                        <span x-show="!isLoading">Delete</span>
+                        <span x-show="isLoading" class="flex items-center">
+                            <div class="loading-spinner w-4 h-4 mr-2"></div>
+                            Deleting...
+                        </span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+

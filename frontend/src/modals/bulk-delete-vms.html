@@ -1,26 +1,31 @@
-                                            <span x-text="label"></span>
-                                        </button>
-                                    </template>
-                                </div>
-                            </div>
-                        </div>
-                        <p class="text-xs text-gray-500 mt-1">These labels will be <strong>added</strong> to all selected VMs (existing labels will be preserved)</p>
-                    </div>
+<!-- Bulk Delete VMs Modal -->
+<div x-show="showBulkDeleteModal" class="modal-overlay" @click.self="showBulkDeleteModal = false">
+    <div class="modal-content max-w-md">
+        <div class="p-6">
+            <div class="flex items-center justify-center w-12 h-12 mx-auto mb-4 bg-red-100 rounded-full">
+                <svg class="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.082 16.5c-.77.833.192 2.5 1.732 2.5z"></path>
+                </svg>
+            </div>
+            
+            <h3 class="text-lg font-semibold text-gray-900 text-center mb-2">Delete Multiple VMs</h3>
+            <p class="text-sm text-gray-500 text-center mb-4">
+                Are you sure you want to delete <strong x-text="selectedVMs.length"></strong> VMs? This action cannot be undone.
+            </p>
+            
+            <div class="bg-gray-50 rounded-lg p-3 mb-4">
+                <p class="text-xs text-gray-600 mb-2"><strong>VMs to be deleted:</strong></p>
+                <div class="flex flex-wrap gap-1">
+                    <template x-for="vmName in selectedVMs" :key="vmName">
+                        <span class="inline-block bg-red-100 text-red-800 px-2 py-1 rounded text-xs" x-text="vmName"></span>
+                    </template>
                 </div>
-
-                <div class="flex justify-end space-x-3 pt-6 border-t border-gray-200 mt-8">
-                    <button type="button" @click="showBulkEditModal = false" class="btn btn-secondary">Cancel</button>
-                    <button type="submit" :disabled="currentProject?.deployment_status === 'ready'" class="btn btn-primary">Update Selected VMs</button>
-                </div>
-            </form>
+            </div>
+            
+            <div class="flex space-x-3">
+                <button @click="showBulkDeleteModal = false" class="flex-1 btn btn-secondary">Cancel</button>
+                <button @click="bulkDeleteVMs()" class="flex-1 btn btn-danger">Delete All</button>
+            </div>
         </div>
     </div>
-
-    <!-- Bulk Delete VMs Modal -->
-    <div x-show="showBulkDeleteModal" class="modal-overlay" @click.self="showBulkDeleteModal = false">
-        <div class="modal-content max-w-md">
-            <div class="p-6">
-                <div class="flex items-center justify-center w-12 h-12 mx-auto mb-4 bg-red-100 rounded-full">
-                    <svg class="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.082 16.5c-.77.833.192 2.5 1.732 2.5z"></path>
-                    </svg>
+</div>

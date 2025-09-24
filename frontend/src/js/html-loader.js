@@ -28,14 +28,14 @@ class HTMLLoader {
     }
 
     async loadPartials() {
-        // Find all elements with data-include attribute
-        const includes = document.querySelectorAll('[data-include]');
+        // Find all elements with data-include-html attribute
+        const includes = document.querySelectorAll('[data-include-html]');
         
         for (const element of includes) {
-            const path = element.getAttribute('data-include');
+            const path = element.getAttribute('data-include-html');
             const html = await this.loadPartial(path);
             element.innerHTML = html;
-            element.removeAttribute('data-include');
+            element.removeAttribute('data-include-html');
         }
     }
 
@@ -52,6 +52,8 @@ class HTMLLoader {
 window.htmlLoader = new HTMLLoader();
 
 // Auto-load partials when DOM is ready
-document.addEventListener('DOMContentLoaded', () => {
-    window.htmlLoader.loadPartials();
+document.addEventListener('DOMContentLoaded', async () => {
+    console.log('Loading HTML partials...');
+    await window.htmlLoader.loadPartials();
+    console.log('HTML partials loaded');
 });

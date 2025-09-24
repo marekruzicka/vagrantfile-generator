@@ -1,0 +1,90 @@
+<!-- Sticky Header -->
+<header class="sticky-header border-b border-gray-200">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex justify-between items-center py-4">
+            <div class="flex items-center space-x-4">
+                <div class="flex items-center space-x-3">
+                    <div class="w-10 h-10 gradient-bg rounded-xl flex items-center justify-center">
+                        <svg class="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 20 20">
+                            <path d="M3 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1V4zM3 10a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H4a1 1 0 01-1-1v-6zM14 9a1 1 0 00-1 1v6a1 1 0 001 1h2a1 1 0 001-1v-6a1 1 0 00-1-1h-2z"></path>
+                        </svg>
+                    </div>
+                    <div>
+                        <h1 class="text-2xl font-bold text-gray-900">Vagrantfile Generator</h1>
+                        <p class="text-sm text-gray-600">Create & manage development environments</p>
+                    </div>
+                </div>
+                
+                <!-- Breadcrumb -->
+                <nav class="hidden sm:flex" aria-label="Breadcrumb">
+                    <ol class="flex items-center space-x-2 ml-6">
+                        <li>
+                            <a @click="showProjects()" 
+                               :class="currentView === 'projects' ? 'text-blue-600 font-semibold' : 'text-gray-500 hover:text-gray-700'"
+                               class="cursor-pointer transition-colors">Projects</a>
+                        </li>
+                        <li x-show="currentView === 'settings'" class="flex items-center">
+                            <svg class="w-4 h-4 text-gray-400 mx-2" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 111.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"></path>
+                            </svg>
+                            <span class="text-blue-600 font-semibold">Settings</span>
+                        </li>
+                        <li x-show="currentView === 'project-detail'" class="flex items-center">
+                            <svg class="w-4 h-4 text-gray-400 mx-2" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 111.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"></path>
+                            </svg>
+                            <span class="text-blue-600 font-semibold" x-text="currentProject?.name"></span>
+                        </li>
+                    </ol>
+                </nav>
+            </div>
+            
+            <!-- Header Actions -->
+            <div class="flex items-center space-x-3">
+                <button x-show="currentView === 'project-detail' && currentProject?.vms?.length > 0" 
+                        @click="generateVagrantfile()" 
+                        class="btn btn-primary">
+                    <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clip-rule="evenodd"></path>
+                    </svg>
+                    Generate Vagrantfile
+                </button>
+                
+                <!-- Show lock indicator when project is ready -->
+                <div x-show="currentView === 'project-detail' && currentProject?.deployment_status === 'ready'" 
+                     class="inline-flex items-center px-3 py-1 text-sm font-medium text-amber-800 bg-amber-100 rounded-lg">
+                    <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clip-rule="evenodd"></path>
+                    </svg>
+                    Project Locked - Read Only
+                </div>
+                
+                <button x-show="currentView === 'projects'" 
+                        @click="openCreateProjectModal()" 
+                        class="btn btn-primary">
+                    <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd"></path>
+                    </svg>
+                    New Project
+                </button>
+                
+                <button x-show="currentView === 'project-detail' && currentProject?.deployment_status !== 'ready'" 
+                        @click="openCreateVMModal()" 
+                        class="btn btn-success">
+                    <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd"></path>
+                    </svg>
+                    Add VM
+                </button>
+                
+                <button @click="showSettings()" 
+                        class="btn btn-secondary">
+                    <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M11.49 3.17c-.38-1.56-2.6-1.56-2.98 0a1.532 1.532 0 01-2.286.948c-1.372-.836-2.942.734-2.106 2.106.54.886.061 2.042-.947 2.287-1.561.379-1.561 2.6 0 2.978a1.532 1.532 0 01.947 2.287c-.836 1.372.734 2.942 2.106 2.106a1.532 1.532 0 012.287.947c.379 1.561 2.6 1.561 2.978 0a1.533 1.533 0 012.287-.947c1.372.836 2.942-.734 2.106-2.106a1.533 1.533 0 01.947-2.287c1.561-.379 1.561-2.6 0-2.978a1.532 1.532 0 01-.947-2.287c.836-1.372-.734-2.942-2.106-2.106a1.532 1.532 0 01-2.287-.947zM10 13a3 3 0 100-6 3 3 0 000 6z" clip-rule="evenodd"></path>
+                    </svg>
+                    Settings
+                </button>
+            </div>
+        </div>
+    </div>
+</header>
