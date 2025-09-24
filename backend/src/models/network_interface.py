@@ -250,7 +250,10 @@ class NetworkInterface(NetworkInterfaceBase):
         
         elif self.type == NetworkType.PRIVATE_NETWORK:
             if self.ip_assignment == IPAssignment.STATIC:
-                return f'config.vm.network "private_network", ip: "{self.ip_address}"'
+                if self.netmask and self.netmask != "255.255.255.0":
+                    return f'config.vm.network "private_network", ip: "{self.ip_address}", netmask: "{self.netmask}"'
+                else:
+                    return f'config.vm.network "private_network", ip: "{self.ip_address}"'
             else:
                 return 'config.vm.network "private_network", type: "dhcp"'
         

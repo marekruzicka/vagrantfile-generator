@@ -328,7 +328,11 @@ const VagrantUIHelpers = {
             return `${interface.host_port} → ${interface.guest_port} (${interface.protocol.toUpperCase()})`;
         } else if (interface.type === 'private_network') {
             if (interface.ip_assignment === 'static' && interface.ip_address) {
-                return `Static: ${interface.ip_address}`;
+                if (interface.netmask && interface.netmask !== '255.255.255.0') {
+                    return `Static: ${interface.ip_address}/${interface.netmask}`;
+                } else {
+                    return `Static: ${interface.ip_address}`;
+                }
             } else {
                 return 'DHCP';
             }
