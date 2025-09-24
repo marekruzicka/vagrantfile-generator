@@ -90,6 +90,15 @@
                         Generate Vagrantfile
                     </button>
                     
+                    <!-- Show lock indicator when project is ready -->
+                    <div x-show="currentView === 'project-detail' && currentProject?.deployment_status === 'ready'" 
+                         class="inline-flex items-center px-3 py-1 text-sm font-medium text-amber-800 bg-amber-100 rounded-lg">
+                        <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clip-rule="evenodd"></path>
+                        </svg>
+                        Project Locked - Read Only
+                    </div>
+                    
                     <button x-show="currentView === 'projects'" 
                             @click="openCreateProjectModal()" 
                             class="btn btn-primary">
@@ -99,7 +108,7 @@
                         New Project
                     </button>
                     
-                    <button x-show="currentView === 'project-detail'" 
+                    <button x-show="currentView === 'project-detail' && currentProject?.deployment_status !== 'ready'" 
                             @click="openCreateVMModal()" 
                             class="btn btn-success">
                         <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
@@ -424,7 +433,7 @@
                 <div class="flex justify-between items-center">
                     <div class="flex items-center space-x-4">
                         <h3 class="text-2xl font-bold text-gray-900">Virtual Machines</h3>
-                        <div x-show="selectedVMs.length > 0" class="flex items-center space-x-2">
+                        <div x-show="selectedVMs.length > 0 && currentProject?.deployment_status !== 'ready'" class="flex items-center space-x-2">
                             <span class="text-sm text-gray-600" x-text="`${selectedVMs.length} selected`"></span>
                             <button @click="openBulkEditModal()" class="btn btn-secondary text-sm">
                                 <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
@@ -443,7 +452,7 @@
                             </button>
                         </div>
                     </div>
-                    <div class="flex items-center space-x-2">
+                    <div x-show="currentProject?.deployment_status !== 'ready'" class="flex items-center space-x-2">
                         <button x-show="currentProject?.vms?.length > 0" @click="selectAllVMs()" class="btn btn-secondary text-sm">
                             Select All
                         </button>
@@ -506,7 +515,7 @@
                                         </div>
                                     </div>
                                 </div>
-                                <div class="flex space-x-1">
+                                <div x-show="currentProject?.deployment_status !== 'ready'" class="flex space-x-1">
                                     <button @click="openEditVMModal(vm)" 
                                             class="opacity-0 group-hover:opacity-100 transition-opacity text-blue-500 hover:text-blue-700 p-2 rounded-lg hover:bg-blue-50">
                                         <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
@@ -519,6 +528,14 @@
                                             <path fill-rule="evenodd" d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9zM4 5a2 2 0 012-2h8a2 2 0 012 2v6a2 2 0 01-2 2H6a2 2 0 01-2-2V5zm3 4a1 1 0 102 0v3a1 1 0 11-2 0V9zm4 0a1 1 0 10-2 0v3a1 1 0 102 0V9z" clip-rule="evenodd"></path>
                                         </svg>
                                     </button>
+                                </div>
+                                <!-- Show lock icon when project is locked -->
+                                <div x-show="currentProject?.deployment_status === 'ready'" class="flex items-center">
+                                    <div class="text-amber-500 p-2" title="Project is locked">
+                                        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                            <path fill-rule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clip-rule="evenodd"></path>
+                                        </svg>
+                                    </div>
                                 </div>
                             </div>
                             
@@ -988,7 +1005,7 @@
                         <div>
                             <div class="flex items-center justify-between mb-4">
                                 <label class="block text-sm font-medium text-gray-700">Network Interfaces</label>
-                                <button type="button" @click="addNetworkInterface()" 
+                                <button x-show="currentProject?.deployment_status !== 'ready'" type="button" @click="addNetworkInterface()" 
                                         class="text-sm bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600 transition-colors">
                                     <svg class="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
@@ -1003,12 +1020,20 @@
                                         <div class="flex items-center justify-between mb-3">
                                             <span class="text-sm font-medium text-gray-700" 
                                                   x-text="`Interface ${index + 1}: ${getNetworkTypeDisplay(interface.type)}`"></span>
-                                            <button type="button" @click="removeNetworkInterface(index)" 
+                                            <button x-show="currentProject?.deployment_status !== 'ready'" type="button" @click="removeNetworkInterface(index)" 
                                                     class="text-red-500 hover:text-red-700">
                                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1-1H8a1 1 0 00-1 1v3M4 7h16"></path>
                                                 </svg>
                                             </button>
+                                            <!-- Show lock icon when project is locked -->
+                                            <div x-show="currentProject?.deployment_status === 'ready'" class="flex items-center">
+                                                <div class="text-amber-500" title="Project is locked">
+                                                    <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                                        <path fill-rule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clip-rule="evenodd"></path>
+                                                    </svg>
+                                                </div>
+                                            </div>
                                         </div>
                                         
                                         <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
@@ -1138,7 +1163,7 @@
 
                 <div class="flex justify-end space-x-3 pt-6 border-t border-gray-200 mt-8">
                     <button type="button" @click="showCreateVMModal = false" class="btn btn-secondary">Cancel</button>
-                    <button type="submit" class="btn btn-success">Add VM</button>
+                    <button type="submit" :disabled="currentProject?.deployment_status === 'ready'" class="btn btn-success">Add VM</button>
                 </div>
             </form>
         </div>
@@ -1261,7 +1286,7 @@
                         <div>
                             <div class="flex items-center justify-between mb-4">
                                 <label class="block text-sm font-medium text-gray-700">Network Interfaces</label>
-                                <button type="button" @click="addNetworkInterface(editingVM)" 
+                                <button x-show="currentProject?.deployment_status !== 'ready'" type="button" @click="addNetworkInterface(editingVM)" 
                                         class="text-sm bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600 transition-colors">
                                     <svg class="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
@@ -1411,7 +1436,7 @@
 
                 <div class="flex justify-end space-x-3 pt-6 border-t border-gray-200 mt-8">
                     <button type="button" @click="closeEditVMModal()" class="btn btn-secondary">Cancel</button>
-                    <button type="submit" class="btn btn-primary">Update VM</button>
+                    <button type="submit" :disabled="currentProject?.deployment_status === 'ready'" class="btn btn-primary">Update VM</button>
                 </div>
             </form>
         </div>
@@ -1530,7 +1555,7 @@
 
                 <div class="flex justify-end space-x-3 pt-6 border-t border-gray-200 mt-8">
                     <button type="button" @click="showBulkEditModal = false" class="btn btn-secondary">Cancel</button>
-                    <button type="submit" class="btn btn-primary">Update Selected VMs</button>
+                    <button type="submit" :disabled="currentProject?.deployment_status === 'ready'" class="btn btn-primary">Update Selected VMs</button>
                 </div>
             </form>
         </div>

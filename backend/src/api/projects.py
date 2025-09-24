@@ -68,6 +68,11 @@ async def update_project(
 ):
     """Update an existing project."""
     try:
+        # Check if project is locked
+        existing_project = project_service.get_project(project_id)
+        if existing_project.deployment_status == DeploymentStatus.READY:
+            raise HTTPException(status_code=400, detail="Cannot modify project - project is locked in ready status")
+        
         project = project_service.update_project(project_id, project_data)
         return project
     except ProjectNotFoundError as e:
