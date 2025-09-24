@@ -235,23 +235,32 @@
 
             <!-- Filter Bar -->
             <div x-show="projectStats.total_projects > 0" class="mb-6">
-                <div class="flex flex-wrap items-center gap-2">
-                    <span class="text-sm font-medium text-gray-700">Filter projects:</span>
-                    <button @click="setProjectFilter('all')" 
-                            :class="projectFilter === 'all' ? 'btn btn-primary' : 'btn btn-secondary'" 
-                            class="text-sm">
-                        All (<span x-text="projectStats.total_projects"></span>)
-                    </button>
-                    <button @click="setProjectFilter('draft')" 
-                            :class="projectFilter === 'draft' ? 'btn btn-primary' : 'btn btn-secondary'" 
-                            class="text-sm">
-                        Draft (<span x-text="projectStats.draft"></span>)
-                    </button>
-                    <button @click="setProjectFilter('ready')" 
-                            :class="projectFilter === 'ready' ? 'btn btn-primary' : 'btn btn-secondary'" 
-                            class="text-sm">
-                        Ready (<span x-text="projectStats.ready"></span>)
-                    </button>
+                <div class="bg-white shadow rounded-lg border border-gray-200 px-4 py-3">
+                    <div class="flex flex-wrap items-center gap-3">
+                        <div class="flex items-center space-x-2 text-gray-600">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"></path>
+                            </svg>
+                            <span class="text-sm font-medium">Filter projects</span>
+                        </div>
+                        <div class="flex flex-wrap gap-2">
+                            <button @click="setProjectFilter('all')" 
+                                    :class="projectFilter === 'all' ? 'btn btn-primary' : 'btn btn-secondary'" 
+                                    class="text-sm">
+                                All (<span x-text="projectStats.total_projects"></span>)
+                            </button>
+                            <button @click="setProjectFilter('draft')" 
+                                    :class="projectFilter === 'draft' ? 'btn btn-primary' : 'btn btn-secondary'" 
+                                    class="text-sm">
+                                Draft (<span x-text="projectStats.draft"></span>)
+                            </button>
+                            <button @click="setProjectFilter('ready')" 
+                                    :class="projectFilter === 'ready' ? 'btn btn-primary' : 'btn btn-secondary'" 
+                                    class="text-sm">
+                                Ready (<span x-text="projectStats.ready"></span>)
+                            </button>
+                        </div>
+                    </div>
                 </div>
             </div>
 
