@@ -43,6 +43,21 @@ const VagrantUIHelpers = {
             app.validationErrors.cpus = `Cannot exceed ${app.config.maxCpus} CPUs`;
         }
         
+        // Validate network interfaces
+        if (vm.network_interfaces && vm.network_interfaces.length > 0) {
+            const networkErrors = {};
+            vm.network_interfaces.forEach((interface, index) => {
+                const interfaceErrors = this.validateNetworkInterface(interface, app, vm.network_interfaces, index);
+                if (Object.keys(interfaceErrors).length > 0) {
+                    networkErrors[index] = interfaceErrors;
+                }
+            });
+            
+            if (Object.keys(networkErrors).length > 0) {
+                app.validationErrors.network_interfaces = networkErrors;
+            }
+        }
+        
         return Object.keys(app.validationErrors).length === 0;
     },
 
@@ -118,7 +133,7 @@ const VagrantUIHelpers = {
         }
     },
 
-    validateNetworkInterface(interface, app = null) {
+    validateNetworkInterface(interface, app = null, allInterfaces = null, currentIndex = null) {
         const errors = {};
         
         if (interface.type === 'forwarded_port') {
@@ -135,6 +150,18 @@ const VagrantUIHelpers = {
                 const ipValidation = this.validateIP(interface.ip_address, app);
                 if (!ipValidation.isValid) {
                     errors.ip_address = ipValidation.error;
+                } else if (allInterfaces && interface.ip_address) {
+                    // Check for duplicate IP addresses within the same VM
+                    const duplicateFound = allInterfaces.some((otherInterface, index) => {
+                        return index !== currentIndex && 
+                               otherInterface.type === 'private_network' && 
+                               otherInterface.ip_assignment === 'static' && 
+                               otherInterface.ip_address === interface.ip_address;
+                    });
+                    
+                    if (duplicateFound) {
+                        errors.ip_address = `IP address ${interface.ip_address} is already used by another network interface`;
+                    }
                 }
             }
         } else if (interface.type === 'public_network' && interface.bridge && !interface.bridge.trim()) {

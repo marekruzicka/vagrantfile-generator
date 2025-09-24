@@ -105,6 +105,25 @@ class VirtualMachineCreate(VirtualMachineBase):
         description="VM-specific plugin configurations"
     )
 
+    @validator('network_interfaces')
+    def validate_network_interfaces(cls, v):
+        """Validate that there are no duplicate IP addresses in network interfaces."""
+        if not v:
+            return v
+        
+        # Check for duplicate static IP addresses
+        static_ips = []
+        for interface in v:
+            if (hasattr(interface, 'ip_assignment') and 
+                interface.ip_assignment == "static" and 
+                hasattr(interface, 'ip_address') and 
+                interface.ip_address):
+                if interface.ip_address in static_ips:
+                    raise ValueError(f"Duplicate IP address '{interface.ip_address}' found in network interfaces")
+                static_ips.append(interface.ip_address)
+        
+        return v
+
 
 class VirtualMachine(VirtualMachineBase):
     """Complete VirtualMachine model with all relationships."""
@@ -125,6 +144,25 @@ class VirtualMachine(VirtualMachineBase):
         default_factory=list,
         description="VM-specific plugin configurations"
     )
+
+    @validator('network_interfaces')
+    def validate_network_interfaces(cls, v):
+        """Validate that there are no duplicate IP addresses in network interfaces."""
+        if not v:
+            return v
+        
+        # Check for duplicate static IP addresses
+        static_ips = []
+        for interface in v:
+            if (hasattr(interface, 'ip_assignment') and 
+                interface.ip_assignment == "static" and 
+                hasattr(interface, 'ip_address') and 
+                interface.ip_address):
+                if interface.ip_address in static_ips:
+                    raise ValueError(f"Duplicate IP address '{interface.ip_address}' found in network interfaces")
+                static_ips.append(interface.ip_address)
+        
+        return v
 
     class Config:
         """Pydantic configuration."""
