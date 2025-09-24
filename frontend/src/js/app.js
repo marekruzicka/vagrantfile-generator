@@ -3,8 +3,15 @@ function vagrantApp() {
     return {
         // State
         projects: [],
+        projectStats: {
+            total_projects: 0,
+            total_vms: 0,
+            ready: 0,
+            draft: 0
+        },
         currentProject: null,
         currentView: 'projects',
+        projectFilter: 'all', // 'all', 'draft', 'ready'
         isLoading: false,
         error: null,
         successMessage: null,
@@ -242,13 +249,48 @@ function vagrantApp() {
         async loadProjects() {
             this.setLoading(true);
             try {
-                const result = await api.getProjects();
+                // Load projects based on current filter
+                const filter = this.projectFilter === 'all' ? null : this.projectFilter;
+                const result = await api.getProjects(filter);
                 this.projects = result.projects || result;
+                
+                // Load project statistics
+                await this.loadProjectStats();
                 this.clearError();
             } catch (error) {
                 this.setError('Failed to load projects: ' + error.message);
             } finally {
                 this.setLoading(false);
+            }
+        },
+
+        async loadProjectStats() {
+            try {
+                this.projectStats = await api.getProjectStats();
+            } catch (error) {
+                console.warn('Failed to load project stats:', error);
+            }
+        },
+
+        setProjectFilter(filter) {
+            this.projectFilter = filter;
+            this.loadProjects();
+        },
+
+        async updateDeploymentStatus(projectId, status) {
+            try {
+                await api.updateProjectDeploymentStatus(projectId, status);
+                
+                // Update current project if it's the one being updated
+                if (this.currentProject && this.currentProject.id === projectId) {
+                    this.currentProject.deployment_status = status;
+                }
+                
+                // Reload projects and stats
+                await this.loadProjects();
+                this.setSuccess(`Project deployment status updated to ${status}`);
+            } catch (error) {
+                this.setError('Failed to update deployment status: ' + error.message);
             }
         },
 

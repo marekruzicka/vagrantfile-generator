@@ -196,29 +196,53 @@
                 
                 <!-- Quick Stats -->
                 <div x-show="projects.length > 0" class="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-8">
-                    <div class="card text-center">
+                    <div class="card text-center cursor-pointer hover:shadow-lg transition-shadow" 
+                         @click="setProjectFilter('all')"
+                         :class="projectFilter === 'all' ? 'ring-2 ring-blue-500' : ''">
                         <div class="feature-icon mx-auto mb-3" style="background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);">
-                            <span x-text="projects.length" class="text-2xl"></span>
+                            <span x-text="projectStats.total_projects" class="text-2xl"></span>
                         </div>
                         <h3 class="font-semibold text-gray-900">Projects</h3>
                         <p class="text-sm text-gray-600">Total projects created</p>
                     </div>
                     <div class="card text-center">
                         <div class="feature-icon mx-auto mb-3" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%);">
-                            <span x-text="projects.reduce((sum, p) => sum + (p.vm_count || 0), 0)" class="text-2xl"></span>
+                            <span x-text="projectStats.total_vms" class="text-2xl"></span>
                         </div>
                         <h3 class="font-semibold text-gray-900">Virtual Machines</h3>
                         <p class="text-sm text-gray-600">Total VMs configured</p>
                     </div>
-                    <div class="card text-center">
+                    <div class="card text-center cursor-pointer hover:shadow-lg transition-shadow" 
+                         @click="setProjectFilter('ready')"
+                         :class="projectFilter === 'ready' ? 'ring-2 ring-purple-500' : ''">
                         <div class="feature-icon mx-auto mb-3" style="background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);">
-                            <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
-                                <path fill-rule="evenodd" d="M11.3 1.046A1 1 0 0112 2v5h4a1 1 0 01.82 1.573l-7 10A1 1 0 018 18v-5H4a1 1 0 01-.82-1.573l7-10a1 1 0 011.12-.38z" clip-rule="evenodd"></path>
-                            </svg>
+                            <span x-text="projectStats.ready" class="text-2xl"></span>
                         </div>
                         <h3 class="font-semibold text-gray-900">Ready to Deploy</h3>
-                        <p class="text-sm text-gray-600">Environment-ready</p>
+                        <p class="text-sm text-gray-600">Environment-ready projects</p>
                     </div>
+                </div>
+            </div>
+
+            <!-- Filter Bar -->
+            <div x-show="projectStats.total_projects > 0" class="mb-6">
+                <div class="flex flex-wrap items-center gap-2">
+                    <span class="text-sm font-medium text-gray-700">Filter projects:</span>
+                    <button @click="setProjectFilter('all')" 
+                            :class="projectFilter === 'all' ? 'btn btn-primary' : 'btn btn-secondary'" 
+                            class="text-sm">
+                        All (<span x-text="projectStats.total_projects"></span>)
+                    </button>
+                    <button @click="setProjectFilter('draft')" 
+                            :class="projectFilter === 'draft' ? 'btn btn-primary' : 'btn btn-secondary'" 
+                            class="text-sm">
+                        Draft (<span x-text="projectStats.draft"></span>)
+                    </button>
+                    <button @click="setProjectFilter('ready')" 
+                            :class="projectFilter === 'ready' ? 'btn btn-primary' : 'btn btn-secondary'" 
+                            class="text-sm">
+                        Ready (<span x-text="projectStats.ready"></span>)
+                    </button>
                 </div>
             </div>
 
@@ -240,9 +264,15 @@
                                 </div>
                             </div>
                             <button @click.stop="openDeleteConfirmModal(project, 'project')" 
-                                    class="opacity-0 group-hover:opacity-100 transition-opacity text-red-500 hover:text-red-700 p-2 rounded-lg hover:bg-red-50">
+                                    :disabled="project.deployment_status === 'ready'"
+                                    :title="project.deployment_status === 'ready' ? 'Cannot delete locked project' : 'Delete project'"
+                                    :class="project.deployment_status === 'ready' ? 'opacity-50 cursor-not-allowed' : 'opacity-0 group-hover:opacity-100 transition-opacity text-red-500 hover:text-red-700'"
+                                    class="p-2 rounded-lg hover:bg-red-50">
                                 <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
                                     <path fill-rule="evenodd" d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9zM4 5a2 2 0 012-2h8a2 2 0 012 2v6a2 2 0 01-2 2H6a2 2 0 01-2-2V5zm3 4a1 1 0 102 0v3a1 1 0 11-2 0V9zm4 0a1 1 0 10-2 0v3a1 1 0 102 0V9z" clip-rule="evenodd"></path>
+                                </svg>
+                                <svg x-show="project.deployment_status === 'ready'" class="w-4 h-4 absolute top-1 right-1 text-yellow-500" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clip-rule="evenodd"></path>
                                 </svg>
                             </button>
                         </div>
@@ -257,9 +287,17 @@
                                     </svg>
                                     <span class="text-sm font-medium" x-text="`${project.vm_count || 0} VMs`"></span>
                                 </div>
-                                <div x-show="project.vm_count > 0" class="status-badge bg-green-100 text-green-800">
-                                    <div class="w-2 h-2 bg-green-500 rounded-full mr-2"></div>
-                                    <span class="text-xs">Ready</span>
+                                <div class="status-badge" 
+                                     :class="{
+                                         'bg-gray-100 text-gray-800': project.deployment_status === 'draft',
+                                         'bg-green-100 text-green-800': project.deployment_status === 'ready'
+                                     }">
+                                    <div class="w-2 h-2 rounded-full mr-2" 
+                                         :class="{
+                                             'bg-gray-500': project.deployment_status === 'draft',
+                                             'bg-green-500': project.deployment_status === 'ready'
+                                         }"></div>
+                                    <span class="text-xs capitalize" x-text="project.deployment_status === 'ready' ? 'ready' : 'draft'"></span>
                                 </div>
                             </div>
                             <div class="text-sm text-gray-500" x-text="formatDate(project.created_at)"></div>
@@ -333,6 +371,50 @@
                             </svg>
                             <span x-text="`${currentProject?.vms?.length || 0} VMs`"></span>
                         </span>
+                        
+                        <!-- Deployment Status Badge -->
+                        <div class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium"
+                             :class="{
+                                 'bg-gray-100 text-gray-800': currentProject?.deployment_status === 'draft',
+                                 'bg-green-100 text-green-800': currentProject?.deployment_status === 'ready'
+                             }">
+                            <div class="w-2 h-2 rounded-full mr-2" 
+                                 :class="{
+                                     'bg-gray-500': currentProject?.deployment_status === 'draft',
+                                     'bg-green-500': currentProject?.deployment_status === 'ready'
+                                 }"></div>
+                            <span class="capitalize" x-text="currentProject?.deployment_status === 'ready' ? 'ready' : 'draft'"></span>
+                        </div>
+                        
+                        <!-- Deployment Status Toggle -->
+                        <div class="relative" x-data="{ showStatusMenu: false }">
+                            <button @click="showStatusMenu = !showStatusMenu" 
+                                    class="btn btn-secondary text-sm">
+                                <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"></path>
+                                </svg>
+                                Change Status
+                            </button>
+                            <div x-show="showStatusMenu" @click.away="showStatusMenu = false" 
+                                 class="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 z-50">
+                                <div class="py-1">
+                                    <button @click="updateDeploymentStatus(currentProject.id, 'draft'); showStatusMenu = false" 
+                                            class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                        <div class="flex items-center">
+                                            <div class="w-2 h-2 bg-gray-500 rounded-full mr-3"></div>
+                                            Draft
+                                        </div>
+                                    </button>
+                                    <button @click="updateDeploymentStatus(currentProject.id, 'ready'); showStatusMenu = false" 
+                                            class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                        <div class="flex items-center">
+                                            <div class="w-2 h-2 bg-green-500 rounded-full mr-3"></div>
+                                            Ready
+                                        </div>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>

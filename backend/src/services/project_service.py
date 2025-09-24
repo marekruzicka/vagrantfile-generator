@@ -12,7 +12,7 @@ from pathlib import Path
 from typing import List, Optional, Dict, Any
 from uuid import UUID
 
-from ..models import Project, ProjectCreate, ProjectUpdate, ProjectSummary, VirtualMachine, NetworkInterface
+from ..models import Project, ProjectCreate, ProjectUpdate, ProjectSummary, VirtualMachine, NetworkInterface, DeploymentStatus
 
 
 class ProjectNotFoundError(Exception):
@@ -183,6 +183,32 @@ class ProjectService:
         
         return project
 
+    def update_deployment_status(self, project_id: UUID, deployment_status: DeploymentStatus) -> Project:
+        """
+        Update a project's deployment status.
+        
+        Args:
+            project_id: Project UUID
+            deployment_status: New deployment status
+            
+        Returns:
+            Updated Project instance
+            
+        Raises:
+            ProjectNotFoundError: If project doesn't exist
+        """
+        # Load existing project
+        project = self._load_project_from_file(project_id)
+        
+        # Update deployment status
+        project.deployment_status = deployment_status
+        project.update_timestamp()
+        
+        # Save updated project
+        self._save_project_to_file(project)
+        
+        return project
+
     def delete_project(self, project_id: UUID) -> bool:
         """
         Delete a project.
@@ -192,10 +218,22 @@ class ProjectService:
             
         Returns:
             True if project was deleted, False if not found
+            
+        Raises:
+            ValueError: If project is locked (ready_to_deploy or deployed)
         """
         file_path = self._get_project_file_path(project_id)
         
         if not file_path.exists():
+            return False
+        
+        # Check if project is locked
+        try:
+            project = self._load_project_from_file(project_id)
+            if project.deployment_status == DeploymentStatus.READY:
+                status_value = project.deployment_status.value if hasattr(project.deployment_status, 'value') else project.deployment_status
+                raise ValueError(f"Cannot delete project '{project.name}' - project is locked in {status_value} status")
+        except ProjectNotFoundError:
             return False
         
         try:
@@ -226,7 +264,8 @@ class ProjectService:
                     description=data['description'],
                     created_at=datetime.fromisoformat(data['created_at'].replace('Z', '+00:00')),
                     updated_at=datetime.fromisoformat(data['updated_at'].replace('Z', '+00:00')),
-                    vm_count=len(data.get('vms', []))
+                    vm_count=len(data.get('vms', [])),
+                    deployment_status=DeploymentStatus(data.get('deployment_status', 'draft'))
                 )
                 
                 projects.append(project_summary)
@@ -239,6 +278,19 @@ class ProjectService:
         projects.sort(key=lambda p: p.created_at, reverse=True)
         
         return projects
+
+    def list_projects_by_status(self, deployment_status: DeploymentStatus) -> List[ProjectSummary]:
+        """
+        List projects filtered by deployment status.
+        
+        Args:
+            deployment_status: Status to filter by
+            
+        Returns:
+            List of ProjectSummary instances with matching status
+        """
+        all_projects = self.list_projects()
+        return [p for p in all_projects if p.deployment_status == deployment_status]
 
     def add_vm_to_project(self, project_id: UUID, vm: VirtualMachine) -> Project:
         """
