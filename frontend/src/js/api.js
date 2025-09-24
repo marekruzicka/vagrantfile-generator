@@ -80,10 +80,19 @@ class VagrantAPI {
         }
     }
 
-    async getProjects() { return this.request('/projects'); }
+    async getProjects(status = null) { 
+        const endpoint = status ? `/projects?status=${status}` : '/projects';
+        return this.request(endpoint); 
+    }
     async getProject(id) { return this.request(`/projects/${id}`); }
     async createProject(data) { return this.request('/projects', { method: 'POST', body: data }); }
     async deleteProject(id) { return this.request(`/projects/${id}`, { method: 'DELETE' }); }
+    async updateProjectDeploymentStatus(id, status) { 
+        return this.request(`/projects/${id}/deployment-status?status=${status}`, { 
+            method: 'PATCH'
+        }); 
+    }
+    async getProjectStats() { return this.request('/projects/stats'); }
     async createVM(projectId, data) { return this.request(`/projects/${projectId}/vms`, { method: 'POST', body: data }); }
     async updateVM(projectId, vmName, data) { return this.request(`/projects/${projectId}/vms/${vmName}`, { method: 'PUT', body: data }); }
     async deleteVM(projectId, vmName) { return this.request(`/projects/${projectId}/vms/${vmName}`, { method: 'DELETE' }); }

@@ -1,0 +1,196 @@
+<!-- Projects List View -->
+<div x-show="currentView === 'projects'" class="space-y-8">
+  <!-- Page Header -->
+  <div class="text-center py-12">
+    <div class="hero-gradient rounded-3xl p-8 text-white mb-8">
+      <h2 class="hero-title text-4xl md:text-5xl font-bold mb-4">Your Vagrant Projects</h2>
+      <p class="text-lg md:text-xl opacity-90 max-w-3xl mx-auto">Create and manage isolated development environments with ease. Each project can contain multiple virtual machines with custom configurations.</p>
+    </div>
+    
+    <!-- Empty State Section - Only when NO projects exist at all -->
+    <div x-show="!projectStats || projectStats.total_projects === 0" class="text-center py-20 mt-8">
+      <div class="mx-auto h-32 w-32 hero-gradient rounded-full flex items-center justify-center mb-8">
+        <svg class="h-16 w-16 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 9a2 2 0 012-2m0 0V5a2 2 0 012-2v2M7 7h10"></path>
+        </svg>
+      </div>
+      <h3 class="text-2xl md:text-3xl font-bold text-gray-900 mb-4">Ready to Start Building?</h3>
+      <p class="text-gray-600 mb-8 max-w-md mx-auto text-lg">Create your first Vagrant project and start building amazing development environments. You can define multiple VMs, networks, and configurations with our intuitive interface.</p>
+      
+      <!-- Getting Started Steps -->
+      <div class="max-w-2xl mx-auto mb-8">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div class="text-center">
+            <div class="feature-icon mx-auto mb-3" style="background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);">1</div>
+            <h4 class="font-semibold text-gray-900 mb-2">Create Project</h4>
+            <p class="text-sm text-gray-600">Start with a new project and give it a descriptive name</p>
+          </div>
+          <div class="text-center">
+            <div class="feature-icon mx-auto mb-3" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%);">2</div>
+            <h4 class="font-semibold text-gray-900 mb-2">Add VMs</h4>
+            <p class="text-sm text-gray-600">Configure virtual machines with your preferred boxes and settings</p>
+          </div>
+          <div class="text-center">
+            <div class="feature-icon mx-auto mb-3" style="background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);">3</div>
+            <h4 class="font-semibold text-gray-900 mb-2">Generate & Use</h4>
+            <p class="text-sm text-gray-600">Download your ready-to-use Vagrantfile and start developing</p>
+          </div>
+        </div>
+      </div>
+      
+      <button @click="openCreateProjectModal()" class="btn btn-primary text-lg px-8 py-4">
+        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+          <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd"></path>
+        </svg>
+        Create Your First Project
+      </button>
+    </div>
+    
+    <!-- Quick Stats - Show when projects exist -->
+    <div x-show="projectStats && projectStats.total_projects > 0" class="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-8">
+      <div class="card text-center cursor-pointer hover:shadow-lg transition-shadow" 
+      @click="setProjectFilter('all')"
+      :class="projectFilter === 'all' ? 'ring-2 ring-blue-500' : ''">
+      <div class="feature-icon mx-auto mb-3" style="background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);">
+        <span x-text="projectStats.total_projects" class="text-2xl"></span>
+      </div>
+      <h3 class="font-semibold text-gray-900">Projects</h3>
+      <p class="text-sm text-gray-600">Total projects created</p>
+    </div>
+    <div class="card text-center">
+      <div class="feature-icon mx-auto mb-3" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%);">
+        <span x-text="projectStats.total_vms" class="text-2xl"></span>
+      </div>
+      <h3 class="font-semibold text-gray-900">Virtual Machines</h3>
+      <p class="text-sm text-gray-600">Total VMs configured</p>
+    </div>
+    <div class="card text-center cursor-pointer hover:shadow-lg transition-shadow" 
+    @click="setProjectFilter('ready')"
+    :class="projectFilter === 'ready' ? 'ring-2 ring-purple-500' : ''">
+    <div class="feature-icon mx-auto mb-3" style="background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);">
+      <span x-text="projectStats.ready" class="text-2xl"></span>
+    </div>
+    <h3 class="font-semibold text-gray-900">Ready to Deploy</h3>
+    <p class="text-sm text-gray-600">Environment-ready projects</p>
+  </div>
+</div>
+</div>
+
+<!-- Filter Bar - Show when projects exist -->
+<div x-show="projectStats && projectStats.total_projects > 0" class="mb-6">
+  <div class="bg-white shadow rounded-lg border border-gray-200 px-4 py-3">
+    <div class="flex flex-wrap items-center gap-3">
+      <div class="flex items-center space-x-2 text-gray-600">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"></path>
+        </svg>
+        <span class="text-sm font-medium">Filter projects</span>
+      </div>
+      <div class="flex flex-wrap gap-2">
+        <button @click="setProjectFilter('all')" 
+        :class="projectFilter === 'all' ? 'btn btn-primary' : 'btn btn-secondary'" 
+        class="text-sm">
+        All (<span x-text="projectStats.total_projects"></span>)
+      </button>
+      <button @click="setProjectFilter('draft')" 
+      :class="projectFilter === 'draft' ? 'btn btn-primary' : 'btn btn-secondary'" 
+      class="text-sm">
+      Draft (<span x-text="projectStats.draft"></span>)
+    </button>
+    <button @click="setProjectFilter('ready')" 
+    :class="projectFilter === 'ready' ? 'btn btn-primary' : 'btn btn-secondary'" 
+    class="text-sm">
+    Ready (<span x-text="projectStats.ready"></span>)
+  </button>
+</div>
+</div>
+</div>
+
+<!-- Projects Grid -->
+<div x-show="projectStats && projectStats.total_projects > 0">
+  <!-- Filtered Empty State - when projects exist but filter shows 0 results -->
+  <div x-show="projects.length === 0" class="text-center py-16">
+    <div class="mx-auto h-24 w-24 bg-gradient-to-br from-gray-100 to-gray-200 rounded-full flex items-center justify-center mb-6">
+      <svg class="h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"></path>
+      </svg>
+    </div>
+    <h3 class="text-xl font-medium text-gray-900 mb-2">No projects match your filter</h3>
+    <p class="text-gray-500 mb-6">
+      <span x-show="projectFilter === 'draft'">No draft projects found. Try switching to "All" or "Ready" to see other projects.</span>
+      <span x-show="projectFilter === 'ready'">No ready projects found. Try switching to "All" or "Draft" to see other projects.</span>
+      <span x-show="projectFilter !== 'draft' && projectFilter !== 'ready'">No projects found with the current filter.</span>
+    </p>
+    <button @click="setProjectFilter('all')" class="btn btn-secondary">
+      <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"></path>
+      </svg>
+      Show All Projects
+    </button>
+  </div>
+
+  <!-- Projects Grid - when filter has results -->
+  <div x-show="projects.length > 0" class="project-grid grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-8">
+  <template x-for="project in projects" :key="project.id">
+    <div class="project-card group h-full flex flex-col"
+    @click="loadProject(project.id)">
+    <div class="flex justify-between items-start mb-6">
+      <div class="flex items-center space-x-3">
+        <div class="feature-icon hero-gradient">
+          <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+            <path d="M3 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1V4zM3 10a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H4a1 1 0 01-1-1v-6zM14 9a1 1 0 00-1 1v6a1 1 0 001 1h2a1 1 0 001-1v-6a1 1 0 00-1-1h-2z"></path>
+          </svg>
+        </div>
+        <div>
+          <h3 class="text-xl font-bold text-gray-900 group-hover:text-blue-600 transition-colors" x-text="project.name"></h3>
+          <p class="text-sm text-gray-500">Development Environment</p>
+        </div>
+      </div>
+      <button @click.stop="openDeleteConfirmModal(project, 'project')" 
+      :disabled="project.deployment_status === 'ready'"
+      :title="project.deployment_status === 'ready' ? 'Cannot delete locked project' : 'Delete project'"
+      :class="project.deployment_status === 'ready' ? 'opacity-50 cursor-not-allowed' : 'opacity-0 group-hover:opacity-100 transition-opacity text-red-500 hover:text-red-700'"
+      class="p-2 rounded-lg hover:bg-red-50">
+      <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+        <path fill-rule="evenodd" d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9zM4 5a2 2 0 012-2h8a2 2 0 012 2v6a2 2 0 01-2 2H6a2 2 0 01-2-2V5zm3 4a1 1 0 102 0v3a1 1 0 11-2 0V9zm4 0a1 1 0 10-2 0v3a1 1 0 102 0V9z" clip-rule="evenodd"></path>
+      </svg>
+      <svg x-show="project.deployment_status === 'ready'" class="w-4 h-4 absolute top-1 right-1 text-yellow-500" fill="currentColor" viewBox="0 0 20 20">
+        <path fill-rule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clip-rule="evenodd"></path>
+      </svg>
+    </button>
+  </div>
+  
+  <p class="text-gray-600 mb-6 min-h-[3rem] line-clamp-2 flex-grow" x-text="project.description || 'No description provided for this project'"></p>
+  
+  <div class="flex justify-between items-center pt-4 border-t border-gray-100 mt-auto">
+    <div class="flex items-center space-x-4">
+      <div class="status-badge bg-blue-100 text-blue-800">
+        <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+          <path fill-rule="evenodd" d="M3 5a2 2 0 012-2h10a2 2 0 012 2v8a2 2 0 01-2 2h-2.22l.123.489.804.804A1 1 0 0113 18H7a1 1 0 01-.707-1.707l.804-.804L7.22 15H5a2 2 0 01-2-2V5zm5.771 7H5V5h10v7H8.771z" clip-rule="evenodd"></path>
+        </svg>
+        <span class="text-sm font-medium" x-text="`${project.vm_count || 0} VMs`"></span>
+      </div>
+      <div class="status-badge" 
+      :class="{
+        'bg-gray-100 text-gray-800': project.deployment_status === 'draft',
+        'bg-green-100 text-green-800': project.deployment_status === 'ready'
+      }">
+      <div class="w-2 h-2 rounded-full mr-2" 
+      :class="{
+        'bg-gray-500': project.deployment_status === 'draft',
+        'bg-green-500': project.deployment_status === 'ready'
+      }"></div>
+      <span class="text-xs capitalize" x-text="project.deployment_status === 'ready' ? 'ready' : 'draft'"></span>
+    </div>
+  </div>
+  <div class="text-sm text-gray-500 mt-2" x-text="formatDate(project.created_at)"></div>
+</div>
+</div>
+</template>
+</div>
+
+</div> <!-- Close projects grid container -->
+</div> <!-- Close projects section container when projects exist -->
+
+</div>
+</div>

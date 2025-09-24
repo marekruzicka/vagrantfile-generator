@@ -1,0 +1,65 @@
+<!-- Bulk Edit VMs Modal -->
+<div x-show="showBulkEditModal" class="modal-overlay" @click.self="showBulkEditModal = false">
+    <div class="modal-content max-w-2xl">
+        <div class="flex items-center justify-between p-6 border-b border-gray-200">
+            <h3 class="text-lg font-semibold text-gray-900">
+                Bulk Edit VMs 
+                <span class="text-sm font-normal text-gray-500">
+                    (<span x-text="selectedVMs.length"></span> selected)
+                </span>
+            </h3>
+            <button @click="showBulkEditModal = false" class="text-gray-400 hover:text-gray-600">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                </svg>
+            </button>
+        </div>
+        <form @submit.prevent="bulkUpdateVMs(bulkEditForm)" class="p-6">
+            <div class="space-y-6">
+                <div class="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                    <p class="text-sm text-blue-800">
+                        <strong>Bulk editing VMs:</strong>
+                        <span x-text="selectedVMs.join(', ')"></span>
+                    </p>
+                    <p class="text-xs text-blue-600 mt-1">Empty fields will be ignored. Only filled fields will be updated.</p>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">CPUs</label>
+                        <input type="number" x-model.number="bulkEditForm.cpus" min="1" max="16" class="w-full border border-gray-300 rounded-md px-3 py-2" placeholder="Leave empty to ignore">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Memory (MB)</label>
+                        <input type="number" x-model.number="bulkEditForm.memory" min="256" step="256" class="w-full border border-gray-300 rounded-md px-3 py-2" placeholder="Leave empty to ignore">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Box</label>
+                    <input type="text" x-model="bulkEditForm.box" class="w-full border border-gray-300 rounded-md px-3 py-2" placeholder="Leave empty to ignore">
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Labels (comma-separated)</label>
+                    <input type="text" x-model="bulkEditForm.labels" class="w-full border border-gray-300 rounded-md px-3 py-2" placeholder="development, testing, production...">
+                    <div x-show="projectLabels && projectLabels.length > 0" class="mt-2">
+                        <p class="text-xs text-gray-500 mb-1">Quick select from existing labels:</p>
+                        <div class="flex flex-wrap gap-1">
+                            <template x-for="label in projectLabels" :key="label">
+                                <button type="button" @click="toggleBulkLabel(label)" class="px-2 py-1 rounded text-xs border transition-colors" :class="(bulkEditForm.labels && bulkEditForm.labels.includes(label)) ? 'bg-green-500 text-white border-green-500' : 'bg-gray-100 text-gray-700 border-gray-300 hover:bg-gray-200'">
+                                    <span x-text="label"></span>
+                                </button>
+                            </template>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex justify-end space-x-3 mt-6">
+                <button type="button" @click="showBulkEditModal = false" class="btn btn-secondary">Cancel</button>
+                <button type="submit" class="btn btn-primary">Update VMs</button>
+            </div>
+        </form>
+    </div>
+</div>

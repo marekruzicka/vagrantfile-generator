@@ -9,7 +9,7 @@ from typing import Dict, Any
 
 from fastapi import APIRouter, HTTPException, Depends, Request
 
-from ..models import VirtualMachine, VirtualMachineCreate
+from ..models import VirtualMachine, VirtualMachineCreate, DeploymentStatus
 from ..services import ProjectService, ProjectNotFoundError
 
 router = APIRouter()
@@ -28,6 +28,11 @@ async def create_vm(
 ):
     """Add a new VM to a project."""
     try:
+        # Check if project is locked
+        existing_project = project_service.get_project(project_id)
+        if existing_project.deployment_status == DeploymentStatus.READY:
+            raise HTTPException(status_code=400, detail="Cannot add VM - project is locked in ready status")
+        
         # Set validation configuration based on request headers BEFORE validation
         from ..models.network_interface import set_validation_config, get_validation_config
         validation_config = {
@@ -66,6 +71,11 @@ async def update_vm(
 ):
     """Update a VM in a project."""
     try:
+        # Check if project is locked
+        existing_project = project_service.get_project(project_id)
+        if existing_project.deployment_status == DeploymentStatus.READY:
+            raise HTTPException(status_code=400, detail="Cannot modify VM - project is locked in ready status")
+        
         # Set validation configuration based on request headers BEFORE validation
         from ..models.network_interface import set_validation_config
         validation_config = {
@@ -103,6 +113,11 @@ async def delete_vm(
 ):
     """Remove a VM from a project."""
     try:
+        # Check if project is locked
+        existing_project = project_service.get_project(project_id)
+        if existing_project.deployment_status == DeploymentStatus.READY:
+            raise HTTPException(status_code=400, detail="Cannot delete VM - project is locked in ready status")
+        
         project_service.remove_vm_from_project(project_id, vm_name)
         return None  # 204 No Content
         
@@ -121,6 +136,11 @@ async def add_network_interface(
 ):
     """Add a network interface to a VM."""
     try:
+        # Check if project is locked
+        existing_project = project_service.get_project(project_id)
+        if existing_project.deployment_status == DeploymentStatus.READY:
+            raise HTTPException(status_code=400, detail="Cannot add network interface - project is locked in ready status")
+        
         # Set validation configuration based on request headers BEFORE creating interface
         from ..models.network_interface import set_validation_config
         validation_config = {
@@ -164,6 +184,11 @@ async def update_network_interface(
 ):
     """Update a network interface on a VM."""
     try:
+        # Check if project is locked
+        existing_project = project_service.get_project(project_id)
+        if existing_project.deployment_status == DeploymentStatus.READY:
+            raise HTTPException(status_code=400, detail="Cannot modify network interface - project is locked in ready status")
+        
         # Set validation configuration based on request headers BEFORE validation
         from ..models.network_interface import set_validation_config
         validation_config = {
@@ -207,6 +232,11 @@ async def delete_network_interface(
     """Remove a network interface from a VM."""
     try:
         project = project_service.get_project(project_id)
+        
+        # Check if project is locked
+        if project.deployment_status == DeploymentStatus.READY:
+            raise HTTPException(status_code=400, detail="Cannot delete network interface - project is locked in ready status")
+        
         vm = project.get_vm(vm_name)
         
         if not vm:

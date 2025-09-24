@@ -11,13 +11,14 @@ from .synced_folder import SyncedFolder
 from .provisioner import Provisioner
 from .network_interface import NetworkInterface
 from .virtual_machine import VirtualMachine, VirtualMachineCreate
-from .project import Project, ProjectCreate, ProjectUpdate, ProjectSummary
+from .project import Project, ProjectCreate, ProjectUpdate, ProjectSummary, DeploymentStatus
 
 __all__ = [
     'Project',
     'ProjectCreate', 
     'ProjectUpdate',
     'ProjectSummary',
+    'DeploymentStatus',
     'VirtualMachine',
     'VirtualMachineCreate',
     'NetworkInterface',

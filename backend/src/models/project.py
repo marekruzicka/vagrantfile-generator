@@ -9,8 +9,15 @@ environment configuration.
 from datetime import datetime
 from typing import List, Optional
 from uuid import UUID, uuid4
+from enum import Enum
 
 from pydantic import BaseModel, Field, validator
+
+
+class DeploymentStatus(str, Enum):
+    """Project deployment status enumeration."""
+    DRAFT = "draft"
+    READY = "ready"
 
 
 class ProjectBase(BaseModel):
@@ -26,6 +33,10 @@ class ProjectBase(BaseModel):
         default="",
         max_length=500,
         description="Optional project description"
+    )
+    deployment_status: DeploymentStatus = Field(
+        default=DeploymentStatus.DRAFT,
+        description="Current deployment status of the project"
     )
 
     @validator('name')
@@ -184,6 +195,7 @@ class ProjectSummary(BaseModel):
     created_at: datetime
     updated_at: datetime
     vm_count: int
+    deployment_status: DeploymentStatus
 
     class Config:
         """Pydantic configuration."""
@@ -201,7 +213,8 @@ class ProjectSummary(BaseModel):
             description=project.description,
             created_at=project.created_at,
             updated_at=project.updated_at,
-            vm_count=len(project.vms)
+            vm_count=len(project.vms),
+            deployment_status=project.deployment_status
         )
 
 

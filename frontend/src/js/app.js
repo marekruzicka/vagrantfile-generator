@@ -3,8 +3,15 @@ function vagrantApp() {
     return {
         // State
         projects: [],
+        projectStats: {
+            total_projects: 0,
+            total_vms: 0,
+            ready: 0,
+            draft: 0
+        },
         currentProject: null,
         currentView: 'projects',
+        projectFilter: 'all', // 'all', 'draft', 'ready'
         isLoading: false,
         error: null,
         successMessage: null,
@@ -242,13 +249,48 @@ function vagrantApp() {
         async loadProjects() {
             this.setLoading(true);
             try {
-                const result = await api.getProjects();
+                // Load projects based on current filter
+                const filter = this.projectFilter === 'all' ? null : this.projectFilter;
+                const result = await api.getProjects(filter);
                 this.projects = result.projects || result;
+                
+                // Load project statistics
+                await this.loadProjectStats();
                 this.clearError();
             } catch (error) {
                 this.setError('Failed to load projects: ' + error.message);
             } finally {
                 this.setLoading(false);
+            }
+        },
+
+        async loadProjectStats() {
+            try {
+                this.projectStats = await api.getProjectStats();
+            } catch (error) {
+                console.warn('Failed to load project stats:', error);
+            }
+        },
+
+        setProjectFilter(filter) {
+            this.projectFilter = filter;
+            this.loadProjects();
+        },
+
+        async updateDeploymentStatus(projectId, status) {
+            try {
+                await api.updateProjectDeploymentStatus(projectId, status);
+                
+                // Update current project if it's the one being updated
+                if (this.currentProject && this.currentProject.id === projectId) {
+                    this.currentProject.deployment_status = status;
+                }
+                
+                // Reload projects and stats
+                await this.loadProjects();
+                this.setSuccess(`Project deployment status updated to ${status}`);
+            } catch (error) {
+                this.setError('Failed to update deployment status: ' + error.message);
             }
         },
 
@@ -258,10 +300,12 @@ function vagrantApp() {
             this.setLoading(true);
             try {
                 const project = await api.createProject(this.newProject);
-                this.projects.push(project);
                 this.resetNewProject();
                 this.showCreateProjectModal = false;
                 this.setSuccess('Project created successfully!');
+                
+                // Reload projects and stats to ensure proper state update
+                await this.loadProjects();
             } catch (error) {
                 this.setError('Failed to create project: ' + error.message);
             } finally {
@@ -273,11 +317,21 @@ function vagrantApp() {
             this.setLoading(true);
             try {
                 await api.deleteProject(projectId);
-                this.projects = this.projects.filter(p => p.id !== projectId);
+                
+                // Update current project state if it's being deleted
                 if (this.currentProject && this.currentProject.id === projectId) {
                     this.currentProject = null;
                     this.currentView = 'projects';
                 }
+                
+                // Reload projects and stats to ensure proper state update
+                await this.loadProjects();
+                
+                // If no projects exist after deletion, reset filter to 'all'
+                if (this.projectStats.total_projects === 0) {
+                    this.projectFilter = 'all';
+                }
+                
                 this.setSuccess('Project deleted successfully!');
             } catch (error) {
                 this.setError('Failed to delete project: ' + error.message);
