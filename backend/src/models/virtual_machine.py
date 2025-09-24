@@ -166,7 +166,7 @@ class VirtualMachine(VirtualMachineBase):
 
     class Config:
         """Pydantic configuration."""
-        schema_extra = {
+        json_schema_extra = {
             "example": {
                 "name": "web-server",
                 "box": "ubuntu/jammy64",

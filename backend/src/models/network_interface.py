@@ -218,7 +218,7 @@ class NetworkInterface(NetworkInterfaceBase):
 
     class Config:
         """Pydantic configuration."""
-        schema_extra = {
+        json_schema_extra = {
             "example": {
                 "type": "private_network",
                 "ip_assignment": "static",

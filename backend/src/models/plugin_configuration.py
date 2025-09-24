@@ -74,7 +74,7 @@ class PluginConfiguration(BaseModel):
 
     class Config:
         """Pydantic configuration."""
-        schema_extra = {
+        json_schema_extra = {
             "example": {
                 "name": "vagrant-vbguest",
                 "version": "~> 0.30.0",

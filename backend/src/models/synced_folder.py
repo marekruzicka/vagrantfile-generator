@@ -69,7 +69,7 @@ class SyncedFolder(BaseModel):
 
     class Config:
         """Pydantic configuration."""
-        schema_extra = {
+        json_schema_extra = {
             "example": {
                 "host_path": "./www",
                 "guest_path": "/var/www/html",

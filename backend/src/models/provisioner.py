@@ -131,7 +131,7 @@ class Provisioner(BaseModel):
         config_str = ', '.join(config_lines)
         return f'config.vm.provision "{self.type}", {config_str}'
 
-    def validate_provisioner(self) -> tuple[list[str], list[str]]:
+    def validate_configuration(self) -> tuple[list[str], list[str]]:
         """
         Validate the provisioner configuration.
         
