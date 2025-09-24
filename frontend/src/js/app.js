@@ -300,10 +300,12 @@ function vagrantApp() {
             this.setLoading(true);
             try {
                 const project = await api.createProject(this.newProject);
-                this.projects.push(project);
                 this.resetNewProject();
                 this.showCreateProjectModal = false;
                 this.setSuccess('Project created successfully!');
+                
+                // Reload projects and stats to ensure proper state update
+                await this.loadProjects();
             } catch (error) {
                 this.setError('Failed to create project: ' + error.message);
             } finally {
@@ -315,11 +317,21 @@ function vagrantApp() {
             this.setLoading(true);
             try {
                 await api.deleteProject(projectId);
-                this.projects = this.projects.filter(p => p.id !== projectId);
+                
+                // Update current project state if it's being deleted
                 if (this.currentProject && this.currentProject.id === projectId) {
                     this.currentProject = null;
                     this.currentView = 'projects';
                 }
+                
+                // Reload projects and stats to ensure proper state update
+                await this.loadProjects();
+                
+                // If no projects exist after deletion, reset filter to 'all'
+                if (this.projectStats.total_projects === 0) {
+                    this.projectFilter = 'all';
+                }
+                
                 this.setSuccess('Project deleted successfully!');
             } catch (error) {
                 this.setError('Failed to delete project: ' + error.message);
