@@ -7,6 +7,7 @@ export default defineConfig({
     emptyOutDir: true,
   },
   server: {
+    allowedHosts: ['k8', 'k8plus'],
     port: 5173,
     host: '0.0.0.0',
     proxy: {
