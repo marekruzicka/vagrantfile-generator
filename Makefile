@@ -2,7 +2,7 @@
 # 
 # This Makefile provides convenient commands for development using Podman containers
 
-.PHONY: help build up down logs clean test backend-test frontend-test restart
+.PHONY: help build up down logs clean test backend-test restart backend-logs frontend-logs
 
 # Default target
 help:
@@ -17,11 +17,13 @@ help:
 	@echo "  make logs           - Show logs from all services"
 	@echo "  make backend-logs   - Show backend logs"
 	@echo "  make frontend-logs  - Show frontend logs"
+	@echo "  make clean          - Remove containers and volumes"
 	@echo "  make test           - Run all tests"
 	@echo "  make backend-test   - Run backend tests"
-	@echo "  make clean          - Remove containers and volumes"
-	@echo "  make shell-backend  - Open shell in backend container"
-	@echo "  make shell-frontend - Open shell in frontend container"
+	@echo ""
+	@echo "Configuration:"
+	@echo "  Dev (default): Defaults to localhost"
+	@echo "  Prod: Set CORS_ORIGINS and VITE_API_URL environment variables"
 	@echo ""
 	@echo "URLs:"
 	@echo "  Frontend: http://localhost:5173"
@@ -49,11 +51,11 @@ logs:
 
 # Show backend logs
 backend-logs:
-	podman-compose logs -f backend
+	podman-compose logs backend
 
 # Show frontend logs
 frontend-logs:
-	podman-compose logs -f frontend
+	podman-compose logs frontend
 
 # Run all tests
 test: backend-test
@@ -62,30 +64,7 @@ test: backend-test
 backend-test:
 	podman-compose exec backend python -m pytest tests/ -v
 
-# Run frontend tests (when we add them)
-frontend-test:
-	@echo "Frontend tests not implemented yet"
-
 # Clean up containers and volumes
 clean:
 	podman-compose down -v
 	podman system prune -f
-
-# Open shell in backend container
-shell-backend:
-	podman-compose exec backend /bin/bash
-
-# Open shell in frontend container
-shell-frontend:
-	podman-compose exec frontend /bin/sh
-
-# Development workflow commands
-dev-setup: build up
-	@echo "Development environment started!"
-	@echo "Frontend: http://localhost:5173"
-	@echo "Backend: http://localhost:8000"
-	@echo "API Docs: http://localhost:8000/docs"
-
-# Quick restart for development
-dev-restart:
-	podman-compose restart backend frontend

@@ -1,8 +1,23 @@
 // VagrantAPI class (keeping original functionality)
 class VagrantAPI {
-    constructor(baseURL = 'http://localhost:8000/api') {
+    constructor(baseURL = null) {
+        // Auto-detect the correct API URL based on configuration
+        if (!baseURL) {
+            // First try environment variable (for production/explicit configuration)
+            if (typeof __API_URL__ !== 'undefined' && __API_URL__ && __API_URL__.trim() !== '') {
+                baseURL = __API_URL__;
+                if (!baseURL.endsWith('/api')) {
+                    baseURL += '/api';
+                }
+            } else {
+                // Default to localhost for development
+                baseURL = 'http://localhost:8000/api';
+            }
+        }
         this.baseURL = baseURL;
         this.config = {};
+        
+        console.log(`VagrantAPI initialized with baseURL: ${this.baseURL}`);
     }
 
     setConfig(config) {

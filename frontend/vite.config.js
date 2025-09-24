@@ -7,15 +7,11 @@ export default defineConfig({
     emptyOutDir: true,
   },
   server: {
-    allowedHosts: ['k8', 'k8plus'],
     port: 5173,
     host: '0.0.0.0',
-    proxy: {
-      '/api': {
-        target: 'http://backend:8000',
-        changeOrigin: true,
-        rewrite: (path) => path
-      },
-    },
   },
+  define: {
+    // Make API URL available to the frontend
+    __API_URL__: JSON.stringify(process.env.VITE_API_URL || ''),
+  }
 })

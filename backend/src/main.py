@@ -4,6 +4,8 @@ Main FastAPI application for Vagrantfile GUI Generator.
 This module sets up the FastAPI application with all routes and middleware.
 """
 
+import os
+from typing import List
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
@@ -12,6 +14,16 @@ from fastapi.staticfiles import StaticFiles
 from .api import projects_router, vms_router, generation_router
 from .api.boxes import router as boxes_router
 from .services import ProjectNotFoundError
+
+# Get environment variables for configuration
+def get_cors_origins() -> List[str]:
+    """Get CORS origins from environment variable."""
+    cors_origins = os.getenv("CORS_ORIGINS", "")
+    if cors_origins and cors_origins.strip() != "":
+        return [origin.strip() for origin in cors_origins.split(",")]
+    else:
+        # Default to localhost in development if not specified or empty
+        return ["http://localhost:5173"]
 
 # Create FastAPI application
 app = FastAPI(
@@ -22,10 +34,14 @@ app = FastAPI(
     redoc_url="/redoc"
 )
 
+# Configure CORS
+cors_origins = get_cors_origins()
+print(f"CORS Origins: {cors_origins}")
+
 # Add CORS middleware for frontend access
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000", "http://localhost:5173"],  # Vite dev server
+    allow_origins=cors_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

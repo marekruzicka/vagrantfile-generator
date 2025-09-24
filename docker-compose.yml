@@ -1,13 +1,11 @@
 # Docker Compose file for Vagrantfile Generator
 # Compatible with both Docker and Podman
-version: '3.8'
-
 services:
   backend:
     build:
       context: ./backend
       dockerfile: Dockerfile
-    container_name: vagrantfile-gui-backend
+    container_name: vagrantfile-gen-backend
     ports:
       - "8000:8000"
     volumes:
@@ -15,7 +13,7 @@ services:
       - backend-data:/app/data
     environment:
       - PYTHONPATH=/app
-      - ENVIRONMENT=development
+      - CORS_ORIGINS="http://localhost:5173"
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
       interval: 30s
@@ -28,14 +26,14 @@ services:
     build:
       context: ./frontend
       dockerfile: Dockerfile
-    container_name: vagrantfile-gui-frontend
+    container_name: vagrantfile-gen-frontend
     ports:
       - "5173:5173"
     volumes:
       - ./frontend:/app
       - /app/node_modules  # Prevent host node_modules from overriding container ones
     environment:
-      - NODE_ENV=development
+      - VITE_API_URL="http://localhost:8000"
     depends_on:
       - backend
     healthcheck:
@@ -52,4 +50,4 @@ volumes:
 
 networks:
   default:
-    name: vagrantfile-gui-network
+    name: vagrantfile-gen-network
