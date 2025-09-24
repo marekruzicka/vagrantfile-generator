@@ -1,0 +1,72 @@
+    <div x-show="showBulkEditModal" class="modal-overlay" @click.self="showBulkEditModal = false">
+        <div class="modal-content max-w-2xl">
+            <div class="flex items-center justify-between p-6 border-b border-gray-200">
+                <h3 class="text-lg font-semibold text-gray-900">
+                    Bulk Edit VMs 
+                    <span class="text-sm font-normal text-gray-500">
+                        (<span x-text="selectedVMs.length"></span> selected)
+                    </span>
+                </h3>
+                <button @click="showBulkEditModal = false" class="text-gray-400 hover:text-gray-600">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                </button>
+            </div>
+            <form @submit.prevent="bulkUpdateVMs(bulkEditForm)" class="p-6">
+                <div class="space-y-6">
+                    <div class="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                        <p class="text-sm text-blue-800">
+                            <strong>Bulk editing VMs:</strong>
+                            <template x-for="vmName in selectedVMs" :key="vmName">
+                                <span class="inline-block bg-blue-100 text-blue-800 px-2 py-1 rounded text-xs mr-1 mt-1" 
+                                      x-text="vmName"></span>
+                            </template>
+                        </p>
+                        <p class="text-xs text-blue-600 mt-2">Only fields with values will be updated. Leave fields empty to keep current values.</p>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="form-label">Memory (MB)</label>
+                            <input type="number" x-model="bulkEditForm.memory" :min="config.minMemoryMB" :max="config.maxMemoryMB" :step="config.memoryStep"
+                                   class="form-input" placeholder="Leave empty to keep current">
+                        </div>
+                        <div>
+                            <label class="form-label">CPUs</label>
+                            <input type="number" x-model="bulkEditForm.cpus" min="1" :max="config.maxCpus"
+                                   class="form-input" placeholder="Leave empty to keep current">
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Labels</label>
+                        <div class="space-y-2">
+                            <!-- Current labels input -->
+                            <input type="text" x-model="currentBulkLabelInput" @keydown.enter.prevent="addBulkLabel()"
+                                   class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                   placeholder="Type label and press Enter to add">
+                            
+                            <!-- Selected labels display -->
+                            <div x-show="bulkEditForm.labels && bulkEditForm.labels.length > 0" class="flex flex-wrap gap-1 mt-2">
+                                <template x-for="(label, index) in bulkEditForm.labels" :key="index">
+                                    <span class="inline-flex items-center bg-green-100 text-green-800 px-2 py-1 rounded-lg text-xs">
+                                        <span x-text="label"></span>
+                                        <button type="button" @click="removeBulkLabel(index)" class="ml-1 text-green-600 hover:text-green-800">
+                                            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                                            </svg>
+                                        </button>
+                                    </span>
+                                </template>
+                            </div>
+                            
+                            <!-- Quick select from existing labels -->
+                            <div x-show="projectLabels && projectLabels.length > 0" class="mt-2">
+                                <p class="text-xs text-gray-500 mb-1">Quick select from existing labels:</p>
+                                <div class="flex flex-wrap gap-1">
+                                    <template x-for="label in projectLabels" :key="label">
+                                        <button type="button" @click="toggleBulkLabel(label)"
+                                                class="px-2 py-1 rounded text-xs border transition-colors"
+                                                :class="(bulkEditForm.labels && bulkEditForm.labels.includes(label)) ? 
+                                                       'bg-green-500 text-white border-green-500' : 
