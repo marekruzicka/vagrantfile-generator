@@ -9,6 +9,15 @@ export default defineConfig({
   server: {
     port: 5173,
     host: '0.0.0.0',
+    allowedHosts: [
+      // Default minimal hosts
+      'localhost',
+      '127.0.0.1',
+      // Additional hosts from environment variable
+      ...(process.env.VITE_ALLOWED_HOSTS 
+        ? process.env.VITE_ALLOWED_HOSTS.split(',').map(host => host.trim())
+        : [])
+    ]
   },
   define: {
     // Make API URL available to the frontend

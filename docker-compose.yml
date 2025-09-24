@@ -1,5 +1,9 @@
 # Docker Compose file for Vagrantfile Generator
 # Compatible with both Docker and Podman
+# For production, edit environment variables below:
+# CORS_ORIGINS=https://yourdomain.com,https://www.yourdomain.com
+# VITE_API_URL=https://api.yourdomain.com
+# VITE_ALLOWED_HOSTS=yourdomain.com,www.yourdomain.com,1.2.3.4
 services:
   backend:
     build:
@@ -13,7 +17,7 @@ services:
       - backend-data:/app/data
     environment:
       - PYTHONPATH=/app
-      - CORS_ORIGINS="http://localhost:5173"
+      - CORS_ORIGINS=http://localhost:5173
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
       interval: 30s
@@ -33,7 +37,8 @@ services:
       - ./frontend:/app
       - /app/node_modules  # Prevent host node_modules from overriding container ones
     environment:
-      - VITE_API_URL="http://localhost:8000"
+      - VITE_API_URL=http://localhost:8000
+      - VITE_ALLOWED_HOSTS=localhost
     depends_on:
       - backend
     healthcheck:
