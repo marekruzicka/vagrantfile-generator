@@ -51,9 +51,4 @@ class HTMLLoader {
 // Global instance
 window.htmlLoader = new HTMLLoader();
 
-// Auto-load partials when DOM is ready
-document.addEventListener('DOMContentLoaded', async () => {
-    console.log('Loading HTML partials...');
-    await window.htmlLoader.loadPartials();
-    console.log('HTML partials loaded');
-});
+// Note: Auto-loading is now handled by main.js to coordinate with Alpine.js initialization

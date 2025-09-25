@@ -1,0 +1,683 @@
+/**
+ * Footer Component Styles
+ * 
+ * Responsive CSS styling for the configurable footer component.
+ * Uses Tailwind CSS utility classes with custom responsive positioning.
+ */
+
+/* ===== FOOTER COMPONENT BASE STYLES ===== */
+.footer-co/* Internal link styles - Neutral color scheme aligned with design system */
+.footer-component .internal-link {
+  color: #6b7280; /* text-gray-500 */
+}
+
+.footer-component .internal-link:hover {
+  color: #111827; /* text-gray-900 */
+  background-color: rgba(107, 114, 128, 0.1); /* Gray background instead of blue */
+  transform: translateY(-1px);
+}
+
+.footer-component .internal-link:focus {
+  outline: 2px solid #6b7280; /* Gray focus outline - neutral approach */
+  outline-offset: 2px;
+}Fixed footer positioning - stick to bottom with consistent height */
+  position: relative;
+  z-index: 10;
+  flex-shrink: 0; /* Prevent footer from shrinking */
+  margin-top: auto; /* Push footer to bottom */
+}
+
+/* Ensure consistent footer height */
+.footer-component > div {
+  min-height: 80px; /* Match approximate header height */
+  display: flex;
+  align-items: center;
+}
+
+/* Responsive container adjustments */
+.footer-component .max-w-7xl {
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* ===== RESPONSIVE POSITIONING ===== */
+
+/* Mobile-first approach - Enhanced mobile UX */
+.footer-component {
+  /* Mobile: Natural flow positioning with better touch targets */
+  display: block;
+  width: 100%;
+  /* Improve mobile interaction */
+  -webkit-tap-highlight-color: transparent;
+  -webkit-touch-callout: none;
+}
+
+/* Enhanced mobile touch interactions */
+@media (max-width: 640px) {
+  .footer-component {
+    /* Better mobile spacing */
+    padding-bottom: env(safe-area-inset-bottom, 0);
+  }
+  
+  /* Larger touch targets for mobile */
+  .footer-component a {
+    min-height: 44px; /* iOS recommended minimum */
+    padding: 0.75rem 1rem;
+    margin: -0.5rem -0.75rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  /* Mobile navigation improvements */
+  .footer-component .footer-nav ul {
+    flex-direction: column;
+    gap: 0.5rem;
+    align-items: center;
+    width: 100%;
+  }
+  
+  .footer-component .footer-nav li {
+    width: 100%;
+    text-align: center;
+  }
+  
+  /* Improved mobile text readability */
+  .footer-component .footer-text {
+    text-align: center;
+    font-size: 0.875rem;
+    line-height: 1.5;
+    margin-bottom: 1.5rem;
+  }
+}
+
+/* Tablet and up: Enhanced positioning with better breakpoints */
+@media (min-width: 768px) {
+  .footer-component {
+    /* Tablet: Restore horizontal layout */
+    margin-top: 2rem;
+  }
+  
+  /* Reset mobile-specific styles */
+  .footer-component a {
+    min-height: auto;
+    padding: 0.25rem 0.5rem;
+    margin: -0.25rem -0.5rem;
+    display: inline-flex;
+    justify-content: flex-start;
+  }
+  
+  .footer-component .footer-nav ul {
+    flex-direction: row;
+    gap: 1.5rem;
+    align-items: center;
+    width: auto;
+  }
+  
+  .footer-component .footer-nav li {
+    width: auto;
+    text-align: left;
+  }
+  
+  .footer-component .footer-text {
+    text-align: left;
+    font-size: 0.875rem;
+    margin-bottom: 0;
+  }
+}
+
+/* Desktop: Full responsive behavior */
+@media (min-width: 1024px) {
+  /* When body uses flexbox layout */
+  body.flex-layout {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+  }
+
+  body.flex-layout main {
+    flex: 1;
+  }
+
+  body.flex-layout .footer-component {
+    flex-shrink: 0;
+    margin-top: auto;
+  }
+
+  /* When body uses grid layout */
+  body.grid-layout {
+    display: grid;
+    grid-template-rows: auto 1fr auto;
+    min-height: 100vh;
+  }
+
+  body.grid-layout .footer-component {
+    grid-row: 3;
+  }
+}
+
+/* ===== CONTENT LAYOUT STYLES ===== */
+
+/* Footer main content area with improved responsive behavior */
+.footer-component .footer-content {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  align-items: center;
+}
+
+/* Tablet responsiveness */
+@media (min-width: 640px) and (max-width: 1023px) {
+  .footer-component .footer-content {
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+    text-align: center;
+  }
+}
+
+/* Desktop layout */
+@media (min-width: 1024px) {
+  .footer-component .footer-content {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    gap: 2rem;
+  }
+}
+
+/* Copyright text styling */
+.footer-component .footer-text {
+  order: 1;
+}
+
+@media (min-width: 640px) {
+  .footer-component .footer-text {
+    order: 0;
+    flex-shrink: 0;
+  }
+}
+
+/* ===== NAVIGATION STYLES ===== */
+
+/* Navigation container */
+.footer-component .footer-nav {
+  order: 0;
+}
+
+@media (min-width: 640px) {
+  .footer-component .footer-nav {
+    order: 1;
+  }
+}
+
+/* Navigation list */
+.footer-component .footer-nav ul {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+@media (min-width: 640px) {
+  .footer-component .footer-nav ul {
+    gap: 1.5rem;
+  }
+}
+
+/* Navigation items */
+.footer-component .footer-nav li {
+  margin: 0;
+  padding: 0;
+}
+
+/* ===== LINK STYLES ===== */
+
+/* Base link styles - Updated to match design system */
+.footer-component a {
+  display: inline-flex;
+  align-items: center;
+  text-decoration: none;
+  transition: all 0.2s ease-in-out;
+  border-radius: 0.75rem; /* rounded-xl */
+  padding: 0.5rem 0.75rem;
+  margin: -0.5rem -0.75rem;
+}
+
+/* Internal link styles - Updated hover effects */
+.footer-component .internal-link {
+  color: #6b7280; /* text-gray-500 */
+}
+
+.footer-component .internal-link:hover {
+  color: #111827; /* text-gray-900 */
+  background-color: rgba(59, 130, 246, 0.1);
+  transform: translateY(-1px);
+}
+
+.footer-component .internal-link:focus {
+  outline: 2px solid #3b82f6; /* focus:outline-blue-500 */
+  outline-offset: 2px;
+}
+
+/* Active internal link - Keep subtle blue for active state only */
+.footer-component .internal-link.active,
+.footer-component .internal-link[aria-current="page"] {
+  color: #374151; /* text-gray-700 - darker but not blue */
+  font-weight: 500;
+  background: linear-gradient(135deg, rgba(107, 114, 128, 0.15) 0%, rgba(75, 85, 99, 0.1) 100%);
+}
+
+/* External link styles - Neutral with subtle gray accent */
+.footer-component .external-link {
+  color: #6b7280; /* text-gray-500 */
+  gap: 0.375rem;
+}
+
+.footer-component .external-link:hover {
+  color: #111827; /* text-gray-900 */
+  background-color: rgba(107, 114, 128, 0.1); /* Gray background */
+  transform: translateY(-1px);
+}
+
+.footer-component .external-link:focus {
+  outline: 2px solid #3b82f6;
+  outline-offset: 2px;
+}
+
+/* External link icon */
+.footer-component .external-link svg {
+  width: 0.75rem;
+  height: 0.75rem;
+  flex-shrink: 0;
+  opacity: 0.7;
+}
+
+.footer-component .external-link:hover svg {
+  opacity: 1;
+}
+
+/* Disabled link styles */
+.footer-component a[aria-disabled="true"],
+.footer-component a.disabled {
+  color: #d1d5db; /* text-gray-300 */
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+/* ===== LOADING AND ERROR STATES ===== */
+
+/* Loading spinner */
+.footer-component .loading-spinner {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #6b7280;
+}
+
+.footer-component .loading-spinner svg {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Error state */
+.footer-component .error-message {
+  color: #dc2626; /* text-red-600 */
+  font-size: 0.875rem;
+}
+
+.footer-component .error-retry-button {
+  color: #dc2626;
+  text-decoration: underline;
+  background: none;
+  border: none;
+  padding: 0;
+  font: inherit;
+  cursor: pointer;
+  margin-left: 0.5rem;
+}
+
+.footer-component .error-retry-button:hover {
+  color: #991b1b; /* text-red-800 */
+}
+
+.footer-component .error-retry-button:focus {
+  outline: 2px solid #dc2626;
+  outline-offset: 2px;
+  border-radius: 0.125rem;
+}
+
+/* ===== MOBILE RESPONSIVE ENHANCEMENTS ===== */
+
+/* Mobile-specific adjustments */
+@media (max-width: 639px) {
+  .footer-component {
+    padding-top: 1rem;
+    padding-bottom: 1rem;
+  }
+
+  /* Stack navigation links vertically on very small screens */
+  .footer-component .footer-nav ul {
+    flex-direction: column;
+    gap: 0.75rem;
+    text-align: center;
+  }
+
+  /* Larger touch targets for mobile */
+  .footer-component a {
+    padding: 0.5rem;
+    margin: -0.5rem;
+    min-height: 44px; /* Minimum touch target size */
+    justify-content: center;
+  }
+
+  /* Center copyright text on mobile */
+  .footer-component .footer-text {
+    text-align: center;
+  }
+}
+
+/* Extra small screens */
+@media (max-width: 374px) {
+  .footer-component .footer-nav ul {
+    gap: 0.5rem;
+  }
+
+  .footer-component a {
+    font-size: 0.875rem;
+  }
+}
+
+/* ===== ACCESSIBILITY ENHANCEMENTS ===== */
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  .footer-component a {
+    border: 1px solid transparent;
+  }
+
+  .footer-component a:focus,
+  .footer-component a:hover {
+    border-color: currentColor;
+    background-color: rgba(255, 255, 255, 0.1);
+  }
+
+  .footer-component .internal-link.active {
+    border-color: currentColor;
+    background-color: rgba(37, 99, 235, 0.1);
+  }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  .footer-component a,
+  .footer-component .loading-spinner svg {
+    transition: none;
+    animation: none;
+  }
+}
+
+/* Dark mode support (if implemented) */
+@media (prefers-color-scheme: dark) {
+  .footer-component {
+    background-color: #1f2937; /* bg-gray-800 */
+    border-color: #374151; /* border-gray-700 */
+  }
+
+  .footer-component .internal-link {
+    color: #d1d5db; /* text-gray-300 */
+  }
+
+  .footer-component .internal-link:hover {
+    color: #ffffff; /* text-white */
+  }
+
+  .footer-component .internal-link.active {
+    color: #60a5fa; /* text-blue-400 */
+  }
+
+  .footer-component .external-link {
+    color: #d1d5db; /* text-gray-300 */
+  }
+
+  .footer-component .external-link:hover {
+    color: #ffffff; /* text-white */
+  }
+
+  .footer-component .loading-spinner {
+    color: #d1d5db;
+  }
+
+  .footer-component .error-message {
+    color: #f87171; /* text-red-400 */
+  }
+
+  .footer-component .error-retry-button {
+    color: #f87171;
+  }
+
+  .footer-component .error-retry-button:hover {
+    color: #fca5a5; /* text-red-300 */
+  }
+}
+
+/* ===== PRINT STYLES ===== */
+
+@media print {
+  .footer-component {
+    margin-top: 2rem;
+    padding: 1rem 0;
+    border-top: 1px solid #000;
+    background: none !important;
+    color: #000 !important;
+  }
+
+  .footer-component a {
+    color: #000 !important;
+    text-decoration: underline;
+  }
+
+  .footer-component .external-link svg {
+    display: none;
+  }
+
+  .footer-component .loading-spinner,
+  .footer-component .error-message {
+    display: none;
+  }
+
+  /* Show URLs for external links in print */
+  .footer-component .external-link::after {
+    content: " (" attr(href) ")";
+    font-size: 0.75rem;
+    font-style: italic;
+  }
+}
+
+/* ===== DEBUG STYLES (development only) ===== */
+
+.footer-component.debug {
+  border: 2px dashed #f59e0b;
+  background-color: rgba(245, 158, 11, 0.1);
+}
+
+.footer-component.debug::before {
+  content: "Footer Component Debug Mode";
+  display: block;
+  padding: 0.25rem;
+  background-color: #f59e0b;
+  color: white;
+  font-size: 0.75rem;
+  font-weight: bold;
+  text-align: center;
+}
+
+/* ===== MODAL ENHANCEMENTS ===== */
+
+/* Modal backdrop blur effect - Updated to match design system */
+.footer-component .modal-overlay {
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  background-color: rgba(0, 0, 0, 0.5);
+}
+
+/* Enhanced modal content styling - Updated to match design system */
+.footer-component .modal-content {
+  border-radius: 1rem; /* rounded-2xl */
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  border: 1px solid rgba(229, 231, 235, 0.3);
+}
+
+/* Custom prose styling for modal content */
+.footer-component .prose {
+  max-width: none;
+  line-height: 1.75;
+  color: rgb(55 65 81); /* text-gray-700 */
+}
+
+.footer-component .prose h1,
+.footer-component .prose h2,
+.footer-component .prose h3 {
+  scroll-margin-top: 2rem;
+}
+
+/* Enhanced list styling */
+.footer-component .prose ul li {
+  position: relative;
+  padding-left: 0;
+}
+
+.footer-component .prose ul li span {
+  display: block;
+}
+
+/* Enhanced link styling with neutral design system alignment */
+.footer-component .prose a {
+  position: relative;
+  color: #374151; /* text-gray-700 - matches design system */
+  text-decoration: underline;
+  text-decoration-color: #9ca3af; /* text-gray-400 - subtle underline */
+  border-radius: 0.75rem; /* rounded-xl */
+  padding: 0.25rem 0.5rem;
+  margin: -0.25rem -0.5rem;
+  transition: all 0.2s ease-in-out;
+}
+
+.footer-component .prose a:hover {
+  color: #111827; /* text-gray-900 - darker on hover */
+  background-color: rgba(107, 114, 128, 0.1); /* Gray instead of blue */
+  text-decoration-color: #6b7280; /* Darker gray underline */
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(107, 114, 128, 0.2); /* Gray shadow */
+}
+
+.footer-component .prose a:focus {
+  outline: 2px solid #6b7280; /* Gray focus outline */
+  outline-offset: 2px;
+}
+
+/* Code and pre styling - Updated with consistent design system */
+.footer-component .prose code {
+  display: inline-block;
+  background-color: #f3f4f6; /* bg-gray-100 - matches JS styling */
+  color: #1f2937; /* text-gray-800 - better contrast */
+  font-family: ui-monospace, SFMono-Regular, "SF Mono", Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  font-size: 0.875em;
+  font-weight: 500;
+  padding: 0.25rem 0.5rem;
+  border: 1px solid #d1d5db; /* border-gray-200 */
+  border-radius: 0.375rem; /* rounded-md - matches JS styling */
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+}
+
+.footer-component .prose pre {
+  background-color: rgb(248 250 252);
+  border: 1px solid rgb(226 232 240);
+  border-radius: 1rem; /* rounded-2xl to match design system */
+  padding: 1.5rem;
+  overflow-x: auto;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+/* Blockquote styling - Neutral color scheme aligned with design system */
+.footer-component .prose blockquote {
+  border-left: 4px solid #6b7280; /* Gray border instead of blue */
+  background: linear-gradient(135deg, rgba(107, 114, 128, 0.05) 0%, rgba(75, 85, 99, 0.05) 100%);
+  border-radius: 0 1rem 1rem 0; /* rounded-2xl */
+  padding: 1.5rem 2rem;
+  margin: 2rem 0;
+  font-style: italic;
+  color: #4b5563; /* text-gray-600 - neutral quote color */
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+}
+
+/* Table styling - Enhanced with design system */
+.footer-component .prose table {
+  border-radius: 1rem; /* rounded-2xl */
+  overflow: hidden;
+  border: 1px solid rgb(229 231 235); /* border-gray-200 */
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+.footer-component .prose table th {
+  background: linear-gradient(135deg, rgb(248 250 252) 0%, rgb(241 245 249) 100%);
+  font-weight: 600;
+  color: rgb(51 65 85); /* text-slate-700 */
+  padding: 1rem 1.25rem;
+  text-align: left;
+}
+
+.footer-component .prose table td {
+  padding: 1rem 1.25rem;
+  border-top: 1px solid rgb(229 231 235);
+}
+
+.footer-component .prose table tr:hover {
+  background-color: rgba(107, 114, 128, 0.05); /* Neutral gray hover instead of blue */
+}
+
+/* Responsive modal adjustments - Updated to match design system */
+@media (max-width: 768px) {
+  .footer-component .modal-content {
+    max-width: calc(100vw - 2rem);
+    max-height: calc(100vh - 4rem);
+    margin: 2rem 1rem;
+    border-radius: 1.5rem; /* Slightly smaller on mobile */
+  }
+  
+  .footer-component .prose {
+    font-size: 0.875rem;
+    line-height: 1.6;
+  }
+  
+  .footer-component .prose h1 {
+    font-size: 1.5rem;
+  }
+  
+  .footer-component .prose h2 {
+    font-size: 1.25rem;
+  }
+  
+  .footer-component .prose h3 {
+    font-size: 1.125rem;
+  }
+  
+  /* Enhanced mobile touch targets */
+  .footer-component .prose a {
+    padding: 0.5rem 0.75rem;
+    margin: -0.5rem -0.75rem;
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+  }
+}

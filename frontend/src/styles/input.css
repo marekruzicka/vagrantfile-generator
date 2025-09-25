@@ -2,6 +2,10 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Import component styles */
+@import 'components/footer.css';
+@import 'components/error-page.css';
+
 /* Custom component styles */
 @layer components {
   /* Form Components */

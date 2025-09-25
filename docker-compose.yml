@@ -14,7 +14,7 @@ services:
       - "8000:8000"
     volumes:
       - ./backend:/app
-      - backend-data:/app/data
+      - ./backend/data:/app/data
     environment:
       - PYTHONPATH=/app
       - CORS_ORIGINS=http://localhost:5173
@@ -37,7 +37,7 @@ services:
       - ./frontend:/app
       - /app/node_modules  # Prevent host node_modules from overriding container ones
     environment:
-      - VITE_API_URL=http://localhost:8000
+      - VITE_API_URL=http://backend:8000
       - VITE_ALLOWED_HOSTS=localhost
     depends_on:
       - backend

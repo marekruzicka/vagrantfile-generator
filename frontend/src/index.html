@@ -21,6 +21,17 @@
                 }
             }
         }
+        
+        // Configure Alpine.js to not auto-start
+        document.addEventListener('alpine:init', () => {
+            console.log('Alpine.js: alpine:init event fired');
+        });
+        
+        // Prevent Alpine.js from auto-starting
+        window.deferLoadingAlpine = function (callback) {
+            console.log('Alpine.js: Deferring start until manual initialization');
+            window.startAlpine = callback;
+        };
     </script>
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
     <!-- Prism.js for syntax highlighting -->
@@ -31,14 +42,15 @@
     <link rel="stylesheet" href="styles/input.css">
     
     <!-- External JavaScript files -->
-    <script src="js/html-loader.js"></script>
-    <script src="js/api.js"></script>
-    <script src="js/ui-helpers.js"></script>
+    <script src="js/utils/html-loader.js"></script>
+    <script src="js/utils/api.js"></script>
+    <script src="js/utils/ui-helpers.js"></script>
     <script src="js/vm-manager.js"></script>
+    <script src="js/components/footer-component.js"></script>
     <script src="js/app.js"></script>
     <script src="js/main.js"></script>
 </head>
-<body class="bg-gradient-to-br from-slate-50 to-blue-50 min-h-screen" x-data="vagrantApp()" x-init="init()">
+<body class="bg-gradient-to-br from-slate-50 to-blue-50 min-h-screen flex flex-col" x-data="vagrantApp()" x-init="init()">
     <!-- Header -->
     <div data-include-html="/views/header.html"></div>
 
@@ -46,7 +58,7 @@
     <div data-include-html="/components/notifications.html"></div>
 
     <!-- Main Content -->
-    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-1">
         <!-- Projects List View -->
         <div data-include-html="/views/projects-list.html"></div>
 
@@ -454,5 +466,35 @@
             </div>
         </div>
     </div>
+
+    <!-- Footer Component -->
+    <div data-include-html="/components/footer.html"></div>
+
+    <!-- Error Page Component -->
+    <div data-include-html="/components/error-page.html"></div>
+
+    <!-- Footer & Error Page JavaScript -->
+    <script>
+        // Components are now loaded via script tags in the head
+        // No ES6 modules needed since we removed the module versions
+        console.log('Footer and error page components loaded via script tags');
+
+        // Handle component loading errors
+        window.addEventListener('error', (event) => {
+            if (event.filename && event.filename.includes('FooterComponent')) {
+                console.warn('Footer component failed to load, using fallback');
+                // Could show a simple footer fallback here
+            }
+        });
+    </script>
+
+    <!-- Loading indicator for page navigation -->
+    <div id="page-loading" style="display: none;" class="fixed top-0 left-0 w-full h-1 bg-blue-600 z-50">
+        <div class="h-full bg-blue-400 animate-pulse"></div>
+    </div>
+
+    <!-- Screen reader announcements -->
+    <div id="page-announcer" aria-live="polite" aria-atomic="true" class="sr-only"></div>
+    <div id="error-announcer" aria-live="assertive" aria-atomic="true" class="sr-only"></div>
 </body>
-</html>>
+</html>

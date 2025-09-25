@@ -17,7 +17,15 @@ export default defineConfig({
       ...(process.env.VITE_ALLOWED_HOSTS 
         ? process.env.VITE_ALLOWED_HOSTS.split(',').map(host => host.trim())
         : [])
-    ]
+    ],
+    // Proxy API requests to backend (reuse VITE_API_URL)
+    proxy: {
+      '/api': {
+        target: process.env.VITE_API_URL || 'http://localhost:8000',
+        changeOrigin: true,
+        secure: false
+      }
+    }
   },
   define: {
     // Make API URL available to the frontend

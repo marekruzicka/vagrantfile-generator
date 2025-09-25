@@ -1,0 +1,426 @@
+/**
+ * Error Page Component Styles
+ * 
+ * Styles for the ErrorPageComponent - user-friendly error display
+ * with responsive design and accessibility features.
+ * Updated to match app design system with consistent styling.
+ */
+
+/* Base Error Page Styles */
+.error-page {
+    @apply fixed inset-0 z-50 flex items-center justify-center;
+    @apply bg-black bg-opacity-50 p-4;
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+}
+
+.error-page__container {
+    @apply bg-white rounded-2xl max-w-md w-full mx-auto p-6 text-center border border-gray-200;
+    @apply transition-all duration-300;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25), 0 0 0 1px rgba(255, 255, 255, 0.05);
+    animation: error-page-enter 0.3s ease-out;
+}
+
+@keyframes error-page-enter {
+    from {
+        opacity: 0;
+        transform: scale(0.95) translateY(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+    }
+}
+
+/* Error Icon Styles */
+.error-page__icon {
+    @apply flex justify-center mb-4;
+}
+
+.error-page__icon svg {
+    @apply drop-shadow-sm;
+}
+
+/* Error Title */
+.error-page__title {
+    @apply text-xl font-bold mb-3;
+    @apply text-gray-900;
+    @apply leading-tight;
+}
+
+/* Error Message */
+.error-page__message {
+    @apply mb-6 space-y-3;
+}
+
+.error-page__primary-message {
+    @apply text-gray-700 leading-relaxed;
+}
+
+/* Error Details */
+.error-page__details {
+    @apply mt-3;
+}
+
+.error-page__details-toggle {
+    @apply text-left;
+}
+
+.error-page__details-summary {
+    @apply text-sm text-gray-500 cursor-pointer;
+    @apply hover:text-gray-700 transition-colors;
+    @apply focus:outline-none focus:text-gray-700;
+    @apply select-none;
+}
+
+.error-page__details-summary::-webkit-details-marker {
+    display: none;
+}
+
+.error-page__details-summary::before {
+    content: "▶";
+    @apply inline-block w-3 text-center transition-transform;
+    @apply mr-1;
+}
+
+.error-page__details-toggle[open] .error-page__details-summary::before {
+    transform: rotate(90deg);
+}
+
+.error-page__details-content {
+    @apply mt-2 p-3 bg-gray-50 rounded;
+    @apply text-sm text-left space-y-1;
+    @apply border border-gray-200;
+}
+
+.error-page__details-content p {
+    @apply text-gray-600;
+}
+
+.error-page__details-content strong {
+    @apply text-gray-800 font-medium;
+}
+
+/* Retry Information */
+.error-page__retry-info {
+    @apply text-sm font-medium px-4 py-3 rounded-xl border;
+    @apply text-yellow-800 bg-yellow-50 border-yellow-200;
+    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+}
+
+/* Action Buttons - Updated to match app design system */
+.error-page__actions {
+    @apply flex flex-col sm:flex-row gap-3 justify-center mb-4;
+}
+
+.error-page__button {
+    @apply px-6 py-3 rounded-xl text-sm font-semibold transition-all duration-200 border-none cursor-pointer;
+    @apply inline-flex items-center justify-center gap-2;
+    @apply focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed;
+}
+
+/* Primary Button (Retry) - Matches btn-primary */
+.error-page__button--primary {
+    @apply text-white;
+    background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+    box-shadow: 0 4px 14px 0 rgba(59, 130, 246, 0.4);
+}
+
+.error-page__button--primary:hover:not(:disabled) {
+    background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(59, 130, 246, 0.4);
+}
+
+.error-page__button--primary:disabled {
+    background: linear-gradient(135deg, #93c5fd 0%, #60a5fa 100%);
+    box-shadow: none;
+}
+
+.error-page__button--primary.error-page__button--loading {
+    background: linear-gradient(135deg, #93c5fd 0%, #60a5fa 100%);
+    cursor: wait;
+}
+
+/* Secondary Button (Home) - Matches btn-secondary */
+.error-page__button--secondary {
+    @apply bg-slate-50 text-slate-600 border border-slate-200;
+}
+
+.error-page__button--secondary:hover {
+    @apply bg-slate-100 border-slate-300;
+}
+
+/* Danger Button - Matches btn-danger */
+.error-page__button--danger {
+    @apply text-white;
+    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+    box-shadow: 0 4px 14px 0 rgba(239, 68, 68, 0.4);
+}
+
+.error-page__button--danger:hover:not(:disabled) {
+    background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(239, 68, 68, 0.4);
+}
+
+/* Success Button - Matches btn-success */
+.error-page__button--success {
+    @apply text-white;
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    box-shadow: 0 4px 14px 0 rgba(16, 185, 129, 0.4);
+}
+
+.error-page__button--success:hover:not(:disabled) {
+    background: linear-gradient(135deg, #059669 0%, #047857 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(16, 185, 129, 0.4);
+}
+
+/* Loading Spinner */
+.error-page__spinner {
+    @apply w-4 h-4 ml-2 animate-spin;
+}
+
+.error-page__spinner-path {
+    stroke-dasharray: 32;
+    stroke-dashoffset: 32;
+    animation: error-page-spinner 1.5s linear infinite;
+}
+
+@keyframes error-page-spinner {
+    0% {
+        stroke-dashoffset: 32;
+    }
+    100% {
+        stroke-dashoffset: 0;
+    }
+}
+
+/* Dismiss Button */
+.error-page__dismiss {
+    @apply absolute top-4 right-4;
+    @apply w-8 h-8 p-1;
+    @apply text-gray-400 hover:text-gray-600;
+}
+
+/* Help Text */
+.error-page__help {
+    @apply pt-3 border-t border-gray-200;
+}
+
+.error-page__link {
+    @apply text-blue-600 hover:text-blue-700;
+    @apply underline focus:outline-none focus:ring-2 focus:ring-blue-500;
+    @apply rounded;
+}
+
+/* Error Type Specific Styles */
+.error-page--network .error-page__container {
+    @apply border-red-200;
+}
+
+.error-page--network .error-page__title {
+    @apply text-red-800;
+}
+
+.error-page--not-found .error-page__container {
+    @apply border-yellow-200;
+}
+
+.error-page--not-found .error-page__title {
+    @apply text-yellow-800;
+}
+
+.error-page--server .error-page__container {
+    @apply border-red-200;
+}
+
+.error-page--server .error-page__title {
+    @apply text-red-800;
+}
+
+.error-page--timeout .error-page__container {
+    @apply border-orange-200;
+}
+
+.error-page--timeout .error-page__title {
+    @apply text-orange-800;
+}
+
+.error-page--forbidden .error-page__container {
+    @apply border-red-300;
+}
+
+.error-page--forbidden .error-page__title {
+    @apply text-red-900;
+}
+
+/* Loading State */
+.error-page--retrying .error-page__container {
+    @apply opacity-75;
+}
+
+/* Responsive Design */
+@media (max-width: 640px) {
+    .error-page {
+        @apply p-3;
+    }
+    
+    .error-page__container {
+        @apply p-4 max-w-sm;
+    }
+    
+    .error-page__title {
+        @apply text-lg;
+    }
+    
+    .error-page__actions {
+        @apply flex-col gap-2;
+    }
+    
+    .error-page__button {
+        @apply w-full text-center justify-center;
+    }
+    
+    .error-page__dismiss {
+        @apply top-2 right-2;
+    }
+}
+
+/* Dark Mode Support */
+@media (prefers-color-scheme: dark) {
+    .error-page {
+        @apply bg-gray-900 bg-opacity-75;
+    }
+    
+    .error-page__container {
+        @apply bg-gray-800 border-gray-600;
+    }
+    
+    .error-page__title {
+        @apply text-gray-100;
+    }
+    
+    .error-page__primary-message {
+        @apply text-gray-300;
+    }
+    
+    .error-page__details-content {
+        @apply bg-gray-700 border-gray-600;
+    }
+    
+    .error-page__details-content p {
+        @apply text-gray-300;
+    }
+    
+    .error-page__details-content strong {
+        @apply text-gray-200;
+    }
+    
+    .error-page__button--secondary {
+        @apply bg-gray-700 text-gray-200 border-gray-600;
+    }
+    
+    .error-page__button--secondary:hover {
+        @apply bg-gray-600;
+    }
+    
+    .error-page__button--outline {
+        @apply text-gray-300 border-gray-600;
+    }
+    
+    .error-page__button--outline:hover {
+        @apply bg-gray-700 text-gray-200;
+    }
+    
+    .error-page__button--ghost {
+        @apply text-gray-400;
+    }
+    
+    .error-page__button--ghost:hover {
+        @apply text-gray-300 bg-gray-700;
+    }
+    
+    .error-page__help {
+        @apply border-gray-600;
+    }
+    
+    .error-page__help p {
+        @apply text-gray-400;
+    }
+    
+    /* Dark mode error type colors */
+    .error-page--network .error-page__title {
+        @apply text-red-300;
+    }
+    
+    .error-page--not-found .error-page__title {
+        @apply text-yellow-300;
+    }
+    
+    .error-page--server .error-page__title {
+        @apply text-red-300;
+    }
+    
+    .error-page--timeout .error-page__title {
+        @apply text-orange-300;
+    }
+    
+    .error-page--forbidden .error-page__title {
+        @apply text-red-200;
+    }
+}
+
+/* High Contrast Mode */
+@media (prefers-contrast: high) {
+    .error-page__container {
+        @apply border-2 border-black;
+    }
+    
+    .error-page__button {
+        @apply border-2;
+    }
+    
+    .error-page__button--primary {
+        @apply bg-blue-700 border-blue-700;
+    }
+    
+    .error-page__button--secondary {
+        @apply border-black;
+    }
+}
+
+/* Reduced Motion */
+@media (prefers-reduced-motion: reduce) {
+    .error-page__container {
+        animation: none;
+    }
+    
+    .error-page__spinner {
+        @apply animate-none;
+    }
+    
+    .error-page__button {
+        @apply transition-none;
+    }
+}
+
+/* Print Styles */
+@media print {
+    .error-page {
+        @apply static bg-transparent p-0;
+    }
+    
+    .error-page__container {
+        @apply shadow-none border border-black bg-white;
+    }
+    
+    .error-page__actions {
+        display: none;
+    }
+    
+    .error-page__dismiss {
+        display: none;
+    }
+}

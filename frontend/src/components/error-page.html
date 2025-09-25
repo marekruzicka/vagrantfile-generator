@@ -1,0 +1,187 @@
+<!-- 
+Error Page Component Template
+Used by ErrorPageComponent.js to display user-friendly error pages.
+-->
+
+<div x-data="errorPageComponent()" 
+     x-show="isVisible"
+     x-transition:enter="transition ease-out duration-300"
+     x-transition:enter-start="opacity-0 transform scale-95"
+     x-transition:enter-end="opacity-100 transform scale-100"
+     x-transition:leave="transition ease-in duration-200"
+     x-transition:leave-start="opacity-100 transform scale-100"
+     x-transition:leave-end="opacity-0 transform scale-95"
+     :class="getErrorClasses()"
+     class="error-page"
+     role="alert"
+     aria-live="assertive"
+     data-testid="error-page">
+
+    <!-- Error Content Container -->
+    <div class="error-page__container">
+        
+        <!-- Error Icon -->
+        <div class="error-page__icon" :class="`error-page__icon--${getErrorIcon()}`">
+            <!-- Network Error Icon -->
+            <template x-if="getErrorIcon() === 'network'">
+                <svg class="w-16 h-16 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                          d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"/>
+                </svg>
+            </template>
+
+            <!-- Not Found Icon -->
+            <template x-if="getErrorIcon() === 'not-found'">
+                <svg class="w-16 h-16 text-yellow-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                          d="M9.172 16.172a4 4 0 015.656 0M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h10a2 2 0 012 2v14a2 2 0 01-2 2z"/>
+                </svg>
+            </template>
+
+            <!-- Server Error Icon -->
+            <template x-if="getErrorIcon() === 'server'">
+                <svg class="w-16 h-16 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                          d="M5 12h14M5 12l4-4m-4 4l4 4"/>
+                </svg>
+            </template>
+
+            <!-- Timeout Icon -->
+            <template x-if="getErrorIcon() === 'timeout'">
+                <svg class="w-16 h-16 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                          d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+            </template>
+
+            <!-- Forbidden Icon -->
+            <template x-if="getErrorIcon() === 'forbidden'">
+                <svg class="w-16 h-16 text-red-700" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                          d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728L5.636 5.636m12.728 12.728L18.364 5.636M5.636 18.364l12.728-12.728"/>
+                </svg>
+            </template>
+
+            <!-- Generic Error Icon -->
+            <template x-if="getErrorIcon() === 'generic'">
+                <svg class="w-16 h-16 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                          d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"/>
+                </svg>
+            </template>
+        </div>
+
+        <!-- Error Title -->
+        <h1 class="error-page__title" 
+            x-text="error?.config?.title || 'Error'"
+            tabindex="-1"
+            data-error-focus>
+        </h1>
+
+        <!-- Error Message -->
+        <div class="error-page__message">
+            <p class="error-page__primary-message" x-text="error?.message || 'An unexpected error occurred'"></p>
+            
+            <!-- Additional Error Details -->
+            <template x-if="error?.context">
+                <div class="error-page__details">
+                    <details class="error-page__details-toggle">
+                        <summary class="error-page__details-summary">Show Details</summary>
+                        <div class="error-page__details-content">
+                            <template x-if="error.context.pageId">
+                                <p><strong>Page:</strong> <span x-text="error.context.pageId"></span></p>
+                            </template>
+                            <template x-if="error.originalError">
+                                <p><strong>Error:</strong> <span x-text="error.originalError"></span></p>
+                            </template>
+                            <p><strong>Time:</strong> <span x-text="getErrorTimestamp()"></span></p>
+                        </div>
+                    </details>
+                </div>
+            </template>
+
+            <!-- Retry Information -->
+            <template x-if="retryCount > 0">
+                <p class="error-page__retry-info">
+                    <span x-text="`Attempted ${retryCount} of ${maxRetries} retries`"></span>
+                </p>
+            </template>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="error-page__actions">
+            
+            <!-- Retry Button -->
+            <template x-if="canRetry()">
+                <button type="button" 
+                        @click="retryOperation()" 
+                        :disabled="isRetrying"
+                        class="error-page__button error-page__button--primary"
+                        :class="{ 'error-page__button--loading': isRetrying }">
+                    <span class="error-page__button-text" x-text="getRetryButtonText()"></span>
+                    <template x-if="isRetrying">
+                        <svg class="error-page__spinner" viewBox="0 0 24 24" aria-hidden="true">
+                            <circle class="error-page__spinner-path" cx="12" cy="12" r="10" 
+                                    fill="none" stroke="currentColor" stroke-width="2"></circle>
+                        </svg>
+                    </template>
+                </button>
+            </template>
+
+            <!-- Home Button -->
+            <button type="button" 
+                    @click="goHome()" 
+                    class="error-page__button error-page__button--secondary">
+                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                          d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
+                </svg>
+                Go to Home
+            </button>
+
+            <!-- Refresh Button -->
+            <button type="button" 
+                    @click="refreshPage()" 
+                    class="error-page__button error-page__button--outline">
+                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                          d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+                </svg>
+                Refresh Page
+            </button>
+
+            <!-- Report Button (for advanced errors) -->
+            <template x-if="error?.type === 'server' || retriesExhausted()">
+                <button type="button" 
+                        @click="reportError()" 
+                        class="error-page__button error-page__button--ghost"
+                        title="Copy error details to clipboard">
+                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                              d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+                    </svg>
+                    Report Error
+                </button>
+            </template>
+
+            <!-- Dismiss Button -->
+            <button type="button" 
+                    @click="hideError()" 
+                    class="error-page__button error-page__button--ghost error-page__dismiss"
+                    title="Dismiss error">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                </svg>
+                <span class="sr-only">Dismiss error</span>
+            </button>
+        </div>
+
+        <!-- Help Text -->
+        <div class="error-page__help">
+            <p class="text-sm text-gray-600">
+                If this problem persists, please try refreshing the page or 
+                <a href="mailto:support@example.com" class="error-page__link">contact support</a>.
+            </p>
+        </div>
+    </div>
+</div>

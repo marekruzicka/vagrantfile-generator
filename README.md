@@ -48,6 +48,82 @@ make dev-setup
 
 ## Configuration Options
 
+### Project Settings
+
+- **Validation Mode**: Choose between strict and permissive validation
+  - **Strict**: Enforces best practices and prevents common errors
+  - **Permissive**: Allows more flexible configurations for advanced users
+
+- **IP Range**: Default IP range for private networks (e.g., `192.168.50.0/24`)
+- **Auto-increment IPs**: Automatically assign sequential IP addresses when creating multiple VMs
+- **Default Memory**: Set default RAM allocation for new VMs
+- **Default CPUs**: Set default CPU count for new VMs
+
+### Footer Configuration
+
+The application includes a configurable footer system that allows you to add static pages and external links.
+
+#### Adding Footer Content
+
+1. **Create content files** in the `backend/data/footer/` directory:
+   ```bash
+   mkdir -p backend/data/footer
+   echo "# About Us\nThis is our about page." > backend/data/footer/about.md
+   echo "# Privacy Policy\nOur privacy policy." > backend/data/footer/privacy.md
+   ```
+
+2. **Content files support Markdown** with full formatting:
+   ```markdown
+   # Page Title
+   
+   ## Section Header
+   
+   - List item 1
+   - List item 2
+   
+   [External link](https://example.com)
+   ```
+
+3. **Footer automatically discovers** new content files and updates navigation
+
+#### Footer Configuration Format
+
+The footer supports both internal pages and external links:
+
+```json
+{
+  "copyrightText": "© 2025 Your Company",
+  "navigationLinks": [
+    {
+      "title": "About Us",
+      "pageId": "about",
+      "isExternal": false,
+      "url": null,
+      "isEnabled": true,
+      "order": 1
+    },
+    {
+      "title": "GitHub",
+      "pageId": null,
+      "isExternal": true,
+      "url": "https://github.com/yourcompany",
+      "isEnabled": true,
+      "order": 2
+    }
+  ]
+}
+```
+
+#### Footer Features
+
+- **Responsive Design**: Optimized for mobile, tablet, and desktop
+- **Accessibility**: Full keyboard navigation and screen reader support
+- **Performance**: Cached content loading with <100ms response times
+- **Error Handling**: Graceful fallbacks when content is unavailable
+- **SEO Friendly**: Proper meta tags and semantic HTML structure
+
+## Architecture
+
 The application includes flexible settings to accommodate different use cases:
 
 - **IP Validation**: Choose between strict private IP validation or allow custom ranges
