@@ -21,17 +21,23 @@ This document provides comprehensive guidance for developing Vagrantfile Generat
 ### Option 1: Using Make Commands (Recommended)
 
 ```bash
+# Build container images
+make build
+
 # Start the development environment
-make dev-setup
+make up
 
 # View logs
 make logs
 
+# Restart services when needed
+make restart
+
 # Stop services
 make down
 
-# Run tests
-make test
+# Clean everything (containers, volumes, and unused images)
+make clean
 ```
 
 ### Option 2: Using podman-compose directly
@@ -58,8 +64,8 @@ podman-compose down
 
 | Service  | URL                    | Description | Container |
 |----------|------------------------|-------------|-----------|
-| **Frontend** | http://localhost:5173  | Modern web interface with Vite dev server | `vagrantfile-gui-frontend` |
-| **Backend**  | http://localhost:8000  | FastAPI application with auto-reload | `vagrantfile-gui-backend` |
+| **Frontend** | http://localhost:5173  | Modern web interface with Vite dev server | `vagrantfile-gen-frontend` |
+| **Backend**  | http://localhost:8000  | FastAPI application with auto-reload | `vagrantfile-gen-backend` |
 | **API Docs** | http://localhost:8000/docs | Interactive Swagger/OpenAPI documentation | - |
 | **Health**   | http://localhost:8000/health | Backend health check endpoint | - |
 
@@ -83,11 +89,7 @@ podman-compose down
 - `make logs` - Show logs from all services
 - `make backend-logs` - Show backend logs only
 - `make frontend-logs` - Show frontend logs only
-- `make test` - Run all tests
-- `make backend-test` - Run backend tests only
-- `make clean` - Remove containers and volumes
-- `make shell-backend` - Open shell in backend container
-- `make shell-frontend` - Open shell in frontend container
+- `make clean` - Remove containers, volumes, and prune unused Podman resources
 
 ### Direct Commands
 
@@ -115,7 +117,8 @@ podman-compose down -v
 
 1. **Start the environment:**
    ```bash
-   make dev-setup
+   make build
+   make up
    ```
 
 2. **Develop your code:**
@@ -124,7 +127,7 @@ podman-compose down -v
 
 3. **Run tests:**
    ```bash
-   make test
+   podman-compose exec backend python -m pytest tests/ -v
    # or for comprehensive testing
    ./test-containers.sh
    ```
@@ -143,16 +146,15 @@ podman-compose down -v
 
 ## Container Architecture
 
-### Backend Container (`vagrantfile-gui-backend`)
+### Backend Container (`vagrantfile-gen-backend`)
 - **Base Image**: Python 3.11 slim
 - **Port**: 8000 (mapped to host:8000)
-- **Volume**: `./backend:/app` (live code reload)
-- **Data Volume**: `backend-data` (persistent project storage)
+- **Volumes**: `./backend:/app` (live code reload) and `./backend/data:/app/data` (project storage)
 - **Health Check**: `/health` endpoint monitoring
 - **Auto-reload**: Uvicorn watches for Python file changes
 - **Dependencies**: Installed via `requirements.txt` during build
 
-### Frontend Container (`vagrantfile-gui-frontend`)
+### Frontend Container (`vagrantfile-gen-frontend`)
 - **Base Image**: Node.js 18 Alpine
 - **Port**: 5173 (mapped to host:5173)
 - **Volume**: `./frontend:/app` (live code reload)
@@ -178,9 +180,6 @@ The project includes comprehensive testing approaches for containerized developm
 ### 1. Backend Unit & Integration Tests
 ```bash
 # Run all backend tests
-make backend-test
-
-# Run specific test categories
 podman-compose exec backend python -m pytest tests/unit/ -v
 podman-compose exec backend python -m pytest tests/integration/ -v
 podman-compose exec backend python -m pytest tests/contract/ -v
@@ -198,9 +197,6 @@ podman-compose exec frontend wget --spider http://localhost:5173
 
 ### 3. End-to-End Workflow Testing
 ```bash
-# Test complete application workflow
-make test
-
 # Manual testing workflow:
 # 1. Open http://localhost:5173
 # 2. Create a new project
@@ -334,40 +330,38 @@ podman volume prune -f
 podman network prune -f
 
 # Start fresh
-make dev-setup
+make build
+make up
 ```
 
 ## Data Persistence
 
 ### Project Data Storage
-- **Location**: Named volume `backend-data` mounted at `/app/data`
+- **Location**: Host directory `./backend/data` mounted inside the backend container at `/app/data`
 - **Contents**: All project configurations and metadata stored as JSON files
-- **Persistence**: Data survives container restarts and updates
-- **Backup**: Regular backups recommended for production use
+- **Persistence**: Data survives container restarts and rebuilds because it lives in the repository
+- **Backup**: Commit to version control or copy `backend/data/` elsewhere before major changes
 
-### Volume Management
+### Data Management
 ```bash
-# List all volumes
-podman volume ls
+# Inspect stored project files from the host
+ls backend/data
 
-# Inspect backend data volume
-podman volume inspect vagrantfile-generator_backend-data
-
-# Backup project data
-podman cp vagrantfile-gui-backend:/app/data ./project-backup
+# Back up project data
+cp -r backend/data ./project-backup
 
 # Restore project data
-podman cp ./project-backup/. vagrantfile-gui-backend:/app/data/
+cp -r ./project-backup/. backend/data/
 
-# Reset all data (WARNING: Irreversible)
-podman-compose down -v
+# Reset all stored projects (WARNING: Irreversible)
+rm -rf backend/data/*
 ```
 
 ### Development Data Workflow
 1. **Development**: Data persists during `make restart` and `make up/down`
-2. **Updates**: Data preserved during container rebuilds (`make build`)
-3. **Clean**: Data removed only with `make clean` or `podman-compose down -v`
-4. **Backup**: Manual backup before major changes recommended
+2. **Updates**: Data remains intact during `make build` and container rebuilds
+3. **Clean**: Use `rm -rf backend/data/*` if you need a blank slate, or `make clean` for full container teardown
+4. **Backup**: Keep periodic copies of `backend/data/` for recovery or sharing
 
 ## Hot Reloading
 
