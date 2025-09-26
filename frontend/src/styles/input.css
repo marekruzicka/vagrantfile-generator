@@ -8,6 +8,11 @@
 
 /* Custom component styles */
 @layer components {
+  /* Layout Components */
+  .app-container {
+    @apply container max-w-screen-xl mx-auto px-4 sm:px-6 lg:px-8;
+  }
+
   /* Form Components */
   .form-input {
     @apply w-full px-3 py-3 border border-gray-300 rounded-xl shadow-sm transition-all text-sm bg-white;

@@ -6,7 +6,7 @@
  */
 
 /* ===== FOOTER COMPONENT BASE STYLES ===== */
-.footer-co/* Internal link styles - Neutral color scheme aligned with design system */
+/* Internal link styles - Neutral color scheme aligned with design system */
 .footer-component .internal-link {
   color: #6b7280; /* text-gray-500 */
 }
@@ -20,7 +20,10 @@
 .footer-component .internal-link:focus {
   outline: 2px solid #6b7280; /* Gray focus outline - neutral approach */
   outline-offset: 2px;
-}Fixed footer positioning - stick to bottom with consistent height */
+}
+
+/* Fixed footer positioning - stick to bottom with consistent height */
+.footer-component {
   position: relative;
   z-index: 10;
   flex-shrink: 0; /* Prevent footer from shrinking */
@@ -35,7 +38,7 @@
 }
 
 /* Responsive container adjustments */
-.footer-component .max-w-7xl {
+.footer-component .app-container {
   margin-left: auto;
   margin-right: auto;
 }
