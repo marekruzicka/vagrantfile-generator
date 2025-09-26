@@ -18,8 +18,6 @@ help:
 	@echo "  make backend-logs   - Show backend logs"
 	@echo "  make frontend-logs  - Show frontend logs"
 	@echo "  make clean          - Remove containers and volumes"
-	@echo "  make test           - Run all tests"
-	@echo "  make backend-test   - Run backend tests"
 	@echo ""
 	@echo "Configuration:"
 	@echo "  Dev (default): Defaults to localhost"
@@ -47,7 +45,7 @@ restart: down up
 
 # Show logs from all services
 logs:
-	podman-compose logs -f
+	podman-compose logs
 
 # Show backend logs
 backend-logs:
@@ -56,13 +54,6 @@ backend-logs:
 # Show frontend logs
 frontend-logs:
 	podman-compose logs frontend
-
-# Run all tests
-test: backend-test
-
-# Run backend tests
-backend-test:
-	podman-compose exec backend python -m pytest tests/ -v
 
 # Clean up containers and volumes
 clean:
