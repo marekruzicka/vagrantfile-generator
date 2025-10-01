@@ -98,11 +98,12 @@ function footerComponent() {
                 return '© 2025 Vagrantfile Generator.';
             }
             
-            // Since footer.md now contains just the copyright text, use it directly
+            // Convert newlines to <br> tags for multiline support
             const cleanContent = content.trim();
             
             if (cleanContent) {
-                return cleanContent;
+                // Replace newlines with <br> tags to preserve line breaks in HTML
+                return cleanContent.replace(/\n/g, '<br>');
             }
             
             // Fallback to default if somehow empty
