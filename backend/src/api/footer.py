@@ -16,7 +16,7 @@ from fastapi.responses import JSONResponse
 router = APIRouter()
 
 # Configuration
-FOOTER_DATA_DIR = "/app/data/footer"  # Container path
+FOOTER_DATA_DIR = "/app/resources/footer"  # Container path
 
 
 def get_footer_files() -> Dict[str, List]:
@@ -50,7 +50,7 @@ def get_footer_files() -> Dict[str, List]:
                 stat_info = os.stat(file_path)
                 files.append({
                     "filename": filename,
-                    "path": f"backend/data/footer/{filename}",
+                    "path": f"backend/resources/footer/{filename}",
                     "lastModified": datetime.fromtimestamp(stat_info.st_mtime).isoformat() + "Z",
                     "size": stat_info.st_size,
                     "isValid": True

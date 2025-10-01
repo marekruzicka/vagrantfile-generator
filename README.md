@@ -65,11 +65,11 @@ The application includes a configurable footer system that allows you to add sta
 
 #### Adding Footer Content
 
-1. **Create content files** in the `backend/data/footer/` directory:
+1. **Create content files** in the `backend/resources/footer/` directory:
    ```bash
-   mkdir -p backend/data/footer
-   echo "# About Us\nThis is our about page." > backend/data/footer/about.md
-   echo "# Privacy Policy\nOur privacy policy." > backend/data/footer/privacy.md
+   mkdir -p backend/resources/footer
+   echo "# About Us\nThis is our about page." > backend/resources/footer/about.md
+   echo "# Privacy Policy\nOur privacy policy." > backend/resources/footer/privacy.md
    ```
 
 2. **Content files support Markdown** with full formatting:
