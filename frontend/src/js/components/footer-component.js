@@ -237,69 +237,108 @@ function footerComponent() {
 
         /**
          * Render markdown content to HTML for modal display
-         * Now optionally skips top-level headers if they were extracted
+         * Uses Marked.js for proper markdown parsing with custom styling
          */
         renderMarkdownContent(content) {
             if (!content) return '<p class="text-gray-600">No content available.</p>';
             
-            // Simple markdown to HTML conversion with app styling
-            let html = content;
-            
-            // Convert headings with neutral styling aligned with design system
-            html = html.replace(/^### (.*$)/gm, '<h3 class="text-lg font-semibold text-gray-800 mb-3 pb-2 border-b border-gray-100">$1</h3>');
-            html = html.replace(/^## (.*$)/gm, '<h2 class="text-xl font-bold text-gray-900 mb-4 pb-3 border-b-2 border-gray-200">$1</h2>');
-            html = html.replace(/^# (.*$)/gm, '<h1 class="text-2xl font-bold text-gray-900 mb-6 pb-4 border-b-2 border-gray-300">$1</h1>');
-            
-            // Convert bold and italic with better styling
-            html = html.replace(/\*\*(.*?)\*\*/g, '<strong class="font-semibold text-gray-900">$1</strong>');
-            html = html.replace(/\*(.*?)\*/g, '<em class="italic text-gray-700">$1</em>');
-            
-            // Convert inline code with proper styling
-            html = html.replace(/`([^`]+)`/g, '<code class="inline-block px-2 py-1 text-sm font-mono bg-gray-100 text-gray-800 border border-gray-200 rounded-md">$1</code>');
-            
-            // Convert links with neutral design system styling
-            html = html.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1 text-gray-700 hover:text-gray-900 font-medium underline decoration-gray-400 hover:decoration-gray-600 transition-colors duration-200">$1<svg class="w-3 h-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg></a>');
-            
-            // Convert lists with enhanced styling
-            const lines = html.split('\n');
-            let inList = false;
-            const processedLines = [];
-            
-            for (let i = 0; i < lines.length; i++) {
-                const line = lines[i];
-                
-                if (line.match(/^- /)) {
-                    if (!inList) {
-                        processedLines.push('<ul class="list-none space-y-2 mb-6 pl-0">');
-                        inList = true;
-                    }
-                    const listContent = line.substring(2);
-                    processedLines.push(`<li class="flex items-start gap-3"><span class="flex-shrink-0 w-2 h-2 bg-gray-400 rounded-full mt-2"></span><span class="text-gray-700 leading-relaxed">${listContent}</span></li>`);
-                } else {
-                    if (inList) {
-                        processedLines.push('</ul>');
-                        inList = false;
-                    }
-                    
-                    if (line.trim() === '') {
-                        processedLines.push(''); // Preserve blank lines
-                    } else if (!line.match(/^<h[1-6]/)) {
-                        // Only wrap in paragraph if not already a heading
-                        const trimmedLine = line.trim();
-                        if (trimmedLine) {
-                            processedLines.push(`<p class="text-gray-700 leading-relaxed mb-4">${line}</p>`);
-                        }
-                    } else {
-                        processedLines.push(line);
-                    }
-                }
+            // Check if marked is available
+            if (typeof marked === 'undefined') {
+                console.warn('Marked.js is not loaded, falling back to basic rendering');
+                return `<div class="text-gray-700 whitespace-pre-wrap">${content}</div>`;
             }
             
-            if (inList) {
-                processedLines.push('</ul>');
-            }
+            // Configure marked with custom renderer for Tailwind styling
+            const renderer = new marked.Renderer();
             
-            return processedLines.join('\n');
+            // Custom heading renderer with design system styling
+            renderer.heading = function(text, level) {
+                const classes = {
+                    1: 'text-2xl font-bold text-gray-900 mb-6 pb-4 border-b-2 border-gray-300',
+                    2: 'text-xl font-bold text-gray-900 mb-4 pb-3 border-b-2 border-gray-200 mt-8 first:mt-0',
+                    3: 'text-lg font-semibold text-gray-800 mb-3 pb-2 border-b border-gray-100 mt-6',
+                    4: 'text-base font-semibold text-gray-800 mb-2 mt-4',
+                    5: 'text-sm font-semibold text-gray-700 mb-2 mt-3',
+                    6: 'text-sm font-medium text-gray-700 mb-2 mt-3'
+                };
+                return `<h${level} class="${classes[level] || 'text-base font-semibold text-gray-800 mb-2'}">${text}</h${level}>`;
+            };
+            
+            // Custom list renderer
+            renderer.list = function(body, ordered) {
+                const tag = ordered ? 'ol' : 'ul';
+                const classes = ordered 
+                    ? 'list-decimal list-inside space-y-2 mb-6 pl-4 text-gray-700'
+                    : 'list-none space-y-2 mb-6 pl-0';
+                return `<${tag} class="${classes}">${body}</${tag}>`;
+            };
+            
+            // Custom list item renderer with bullet points
+            renderer.listitem = function(text) {
+                // Check if this is part of an unordered list by checking parent context
+                return `<li class="flex items-start gap-3"><svg class="w-4 h-4 text-gray-400 mt-1 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20"><circle cx="10" cy="10" r="3"/></svg><span class="text-gray-700 leading-relaxed">${text}</span></li>`;
+            };
+            
+            // Custom horizontal rule renderer
+            renderer.hr = function() {
+                return '<hr class="my-8 border-t-2 border-gray-200">';
+            };
+            
+            // Custom paragraph renderer
+            renderer.paragraph = function(text) {
+                return `<p class="text-gray-700 leading-relaxed mb-4">${text}</p>`;
+            };
+            
+            // Custom link renderer
+            renderer.link = function(href, title, text) {
+                const titleAttr = title ? ` title="${title}"` : '';
+                return `<a href="${href}"${titleAttr} target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1 text-blue-600 hover:text-blue-800 font-medium underline decoration-blue-400 hover:decoration-blue-600 transition-colors duration-200">${text}<svg class="w-3 h-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg></a>`;
+            };
+            
+            // Custom strong (bold) renderer
+            renderer.strong = function(text) {
+                return `<strong class="font-semibold text-gray-900">${text}</strong>`;
+            };
+            
+            // Custom emphasis (italic) renderer
+            renderer.em = function(text) {
+                return `<em class="italic text-gray-700">${text}</em>`;
+            };
+            
+            // Custom code (inline) renderer
+            renderer.codespan = function(code) {
+                return `<code class="inline-block px-2 py-1 text-sm font-mono bg-gray-100 text-gray-800 border border-gray-200 rounded-md">${code}</code>`;
+            };
+            
+            // Custom code block renderer
+            renderer.code = function(code, language) {
+                const langClass = language ? ` language-${language}` : '';
+                return `<pre class="bg-gray-900 text-gray-100 p-4 rounded-lg overflow-x-auto mb-6"><code class="text-sm font-mono${langClass}">${code}</code></pre>`;
+            };
+            
+            // Custom blockquote renderer
+            renderer.blockquote = function(quote) {
+                return `<blockquote class="border-l-4 border-gray-300 pl-4 py-2 mb-4 italic text-gray-600">${quote}</blockquote>`;
+            };
+            
+            // Configure marked options
+            marked.setOptions({
+                renderer: renderer,
+                gfm: true, // GitHub Flavored Markdown
+                breaks: false, // Don't convert \n to <br>
+                pedantic: false,
+                sanitize: false, // We trust our content
+                smartLists: true,
+                smartypants: true // Convert quotes to smart quotes
+            });
+            
+            try {
+                // Parse markdown to HTML
+                return marked.parse(content);
+            } catch (error) {
+                console.error('FooterComponent: Error parsing markdown:', error);
+                return `<div class="text-gray-700 whitespace-pre-wrap">${content}</div>`;
+            }
         },
 
         /**
