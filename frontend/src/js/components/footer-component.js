@@ -251,7 +251,7 @@ function footerComponent() {
             // Configure marked with custom renderer for Tailwind styling
             const renderer = new marked.Renderer();
             
-            // Custom heading renderer with design system styling
+            // Custom heading renderer with design system styling and anchor IDs
             renderer.heading = function(text, level) {
                 const classes = {
                     1: 'text-2xl font-bold text-gray-900 mb-6 pb-4 border-b-2 border-gray-300',
@@ -261,7 +261,18 @@ function footerComponent() {
                     5: 'text-sm font-semibold text-gray-700 mb-2 mt-3',
                     6: 'text-sm font-medium text-gray-700 mb-2 mt-3'
                 };
-                return `<h${level} class="${classes[level] || 'text-base font-semibold text-gray-800 mb-2'}">${text}</h${level}>`;
+                
+                // Generate anchor ID from heading text (GitHub style)
+                // Strip HTML tags, convert to lowercase, replace spaces with hyphens
+                const plainText = text.replace(/<[^>]*>/g, '');
+                const anchorId = plainText
+                    .toLowerCase()
+                    .replace(/[^\w\s-]/g, '') // Remove special characters
+                    .replace(/\s+/g, '-')     // Replace spaces with hyphens
+                    .replace(/-+/g, '-')      // Replace multiple hyphens with single
+                    .replace(/^-|-$/g, '');   // Remove leading/trailing hyphens
+                
+                return `<h${level} id="${anchorId}" class="${classes[level] || 'text-base font-semibold text-gray-800 mb-2'}">${text}</h${level}>`;
             };
             
             // Custom list renderer
@@ -289,9 +300,17 @@ function footerComponent() {
                 return `<p class="text-gray-700 leading-relaxed mb-4">${text}</p>`;
             };
             
-            // Custom link renderer
+            // Custom link renderer with support for internal hash links
             renderer.link = function(href, title, text) {
                 const titleAttr = title ? ` title="${title}"` : '';
+                
+                // Check if it's an internal hash link (starts with #)
+                if (href.startsWith('#')) {
+                    // Internal anchor link - smooth scroll, no external icon
+                    return `<a href="${href}"${titleAttr} class="text-blue-600 hover:text-blue-800 font-medium underline decoration-blue-400 hover:decoration-blue-600 transition-colors duration-200 cursor-pointer" onclick="event.preventDefault(); document.querySelector('${href}')?.scrollIntoView({behavior: 'smooth', block: 'start'});">${text}</a>`;
+                }
+                
+                // External link - open in new tab with icon
                 return `<a href="${href}"${titleAttr} target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1 text-blue-600 hover:text-blue-800 font-medium underline decoration-blue-400 hover:decoration-blue-600 transition-colors duration-200">${text}<svg class="w-3 h-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg></a>`;
             };
             
@@ -310,10 +329,21 @@ function footerComponent() {
                 return `<code class="inline-block px-2 py-1 text-sm font-mono bg-gray-100 text-gray-800 border border-gray-200 rounded-md">${code}</code>`;
             };
             
-            // Custom code block renderer
+            // Custom code block renderer with Prism.js syntax highlighting
             renderer.code = function(code, language) {
+                // Escape HTML entities in code
+                const escapedCode = code
+                    .replace(/&/g, '&amp;')
+                    .replace(/</g, '&lt;')
+                    .replace(/>/g, '&gt;')
+                    .replace(/"/g, '&quot;')
+                    .replace(/'/g, '&#039;');
+                
                 const langClass = language ? ` language-${language}` : '';
-                return `<pre class="bg-gray-900 text-gray-100 p-4 rounded-lg overflow-x-auto mb-6"><code class="text-sm font-mono${langClass}">${code}</code></pre>`;
+                
+                // Return pre/code structure that Prism.js can highlight
+                // Use data-language attribute to trigger Prism after render
+                return `<pre class="!bg-gray-900 !text-gray-100 !p-4 rounded-lg overflow-x-auto mb-6 prism-code-block" data-language="${language || ''}"><code class="text-sm font-mono${langClass}">${escapedCode}</code></pre>`;
             };
             
             // Custom blockquote renderer
@@ -399,11 +429,40 @@ function footerComponent() {
             this.modalContent = this.renderMarkdownContent(content);
             this.showContentModal = true;
             
-            // Set focus on modal for accessibility
+            // Set focus on modal for accessibility and apply Prism syntax highlighting
             this.$nextTick(() => {
                 const modal = this.$refs.contentModal;
                 if (modal) modal.focus();
+                
+                // Apply Prism.js syntax highlighting to code blocks
+                this.highlightCodeBlocks();
             });
+        },
+        
+        /**
+         * Apply Prism.js syntax highlighting to code blocks in modal
+         */
+        highlightCodeBlocks() {
+            // Check if Prism is available
+            if (typeof Prism === 'undefined') {
+                console.warn('Prism.js is not loaded, syntax highlighting unavailable');
+                return;
+            }
+            
+            // Find all code blocks in the modal
+            const modal = this.$refs.contentModal;
+            if (!modal) return;
+            
+            const codeBlocks = modal.querySelectorAll('pre code[class*="language-"]');
+            
+            if (codeBlocks.length > 0) {
+                // Highlight each code block
+                codeBlocks.forEach(block => {
+                    Prism.highlightElement(block);
+                });
+                
+                console.log(`FooterComponent: Highlighted ${codeBlocks.length} code blocks with Prism.js`);
+            }
         },
         
         /**
