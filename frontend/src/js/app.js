@@ -68,6 +68,31 @@ function vagrantApp() {
             url: ''
         },
         
+        // Plugin management state
+        availablePlugins: [],
+        showPluginModal: false,
+        showDeletePluginConfirmModal: false,
+        pluginToDelete: null,
+        editingPlugin: null,
+        pluginForm: {
+            name: '',
+            description: '',
+            source_url: '',
+            documentation_url: '',
+            default_version: '',
+            is_deprecated: false
+        },
+        
+        // Project Plugin management state
+        showAddProjectPluginModal: false,
+        showDeleteProjectPluginModal: false,
+        showBulkDeletePluginsModal: false,
+        deletingProjectPlugin: null,
+        selectedPlugins: [],
+        projectPluginForm: {
+            selectedPluginIds: []
+        },
+        
         // VM labeling and selection state
         selectedVMs: [],
         projectLabels: [], // All available labels for current project
@@ -100,6 +125,7 @@ function vagrantApp() {
             this.loadConfiguration();
             await this.loadProjects();
             await this.loadBoxes();
+            await this.loadPlugins();
         },
         
         // Configuration management
@@ -245,6 +271,274 @@ function vagrantApp() {
             }
         },
         
+        // Plugin management methods
+        async loadPlugins() {
+            try {
+                const result = await api.getPluginsList();
+                this.availablePlugins = result || [];
+            } catch (error) {
+                console.error('Failed to load plugins:', error);
+            }
+        },
+        
+        openAddPluginModal() {
+            this.editingPlugin = null;
+            this.pluginForm = {
+                name: '',
+                description: '',
+                source_url: '',
+                documentation_url: '',
+                default_version: '',
+                is_deprecated: false
+            };
+            this.showPluginModal = true;
+        },
+        
+        openEditPluginModal(plugin) {
+            this.editingPlugin = plugin;
+            // Fetch full plugin details
+            this.loadPluginForEdit(plugin.id);
+            this.showPluginModal = true;
+        },
+        
+        async loadPluginForEdit(pluginId) {
+            try {
+                const fullPlugin = await api.getPlugin(pluginId);
+                this.pluginForm = {
+                    name: fullPlugin.name || '',
+                    description: fullPlugin.description || '',
+                    source_url: fullPlugin.source_url || '',
+                    documentation_url: fullPlugin.documentation_url || '',
+                    default_version: fullPlugin.default_version || '',
+                    is_deprecated: fullPlugin.is_deprecated || false
+                };
+            } catch (error) {
+                console.error('Failed to load plugin details:', error);
+                // Fallback to summary data
+                this.pluginForm = {
+                    name: this.editingPlugin.name || '',
+                    description: this.editingPlugin.description || '',
+                    source_url: '',
+                    documentation_url: '',
+                    default_version: '',
+                    is_deprecated: this.editingPlugin.is_deprecated || false
+                };
+            }
+        },
+        
+        closePluginModal() {
+            this.showPluginModal = false;
+            this.editingPlugin = null;
+            this.pluginForm = {
+                name: '',
+                description: '',
+                source_url: '',
+                documentation_url: '',
+                default_version: '',
+                is_deprecated: false
+            };
+        },
+        
+        async savePlugin() {
+            try {
+                if (!this.pluginForm.name.trim()) {
+                    alert('Plugin name is required');
+                    return;
+                }
+                
+                const pluginData = {
+                    name: this.pluginForm.name.trim(),
+                    description: this.pluginForm.description.trim() || null,
+                    source_url: this.pluginForm.source_url.trim() || null,
+                    documentation_url: this.pluginForm.documentation_url.trim() || null,
+                    default_version: this.pluginForm.default_version.trim() || null,
+                    is_deprecated: this.pluginForm.is_deprecated
+                };
+                
+                if (this.editingPlugin) {
+                    await api.updatePlugin(this.editingPlugin.id, pluginData);
+                } else {
+                    await api.createPlugin(pluginData);
+                }
+                
+                await this.loadPlugins();
+                this.closePluginModal();
+            } catch (error) {
+                console.error('Failed to save plugin:', error);
+                alert('Failed to save plugin: ' + (error.message || 'Unknown error'));
+            }
+        },
+        
+        confirmDeletePlugin(plugin) {
+            this.pluginToDelete = plugin;
+            this.showDeletePluginConfirmModal = true;
+        },
+        
+        closeDeletePluginModal() {
+            this.showDeletePluginConfirmModal = false;
+            this.pluginToDelete = null;
+        },
+        
+        async deletePlugin() {
+            if (!this.pluginToDelete) return;
+            
+            try {
+                await api.deletePlugin(this.pluginToDelete.id);
+                await this.loadPlugins();
+                this.closeDeletePluginModal();
+            } catch (error) {
+                console.error('Failed to delete plugin:', error);
+                alert('Failed to delete plugin: ' + (error.message || 'Unknown error'));
+            }
+        },
+        
+        // Project Plugin Management
+        openAddProjectPluginModal() {
+            this.resetProjectPluginForm();
+            this.showAddProjectPluginModal = true;
+        },
+        
+        togglePluginForAdd(pluginId) {
+            const index = this.projectPluginForm.selectedPluginIds.indexOf(pluginId);
+            if (index === -1) {
+                this.projectPluginForm.selectedPluginIds.push(pluginId);
+            } else {
+                this.projectPluginForm.selectedPluginIds.splice(index, 1);
+            }
+        },
+        
+        async addProjectPlugins() {
+            if (!this.currentProject || this.projectPluginForm.selectedPluginIds.length === 0) return;
+            
+            try {
+                const addedPlugins = [];
+                
+                // Add each selected plugin
+                for (const pluginId of this.projectPluginForm.selectedPluginIds) {
+                    const plugin = this.availablePlugins.find(p => p.id === pluginId);
+                    if (!plugin) continue;
+                    
+                    const pluginData = {
+                        name: plugin.name,
+                        version: plugin.default_version || null,
+                        scope: 'global',
+                        config: {}
+                    };
+                    
+                    try {
+                        const addedPlugin = await api.addPluginToProject(this.currentProject.id, pluginData);
+                        addedPlugins.push(addedPlugin);
+                    } catch (error) {
+                        console.error(`Failed to add plugin ${plugin.name}:`, error);
+                        // Continue with other plugins
+                    }
+                }
+                
+                // Add all successfully added plugins to current project
+                if (!this.currentProject.global_plugins) {
+                    this.currentProject.global_plugins = [];
+                }
+                this.currentProject.global_plugins.push(...addedPlugins);
+                
+                this.syncProjectInList();
+                this.showAddProjectPluginModal = false;
+                this.resetProjectPluginForm();
+                
+                if (addedPlugins.length < this.projectPluginForm.selectedPluginIds.length) {
+                    alert(`Successfully added ${addedPlugins.length} of ${this.projectPluginForm.selectedPluginIds.length} plugins. Some plugins may already exist in the project.`);
+                }
+            } catch (error) {
+                console.error('Failed to add plugins to project:', error);
+                alert('Failed to add plugins: ' + (error.message || 'Unknown error'));
+            }
+        },
+        
+
+        
+        openDeleteProjectPluginModal(plugin) {
+            this.deletingProjectPlugin = plugin;
+            this.showDeleteProjectPluginModal = true;
+        },
+        
+        async deleteProjectPlugin() {
+            if (!this.currentProject || !this.deletingProjectPlugin) return;
+            
+            try {
+                await api.removePluginFromProject(this.currentProject.id, this.deletingProjectPlugin.name);
+                
+                // Remove from current project
+                this.currentProject.global_plugins = this.currentProject.global_plugins.filter(
+                    p => p.name !== this.deletingProjectPlugin.name
+                );
+                
+                this.syncProjectInList();
+                this.showDeleteProjectPluginModal = false;
+                this.deletingProjectPlugin = null;
+            } catch (error) {
+                console.error('Failed to remove plugin from project:', error);
+                alert('Failed to remove plugin: ' + (error.message || 'Unknown error'));
+            }
+        },
+        
+        resetProjectPluginForm() {
+            this.projectPluginForm = {
+                selectedPluginIds: []
+            };
+        },
+        
+        // Plugin Selection Management
+        isPluginSelected(pluginName) {
+            return this.selectedPlugins.includes(pluginName);
+        },
+        
+        togglePluginSelection(pluginName) {
+            const index = this.selectedPlugins.indexOf(pluginName);
+            if (index > -1) {
+                this.selectedPlugins.splice(index, 1);
+            } else {
+                this.selectedPlugins.push(pluginName);
+            }
+        },
+        
+        selectAllPlugins() {
+            if (!this.currentProject || !this.currentProject.global_plugins) return;
+            this.selectedPlugins = this.currentProject.global_plugins.map(p => p.name);
+        },
+        
+        clearPluginSelection() {
+            this.selectedPlugins = [];
+        },
+        
+        openBulkDeletePluginsModal() {
+            if (this.selectedPlugins.length === 0) return;
+            this.showBulkDeletePluginsModal = true;
+        },
+        
+        async bulkDeletePlugins() {
+            if (!this.currentProject || this.selectedPlugins.length === 0) return;
+            
+            try {
+                // Delete each selected plugin
+                const deletePromises = this.selectedPlugins.map(pluginName => 
+                    api.removePluginFromProject(this.currentProject.id, pluginName)
+                );
+                
+                await Promise.all(deletePromises);
+                
+                // Remove from current project
+                this.currentProject.global_plugins = this.currentProject.global_plugins.filter(
+                    p => !this.selectedPlugins.includes(p.name)
+                );
+                
+                this.syncProjectInList();
+                this.showBulkDeletePluginsModal = false;
+                this.clearPluginSelection();
+            } catch (error) {
+                console.error('Failed to bulk delete plugins:', error);
+                alert('Failed to delete some plugins: ' + (error.message || 'Unknown error'));
+            }
+        },
+        
         // Projects
         async loadProjects() {
             this.setLoading(true);
@@ -359,6 +653,10 @@ function vagrantApp() {
                 
                 // Initialize project labels
                 this.updateProjectLabels();
+                
+                // Clear selections
+                this.clearVMSelection();
+                this.clearPluginSelection();
                 
                 this.clearError();
             } catch (error) {

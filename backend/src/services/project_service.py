@@ -12,7 +12,7 @@ from pathlib import Path
 from typing import List, Optional, Dict, Any
 from uuid import UUID
 
-from ..models import Project, ProjectCreate, ProjectUpdate, ProjectSummary, VirtualMachine, NetworkInterface, DeploymentStatus
+from ..models import Project, ProjectCreate, ProjectUpdate, ProjectSummary, VirtualMachine, NetworkInterface, DeploymentStatus, PluginConfiguration
 
 
 class ProjectNotFoundError(Exception):
@@ -71,6 +71,13 @@ class ProjectService:
                 for vm_data in data['vms']:
                     vms.append(self._construct_vm_without_validation(vm_data))
                 data = {**data, 'vms': vms}
+            
+            # Handle global_plugins separately to avoid validation issues
+            plugins = []
+            if 'global_plugins' in data:
+                for plugin_data in data['global_plugins']:
+                    plugins.append(PluginConfiguration.construct(**plugin_data))
+                data = {**data, 'global_plugins': plugins}
             
             # Use construct() to create model without validation for existing data
             # This maintains backward compatibility with legacy projects
@@ -408,3 +415,92 @@ class ProjectService:
     def get_project_count(self) -> int:
         """Get the total number of projects."""
         return len(list(self.data_dir.glob("*.json")))
+
+    def add_plugin_to_project(self, project_id: UUID, plugin: 'PluginConfiguration') -> Project:
+        """
+        Add a plugin to a project's global plugins.
+        
+        Args:
+            project_id: Project UUID
+            plugin: PluginConfiguration instance to add
+            
+        Returns:
+            Updated Project instance
+            
+        Raises:
+            ProjectNotFoundError: If project doesn't exist
+            ValueError: If plugin name conflicts
+        """
+        project = self._load_project_from_file(project_id)
+        
+        # Check if plugin already exists
+        if any(p.name == plugin.name for p in project.global_plugins):
+            raise ValueError(f"Plugin '{plugin.name}' already exists in project")
+        
+        project.global_plugins.append(plugin)
+        project.update_timestamp()
+        self._save_project_to_file(project)
+        return project
+
+    def update_plugin_in_project(self, project_id: UUID, plugin_name: str, plugin: 'PluginConfiguration') -> Project:
+        """
+        Update a plugin in a project's global plugins.
+        
+        Args:
+            project_id: Project UUID
+            plugin_name: Name of plugin to update
+            plugin: Updated PluginConfiguration instance
+            
+        Returns:
+            Updated Project instance
+            
+        Raises:
+            ProjectNotFoundError: If project doesn't exist
+            ValueError: If plugin not found in project
+        """
+        project = self._load_project_from_file(project_id)
+        
+        # Find the plugin index
+        plugin_index = None
+        for i, p in enumerate(project.global_plugins):
+            if p.name == plugin_name:
+                plugin_index = i
+                break
+        
+        if plugin_index is None:
+            raise ValueError(f"Plugin '{plugin_name}' not found in project")
+        
+        # Update the plugin
+        project.global_plugins[plugin_index] = plugin
+        project.update_timestamp()
+        self._save_project_to_file(project)
+        
+        return project
+
+    def remove_plugin_from_project(self, project_id: UUID, plugin_name: str) -> Project:
+        """
+        Remove a plugin from a project's global plugins.
+        
+        Args:
+            project_id: Project UUID
+            plugin_name: Name of plugin to remove
+            
+        Returns:
+            Updated Project instance
+            
+        Raises:
+            ProjectNotFoundError: If project doesn't exist
+            ValueError: If plugin not found in project
+        """
+        project = self._load_project_from_file(project_id)
+        
+        # Find and remove the plugin
+        original_count = len(project.global_plugins)
+        project.global_plugins = [p for p in project.global_plugins if p.name != plugin_name]
+        
+        if len(project.global_plugins) == original_count:
+            raise ValueError(f"Plugin '{plugin_name}' not found in project")
+        
+        project.update_timestamp()
+        self._save_project_to_file(project)
+        return project

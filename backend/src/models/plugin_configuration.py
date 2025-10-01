@@ -38,6 +38,10 @@ class PluginConfiguration(BaseModel):
         default=PluginScope.VM,
         description="Whether applied globally or per-VM"
     )
+    is_deprecated: bool = Field(
+        default=False,
+        description="Whether this plugin is deprecated"
+    )
 
     @field_validator('name')
     @classmethod
@@ -65,8 +69,9 @@ class PluginConfiguration(BaseModel):
         if not v:
             return None
         
-        # Basic semver pattern validation
-        semver_pattern = r'^[~^><=]*\d+(\.\d+)*(\.\d+)*(-[\w.]+)?(\+[\w.]+)?$'
+        # Basic semver pattern validation (with optional 'v' prefix and flexible prerelease/build metadata)
+        # Accepts: 1.0.0, v1.0.0, 1.0.0-alpha, 1.0.0.alpha.1, ~>1.0, >=2.3.4, etc.
+        semver_pattern = r'^[~^><=]*v?\d+(\.\d+)*([.\-][\w.]+)?(\+[\w.]+)?$'
         if not re.match(semver_pattern, v):
             raise ValueError("Version must be a valid semantic version constraint")
         
