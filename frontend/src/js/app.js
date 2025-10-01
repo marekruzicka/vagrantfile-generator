@@ -87,8 +87,10 @@ function vagrantApp() {
         showAddProjectPluginModal: false,
         showEditProjectPluginModal: false,
         showDeleteProjectPluginModal: false,
+        showBulkDeletePluginsModal: false,
         editingProjectPlugin: null,
         deletingProjectPlugin: null,
+        selectedPlugins: [],
         projectPluginForm: {
             selectedPluginId: '',
             name: '',
@@ -526,6 +528,59 @@ function vagrantApp() {
             };
         },
         
+        // Plugin Selection Management
+        isPluginSelected(pluginName) {
+            return this.selectedPlugins.includes(pluginName);
+        },
+        
+        togglePluginSelection(pluginName) {
+            const index = this.selectedPlugins.indexOf(pluginName);
+            if (index > -1) {
+                this.selectedPlugins.splice(index, 1);
+            } else {
+                this.selectedPlugins.push(pluginName);
+            }
+        },
+        
+        selectAllPlugins() {
+            if (!this.currentProject || !this.currentProject.global_plugins) return;
+            this.selectedPlugins = this.currentProject.global_plugins.map(p => p.name);
+        },
+        
+        clearPluginSelection() {
+            this.selectedPlugins = [];
+        },
+        
+        openBulkDeletePluginsModal() {
+            if (this.selectedPlugins.length === 0) return;
+            this.showBulkDeletePluginsModal = true;
+        },
+        
+        async bulkDeletePlugins() {
+            if (!this.currentProject || this.selectedPlugins.length === 0) return;
+            
+            try {
+                // Delete each selected plugin
+                const deletePromises = this.selectedPlugins.map(pluginName => 
+                    api.removePluginFromProject(this.currentProject.id, pluginName)
+                );
+                
+                await Promise.all(deletePromises);
+                
+                // Remove from current project
+                this.currentProject.global_plugins = this.currentProject.global_plugins.filter(
+                    p => !this.selectedPlugins.includes(p.name)
+                );
+                
+                this.syncProjectInList();
+                this.showBulkDeletePluginsModal = false;
+                this.clearPluginSelection();
+            } catch (error) {
+                console.error('Failed to bulk delete plugins:', error);
+                alert('Failed to delete some plugins: ' + (error.message || 'Unknown error'));
+            }
+        },
+        
         // Projects
         async loadProjects() {
             this.setLoading(true);
@@ -640,6 +695,10 @@ function vagrantApp() {
                 
                 // Initialize project labels
                 this.updateProjectLabels();
+                
+                // Clear selections
+                this.clearVMSelection();
+                this.clearPluginSelection();
                 
                 this.clearError();
             } catch (error) {
