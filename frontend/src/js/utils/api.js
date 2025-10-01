@@ -113,6 +113,18 @@ class VagrantAPI {
     async updatePlugin(id, pluginData) { return this.request(`/plugins/${id}`, { method: 'PUT', body: pluginData }); }
     async deletePlugin(id) { return this.request(`/plugins/${id}`, { method: 'DELETE' }); }
 
+    // Project Plugin management methods
+    async getProjectPlugins(projectId) { return this.request(`/projects/${projectId}/plugins`); }
+    async addPluginToProject(projectId, pluginData) { 
+        return this.request(`/projects/${projectId}/plugins`, { method: 'POST', body: pluginData }); 
+    }
+    async updatePluginInProject(projectId, pluginName, pluginData) { 
+        return this.request(`/projects/${projectId}/plugins/${pluginName}`, { method: 'PUT', body: pluginData }); 
+    }
+    async removePluginFromProject(projectId, pluginName) { 
+        return this.request(`/projects/${projectId}/plugins/${pluginName}`, { method: 'DELETE' }); 
+    }
+
     // Network interface management methods
     async addNetworkInterface(projectId, vmName, interfaceData) { 
         return this.request(`/projects/${projectId}/vms/${vmName}/network-interfaces`, { 

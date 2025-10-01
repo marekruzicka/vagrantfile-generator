@@ -34,10 +34,18 @@ class VagrantfileGenerator:
 {% endif %}# Generated: {{ generation_timestamp }}
 
 Vagrant.configure("2") do |config|
+{% if project.global_plugins %}
+  # Configure required plugins
+  config.vagrant.plugins = [
 {% for plugin in project.global_plugins %}
-  # Global plugin: {{ plugin.name }}
-  {{ plugin.get_vagrant_config() | indent(2) }}
+{% if plugin.version %}
+    { name: "{{ plugin.name }}", version: "{{ plugin.version }}" }{{ "," if not loop.last else "" }}  # pinned version
+{% else %}
+    "{{ plugin.name }}"{{ "," if not loop.last else "" }}  # latest version
+{% endif %}
 {% endfor %}
+  ]
+{% endif %}
 
 {% for vm in project.vms %}
 
