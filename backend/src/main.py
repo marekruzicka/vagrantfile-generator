@@ -14,6 +14,7 @@ from fastapi.staticfiles import StaticFiles
 from .api import projects_router, vms_router, generation_router
 from .api.boxes import router as boxes_router
 from .api.footer import router as footer_router
+from .api.plugins import router as plugins_router
 from .services import ProjectNotFoundError
 
 # Get environment variables for configuration
@@ -54,6 +55,7 @@ app.include_router(vms_router, prefix="/api", tags=["vms"])
 app.include_router(generation_router, prefix="/api", tags=["generation"])
 app.include_router(boxes_router, prefix="/api", tags=["boxes"])
 app.include_router(footer_router, prefix="/api", tags=["footer"])
+app.include_router(plugins_router, prefix="/api", tags=["plugins"])
 
 # Global exception handlers
 @app.exception_handler(ProjectNotFoundError)

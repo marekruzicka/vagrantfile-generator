@@ -106,6 +106,13 @@ class VagrantAPI {
     async updateBox(id, boxData) { return this.request(`/boxes/${id}`, { method: 'PUT', body: boxData }); }
     async deleteBox(id) { return this.request(`/boxes/${id}`, { method: 'DELETE' }); }
 
+    // Plugin management methods
+    async getPluginsList() { return this.request('/plugins'); }
+    async getPlugin(id) { return this.request(`/plugins/${id}`); }
+    async createPlugin(pluginData) { return this.request('/plugins', { method: 'POST', body: pluginData }); }
+    async updatePlugin(id, pluginData) { return this.request(`/plugins/${id}`, { method: 'PUT', body: pluginData }); }
+    async deletePlugin(id) { return this.request(`/plugins/${id}`, { method: 'DELETE' }); }
+
     // Network interface management methods
     async addNetworkInterface(projectId, vmName, interfaceData) { 
         return this.request(`/projects/${projectId}/vms/${vmName}/network-interfaces`, { 

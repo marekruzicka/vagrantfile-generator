@@ -68,6 +68,21 @@ function vagrantApp() {
             url: ''
         },
         
+        // Plugin management state
+        availablePlugins: [],
+        showPluginModal: false,
+        showDeletePluginConfirmModal: false,
+        pluginToDelete: null,
+        editingPlugin: null,
+        pluginForm: {
+            name: '',
+            description: '',
+            source_url: '',
+            documentation_url: '',
+            default_version: '',
+            is_deprecated: false
+        },
+        
         // VM labeling and selection state
         selectedVMs: [],
         projectLabels: [], // All available labels for current project
@@ -100,6 +115,7 @@ function vagrantApp() {
             this.loadConfiguration();
             await this.loadProjects();
             await this.loadBoxes();
+            await this.loadPlugins();
         },
         
         // Configuration management
@@ -242,6 +258,127 @@ function vagrantApp() {
             } catch (error) {
                 console.error('Failed to delete box:', error);
                 alert('Failed to delete box: ' + (error.message || 'Unknown error'));
+            }
+        },
+        
+        // Plugin management methods
+        async loadPlugins() {
+            try {
+                const result = await api.getPluginsList();
+                this.availablePlugins = result || [];
+            } catch (error) {
+                console.error('Failed to load plugins:', error);
+            }
+        },
+        
+        openAddPluginModal() {
+            this.editingPlugin = null;
+            this.pluginForm = {
+                name: '',
+                description: '',
+                source_url: '',
+                documentation_url: '',
+                default_version: '',
+                is_deprecated: false
+            };
+            this.showPluginModal = true;
+        },
+        
+        openEditPluginModal(plugin) {
+            this.editingPlugin = plugin;
+            // Fetch full plugin details
+            this.loadPluginForEdit(plugin.id);
+            this.showPluginModal = true;
+        },
+        
+        async loadPluginForEdit(pluginId) {
+            try {
+                const fullPlugin = await api.getPlugin(pluginId);
+                this.pluginForm = {
+                    name: fullPlugin.name || '',
+                    description: fullPlugin.description || '',
+                    source_url: fullPlugin.source_url || '',
+                    documentation_url: fullPlugin.documentation_url || '',
+                    default_version: fullPlugin.default_version || '',
+                    is_deprecated: fullPlugin.is_deprecated || false
+                };
+            } catch (error) {
+                console.error('Failed to load plugin details:', error);
+                // Fallback to summary data
+                this.pluginForm = {
+                    name: this.editingPlugin.name || '',
+                    description: this.editingPlugin.description || '',
+                    source_url: '',
+                    documentation_url: '',
+                    default_version: '',
+                    is_deprecated: this.editingPlugin.is_deprecated || false
+                };
+            }
+        },
+        
+        closePluginModal() {
+            this.showPluginModal = false;
+            this.editingPlugin = null;
+            this.pluginForm = {
+                name: '',
+                description: '',
+                source_url: '',
+                documentation_url: '',
+                default_version: '',
+                is_deprecated: false
+            };
+        },
+        
+        async savePlugin() {
+            try {
+                if (!this.pluginForm.name.trim()) {
+                    alert('Plugin name is required');
+                    return;
+                }
+                
+                const pluginData = {
+                    name: this.pluginForm.name.trim(),
+                    description: this.pluginForm.description.trim() || null,
+                    source_url: this.pluginForm.source_url.trim() || null,
+                    documentation_url: this.pluginForm.documentation_url.trim() || null,
+                    default_version: this.pluginForm.default_version.trim() || null,
+                    is_deprecated: this.pluginForm.is_deprecated
+                };
+                
+                if (this.editingPlugin) {
+                    await api.updatePlugin(this.editingPlugin.id, pluginData);
+                } else {
+                    await api.createPlugin(pluginData);
+                }
+                
+                await this.loadPlugins();
+                this.closePluginModal();
+            } catch (error) {
+                console.error('Failed to save plugin:', error);
+                alert('Failed to save plugin: ' + (error.message || 'Unknown error'));
+            }
+        },
+        
+        confirmDeletePlugin(plugin) {
+            this.pluginToDelete = plugin;
+            this.showDeletePluginConfirmModal = true;
+        },
+        
+        closeDeletePluginModal() {
+            this.showDeletePluginConfirmModal = false;
+            this.pluginToDelete = null;
+        },
+        
+        async deletePlugin() {
+            if (!this.pluginToDelete) return;
+            
+            try {
+                await api.deletePlugin(this.pluginToDelete.id);
+                await this.loadPlugins();
+                this.closeDeletePluginModal();
+            } catch (error) {
+                console.error('Failed to delete plugin:', error);
+                alert('Failed to delete plugin: ' + (error.message || 'Unknown error'));
             }
         },
         
