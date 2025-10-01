@@ -39,9 +39,9 @@ Vagrant.configure("2") do |config|
   config.vagrant.plugins = [
 {% for plugin in project.global_plugins %}
 {% if plugin.version %}
-    { name: "{{ plugin.name }}", version: "{{ plugin.version }}" }{{ "," if not loop.last else "" }}  # pinned version
+    { name: "{{ plugin.name }}", version: "{{ plugin.version }}" }{{ "," if not loop.last else "" }}
 {% else %}
-    "{{ plugin.name }}"{{ "," if not loop.last else "" }}  # latest version
+    "{{ plugin.name }}"{{ "," if not loop.last else "" }}
 {% endif %}
 {% endfor %}
   ]
