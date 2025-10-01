@@ -85,19 +85,12 @@ function vagrantApp() {
         
         // Project Plugin management state
         showAddProjectPluginModal: false,
-        showEditProjectPluginModal: false,
         showDeleteProjectPluginModal: false,
         showBulkDeletePluginsModal: false,
-        editingProjectPlugin: null,
         deletingProjectPlugin: null,
         selectedPlugins: [],
         projectPluginForm: {
-            selectedPluginId: '',
-            name: '',
-            description: '',
-            default_version: '',
-            is_deprecated: false,
-            version: ''
+            selectedPluginIds: []
         },
         
         // VM labeling and selection state
@@ -405,92 +398,62 @@ function vagrantApp() {
             this.showAddProjectPluginModal = true;
         },
         
-        onProjectPluginSelected() {
-            if (!this.projectPluginForm.selectedPluginId) {
-                this.resetProjectPluginForm();
-                return;
-            }
-            
-            const plugin = this.availablePlugins.find(p => p.id === this.projectPluginForm.selectedPluginId);
-            if (plugin) {
-                this.projectPluginForm.name = plugin.name;
-                this.projectPluginForm.description = plugin.description || '';
-                this.projectPluginForm.default_version = plugin.default_version || '';
-                this.projectPluginForm.is_deprecated = plugin.is_deprecated || false;
+        togglePluginForAdd(pluginId) {
+            const index = this.projectPluginForm.selectedPluginIds.indexOf(pluginId);
+            if (index === -1) {
+                this.projectPluginForm.selectedPluginIds.push(pluginId);
+            } else {
+                this.projectPluginForm.selectedPluginIds.splice(index, 1);
             }
         },
         
-        async addProjectPlugin() {
-            if (!this.currentProject || !this.projectPluginForm.selectedPluginId) return;
+        async addProjectPlugins() {
+            if (!this.currentProject || this.projectPluginForm.selectedPluginIds.length === 0) return;
             
             try {
-                const pluginData = {
-                    name: this.projectPluginForm.name,
-                    version: this.projectPluginForm.version || null,
-                    scope: 'global',
-                    config: {}
-                };
+                const addedPlugins = [];
                 
-                const plugin = await api.addPluginToProject(this.currentProject.id, pluginData);
+                // Add each selected plugin
+                for (const pluginId of this.projectPluginForm.selectedPluginIds) {
+                    const plugin = this.availablePlugins.find(p => p.id === pluginId);
+                    if (!plugin) continue;
+                    
+                    const pluginData = {
+                        name: plugin.name,
+                        version: plugin.default_version || null,
+                        scope: 'global',
+                        config: {}
+                    };
+                    
+                    try {
+                        const addedPlugin = await api.addPluginToProject(this.currentProject.id, pluginData);
+                        addedPlugins.push(addedPlugin);
+                    } catch (error) {
+                        console.error(`Failed to add plugin ${plugin.name}:`, error);
+                        // Continue with other plugins
+                    }
+                }
                 
-                // Add to current project
+                // Add all successfully added plugins to current project
                 if (!this.currentProject.global_plugins) {
                     this.currentProject.global_plugins = [];
                 }
-                this.currentProject.global_plugins.push(plugin);
+                this.currentProject.global_plugins.push(...addedPlugins);
                 
                 this.syncProjectInList();
                 this.showAddProjectPluginModal = false;
                 this.resetProjectPluginForm();
-            } catch (error) {
-                console.error('Failed to add plugin to project:', error);
-                alert('Failed to add plugin: ' + (error.message || 'Unknown error'));
-            }
-        },
-        
-        openEditProjectPluginModal(plugin) {
-            this.editingProjectPlugin = plugin;
-            this.projectPluginForm.name = plugin.name;
-            this.projectPluginForm.version = plugin.version || '';
-            this.showEditProjectPluginModal = true;
-        },
-        
-        closeEditProjectPluginModal() {
-            this.showEditProjectPluginModal = false;
-            this.editingProjectPlugin = null;
-            this.resetProjectPluginForm();
-        },
-        
-        async updateProjectPlugin() {
-            if (!this.currentProject || !this.editingProjectPlugin) return;
-            
-            try {
-                const pluginData = {
-                    name: this.editingProjectPlugin.name,
-                    version: this.projectPluginForm.version || null,
-                    scope: 'global',
-                    config: {}
-                };
                 
-                const updatedPlugin = await api.updatePluginInProject(
-                    this.currentProject.id, 
-                    this.editingProjectPlugin.name, 
-                    pluginData
-                );
-                
-                // Update in current project
-                const index = this.currentProject.global_plugins.findIndex(p => p.name === this.editingProjectPlugin.name);
-                if (index !== -1) {
-                    this.currentProject.global_plugins[index] = updatedPlugin;
+                if (addedPlugins.length < this.projectPluginForm.selectedPluginIds.length) {
+                    alert(`Successfully added ${addedPlugins.length} of ${this.projectPluginForm.selectedPluginIds.length} plugins. Some plugins may already exist in the project.`);
                 }
-                
-                this.syncProjectInList();
-                this.closeEditProjectPluginModal();
             } catch (error) {
-                console.error('Failed to update project plugin:', error);
-                alert('Failed to update plugin: ' + (error.message || 'Unknown error'));
+                console.error('Failed to add plugins to project:', error);
+                alert('Failed to add plugins: ' + (error.message || 'Unknown error'));
             }
         },
+        
+
         
         openDeleteProjectPluginModal(plugin) {
             this.deletingProjectPlugin = plugin;
@@ -519,12 +482,7 @@ function vagrantApp() {
         
         resetProjectPluginForm() {
             this.projectPluginForm = {
-                selectedPluginId: '',
-                name: '',
-                description: '',
-                default_version: '',
-                is_deprecated: false,
-                version: ''
+                selectedPluginIds: []
             };
         },
         
