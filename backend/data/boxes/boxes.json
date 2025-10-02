@@ -1,0 +1,55 @@
+{
+  "boxes": [
+    {
+      "id": "e724b9a6-88dc-4348-bfe5-554b3d33aa8a",
+      "name": "generic/ubuntu2204",
+      "description": "Ubuntu 22.04 LTS (Jammy Jellyfish)",
+      "provider": "libvirt",
+      "version": null,
+      "url": null,
+      "created_at": "2025-09-25T15:40:00.876903",
+      "updated_at": "2025-09-25T15:40:00.876911"
+    },
+    {
+      "id": "06463740-3562-47e0-8e80-3977943dc4f7",
+      "name": "generic/centos7",
+      "description": "CentOS 7",
+      "provider": "libvirt",
+      "version": null,
+      "url": null,
+      "created_at": "2025-09-25T15:40:00.876920",
+      "updated_at": "2025-09-25T15:40:00.876921"
+    },
+    {
+      "id": "84f3a6d2-f485-473c-a180-527d8fc3d22d",
+      "name": "generic/debian12",
+      "description": "Debian 12 (Bookworm)",
+      "provider": "libvirt",
+      "version": null,
+      "url": null,
+      "created_at": "2025-09-25T15:40:00.876930",
+      "updated_at": "2025-09-25T15:40:00.876931"
+    },
+    {
+      "id": "5af90c9a-e8a8-48e9-9dde-265d0bdb962b",
+      "name": "generic/alpine318",
+      "description": "Alpine Linux 3.18",
+      "provider": "libvirt",
+      "version": null,
+      "url": null,
+      "created_at": "2025-09-25T15:40:00.876933",
+      "updated_at": "2025-09-25T15:40:00.876934"
+    },
+    {
+      "id": "104be756-02f2-4b5a-aa11-13f6594d31e0",
+      "name": "generic/fedora38",
+      "description": "Fedora 38",
+      "provider": "libvirt",
+      "version": null,
+      "url": null,
+      "created_at": "2025-09-25T15:40:00.876936",
+      "updated_at": "2025-09-25T15:40:00.876937"
+    }
+  ],
+  "last_updated": "2025-10-01T11:26:07.308309"
+}
