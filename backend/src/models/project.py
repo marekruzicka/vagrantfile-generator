@@ -67,6 +67,10 @@ class ProjectUpdate(ProjectBase):
     version: str = Field(default="1.0.0", description="Data model version")
     vms: List['VirtualMachine'] = Field(default_factory=list)
     global_plugins: List['PluginConfiguration'] = Field(default_factory=list)
+    global_provisioners: List[str] = Field(
+        default_factory=list,
+        description="List of global provisioner IDs applied to all VMs"
+    )
 
     @validator('vms')
     def validate_vm_names_unique(cls, v):
@@ -90,6 +94,10 @@ class Project(ProjectBase):
     updated_at: datetime = Field(default_factory=datetime.utcnow)
     vms: List['VirtualMachine'] = Field(default_factory=list)
     global_plugins: List['PluginConfiguration'] = Field(default_factory=list)
+    global_provisioners: List[str] = Field(
+        default_factory=list,
+        description="List of global provisioner IDs applied to all VMs"
+    )
 
     class Config:
         """Pydantic configuration."""

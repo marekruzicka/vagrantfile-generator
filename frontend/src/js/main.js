@@ -1,44 +1,33 @@
-// Main application initialization
-document.addEventListener('DOMContentLoaded', async function() {
-    console.log('Main.js: DOMContentLoaded event fired');
+// Register Alpine components BEFORE Alpine initializes
+document.addEventListener('alpine:init', () => {
+    console.log('Main.js: alpine:init fired - registering components');
     
-    // Initialize Alpine.js when the DOM is ready
-    if (typeof Alpine !== 'undefined') {
-        console.log('Main.js: Alpine.js is available');
-        
-        // Check if footerComponent function exists
-        if (typeof footerComponent === 'function') {
-            console.log('Main.js: footerComponent function is available');
-        } else {
-            console.error('Main.js: footerComponent function is NOT available');
-        }
-        
-        // Register the main app component
+    // Register the main app component
+    if (typeof vagrantApp === 'function') {
         Alpine.data('vagrantApp', vagrantApp);
         console.log('Main.js: Registered vagrantApp component');
-        
-        // footerComponent is already available globally from footer-component.js
-        // No need to re-register it
-        
-        // Wait for HTML partials to load before starting Alpine.js
-        if (window.htmlLoader) {
-            console.log('Main.js: Waiting for HTML partials to load before starting Alpine.js...');
-            await window.htmlLoader.loadPartials();
-            console.log('Main.js: HTML partials loaded, starting Alpine.js...');
-        } else {
-            console.log('Main.js: No htmlLoader found, starting Alpine.js immediately...');
-        }
-        
-        // Start Alpine.js (using deferred loading)
-        if (window.startAlpine) {
-            console.log('Main.js: Starting Alpine.js via deferred loader');
-            window.startAlpine();
-        } else {
-            console.log('Main.js: Starting Alpine.js directly');
-            Alpine.start();
-        }
-        console.log('Main.js: Alpine.js startup completed');
     } else {
-        console.error('Alpine.js is not loaded. Please ensure Alpine.js is included before this script.');
+        console.error('Main.js: vagrantApp function is NOT available');
     }
+    
+    // footerComponent is already available globally from footer-component.js
+    if (typeof footerComponent === 'function') {
+        console.log('Main.js: footerComponent is available');
+    } else {
+        console.error('Main.js: footerComponent is NOT available');
+    }
+});
+
+// Load HTML partials after DOM is ready
+document.addEventListener('DOMContentLoaded', async function() {
+    console.log('Main.js: DOMContentLoaded fired');
+    
+    // Wait for HTML partials to load
+    if (window.htmlLoader) {
+        console.log('Main.js: Loading HTML partials...');
+        await window.htmlLoader.loadPartials();
+        console.log('Main.js: HTML partials loaded');
+    }
+    
+    console.log('Main.js: Initialization complete');
 });

@@ -94,6 +94,27 @@ function vagrantApp() {
             selectedPluginIds: []
         },
         
+        // Global Provisioner management state
+        availableProvisioners: [],
+        showProvisionerModal: false,
+        showDeleteProvisionerConfirmModal: false,
+        provisionerToDelete: null,
+        editingProvisioner: null,
+        provisionerForm: {
+            name: '',
+            description: '',
+            shell_config: {
+                script: '',
+                privileged: true,
+                run: 'once',
+                path: ''
+            }
+        },
+        
+        // Project Provisioner management state
+        showAddProjectProvisionerModal: false,
+        projectProvisionersCache: {}, // Cache provisioner details by ID
+        
         // VM labeling and selection state
         selectedVMs: [],
         projectLabels: [], // All available labels for current project
@@ -127,6 +148,7 @@ function vagrantApp() {
             await this.loadProjects();
             await this.loadBoxes();
             await this.loadPlugins();
+            await this.loadProvisioners();
         },
         
         // Configuration management
@@ -545,6 +567,95 @@ function vagrantApp() {
             }
         },
         
+        // Project Provisioner Management
+        openAddProjectProvisionerModal() {
+            this.showAddProjectProvisionerModal = true;
+        },
+        
+        closeAddProjectProvisionerModal() {
+            this.showAddProjectProvisionerModal = false;
+        },
+        
+        async addProvisionerToProject(provisionerId) {
+            if (!this.currentProject) return;
+            
+            try {
+                await api.addProvisionerToProject(this.currentProject.id, provisionerId);
+                
+                // Add to current project
+                if (!this.currentProject.global_provisioners) {
+                    this.currentProject.global_provisioners = [];
+                }
+                this.currentProject.global_provisioners.push(provisionerId);
+                
+                // Cache provisioner details
+                await this.loadProvisionerDetails(provisionerId);
+                
+                this.syncProjectInList();
+                this.closeAddProjectProvisionerModal();
+                this.setSuccess('Provisioner added to project');
+            } catch (error) {
+                console.error('Failed to add provisioner to project:', error);
+                alert('Failed to add provisioner: ' + (error.message || 'Unknown error'));
+            }
+        },
+        
+        async removeProvisionerFromProject(provisionerId) {
+            if (!this.currentProject) return;
+            
+            if (!confirm('Remove this provisioner from the project?')) return;
+            
+            try {
+                await api.removeProvisionerFromProject(this.currentProject.id, provisionerId);
+                
+                // Remove from current project
+                this.currentProject.global_provisioners = this.currentProject.global_provisioners.filter(
+                    id => id !== provisionerId
+                );
+                
+                this.syncProjectInList();
+                this.setSuccess('Provisioner removed from project');
+            } catch (error) {
+                console.error('Failed to remove provisioner:', error);
+                alert('Failed to remove provisioner: ' + (error.message || 'Unknown error'));
+            }
+        },
+        
+        async loadProvisionerDetails(provisionerId) {
+            try {
+                const provisioner = await api.getProvisioner(provisionerId);
+                this.projectProvisionersCache[provisionerId] = provisioner;
+            } catch (error) {
+                console.error(`Failed to load provisioner ${provisionerId}:`, error);
+            }
+        },
+        
+        async loadProjectProvisioners() {
+            if (!this.currentProject || !this.currentProject.global_provisioners) return;
+            
+            // Load details for all provisioners in the project
+            for (const provisionerId of this.currentProject.global_provisioners) {
+                if (!this.projectProvisionersCache[provisionerId]) {
+                    await this.loadProvisionerDetails(provisionerId);
+                }
+            }
+        },
+        
+        getProvisionerName(provisionerId) {
+            const provisioner = this.projectProvisionersCache[provisionerId];
+            return provisioner ? provisioner.name : 'Loading...';
+        },
+        
+        getProvisionerType(provisionerId) {
+            const provisioner = this.projectProvisionersCache[provisionerId];
+            return provisioner ? provisioner.type : '';
+        },
+        
+        getProvisionerDescription(provisionerId) {
+            const provisioner = this.projectProvisionersCache[provisionerId];
+            return provisioner ? (provisioner.description || 'No description') : '';
+        },
+        
         // Projects
         async loadProjects() {
             this.setLoading(true);
@@ -659,6 +770,9 @@ function vagrantApp() {
                 
                 // Initialize project labels
                 this.updateProjectLabels();
+                
+                // Load project provisioners
+                await this.loadProjectProvisioners();
                 
                 // Clear selections
                 this.clearVMSelection();
@@ -1033,6 +1147,144 @@ function vagrantApp() {
         validateNetworkInterface(interface) { return VagrantUIHelpers.validateNetworkInterface(interface, this); },
         getNetworkTypeDisplay(type) { return VagrantUIHelpers.getNetworkTypeDisplay(type); },
         getNetworkConfigDisplay(interface) { return VagrantUIHelpers.getNetworkConfigDisplay(interface); },
+
+        // Global Provisioner Management
+        async loadProvisioners() {
+            try {
+                const result = await api.getProvisionersList();
+                this.availableProvisioners = result || [];
+            } catch (error) {
+                console.error('Failed to load provisioners:', error);
+            }
+        },
+        
+        openAddProvisionerModal() {
+            this.editingProvisioner = null;
+            this.provisionerForm = {
+                name: '',
+                description: '',
+                shell_config: {
+                    script: '',
+                    privileged: true,
+                    run: 'once',
+                    path: ''
+                }
+            };
+            this.showProvisionerModal = true;
+        },
+        
+        openEditProvisionerModal(provisioner) {
+            this.editingProvisioner = provisioner;
+            this.loadProvisionerForEdit(provisioner.id);
+            this.showProvisionerModal = true;
+        },
+        
+        async loadProvisionerForEdit(provisionerId) {
+            try {
+                const fullProvisioner = await api.getProvisioner(provisionerId);
+                this.provisionerForm = {
+                    name: fullProvisioner.name || '',
+                    description: fullProvisioner.description || '',
+                    shell_config: {
+                        script: fullProvisioner.shell_config?.script || '',
+                        privileged: fullProvisioner.shell_config?.privileged ?? true,
+                        run: fullProvisioner.shell_config?.run || 'once',
+                        path: fullProvisioner.shell_config?.path || ''
+                    }
+                };
+            } catch (error) {
+                console.error('Failed to load provisioner details:', error);
+                this.provisionerForm = {
+                    name: this.editingProvisioner.name || '',
+                    description: this.editingProvisioner.description || '',
+                    shell_config: {
+                        script: '',
+                        privileged: true,
+                        run: 'once',
+                        path: ''
+                    }
+                };
+            }
+        },
+        
+        closeProvisionerModal() {
+            this.showProvisionerModal = false;
+            this.editingProvisioner = null;
+            this.provisionerForm = {
+                name: '',
+                description: '',
+                shell_config: {
+                    script: '',
+                    privileged: true,
+                    run: 'once',
+                    path: ''
+                }
+            };
+        },
+        
+        async saveProvisioner() {
+            try {
+                if (!this.provisionerForm.name.trim()) {
+                    alert('Provisioner name is required');
+                    return;
+                }
+                
+                if (!this.provisionerForm.shell_config.script.trim() && !this.provisionerForm.shell_config.path.trim()) {
+                    alert('Either script content or external script path is required');
+                    return;
+                }
+                
+                const provisionerData = {
+                    name: this.provisionerForm.name.trim(),
+                    description: this.provisionerForm.description.trim() || null,
+                    type: 'shell',
+                    scope: 'global',
+                    shell_config: {
+                        script: this.provisionerForm.shell_config.script.trim(),
+                        privileged: this.provisionerForm.shell_config.privileged,
+                        run: this.provisionerForm.shell_config.run,
+                        path: this.provisionerForm.shell_config.path.trim() || null
+                    }
+                };
+                
+                if (this.editingProvisioner) {
+                    await api.updateProvisioner(this.editingProvisioner.id, provisionerData);
+                } else {
+                    await api.createProvisioner(provisionerData);
+                }
+                
+                await this.loadProvisioners();
+                this.closeProvisionerModal();
+                this.setSuccess('Provisioner saved successfully');
+            } catch (error) {
+                console.error('Failed to save provisioner:', error);
+                alert('Failed to save provisioner: ' + (error.message || 'Unknown error'));
+            }
+        },
+        
+        confirmDeleteProvisioner(provisioner) {
+            this.provisionerToDelete = provisioner;
+            this.showDeleteProvisionerConfirmModal = true;
+        },
+        
+        closeDeleteProvisionerModal() {
+            this.showDeleteProvisionerConfirmModal = false;
+            this.provisionerToDelete = null;
+        },
+        
+        async deleteProvisioner() {
+            if (!this.provisionerToDelete) return;
+            
+            try {
+                await api.deleteProvisioner(this.provisionerToDelete.id);
+                await this.loadProvisioners();
+                this.closeDeleteProvisionerModal();
+                this.setSuccess('Provisioner deleted successfully');
+            } catch (error) {
+                console.error('Failed to delete provisioner:', error);
+                alert('Failed to delete provisioner: ' + (error.message || 'Unknown error'));
+            }
+        },
 
         // UI helpers
         setLoading(loading) { VagrantUIHelpers.setLoading(this, loading); },

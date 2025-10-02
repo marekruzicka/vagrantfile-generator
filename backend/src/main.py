@@ -16,6 +16,8 @@ from .api.boxes import router as boxes_router
 from .api.footer import router as footer_router
 from .api.plugins import router as plugins_router
 from .api.project_plugins import router as project_plugins_router
+from .api.provisioners import router as provisioners_router
+from .api.project_provisioners import router as project_provisioners_router
 from .services import ProjectNotFoundError
 
 # Get environment variables for configuration
@@ -58,6 +60,8 @@ app.include_router(boxes_router, prefix="/api", tags=["boxes"])
 app.include_router(footer_router, prefix="/api", tags=["footer"])
 app.include_router(plugins_router, prefix="/api", tags=["plugins"])
 app.include_router(project_plugins_router, prefix="/api", tags=["project-plugins"])
+app.include_router(provisioners_router, prefix="/api", tags=["provisioners"])
+app.include_router(project_provisioners_router, prefix="/api", tags=["project-provisioners"])
 
 # Global exception handlers
 @app.exception_handler(ProjectNotFoundError)

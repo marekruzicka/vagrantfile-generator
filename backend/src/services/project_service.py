@@ -504,3 +504,54 @@ class ProjectService:
         project.update_timestamp()
         self._save_project_to_file(project)
         return project
+
+    def add_provisioner_to_project(self, project_id: UUID, provisioner_id: str) -> Project:
+        """
+        Add a provisioner to a project's global provisioners.
+        
+        Args:
+            project_id: Project UUID
+            provisioner_id: ID of provisioner to add
+            
+        Returns:
+            Updated Project instance
+            
+        Raises:
+            ProjectNotFoundError: If project doesn't exist
+            ValueError: If provisioner already exists in project
+        """
+        project = self._load_project_from_file(project_id)
+        
+        # Check if provisioner already exists
+        if provisioner_id in project.global_provisioners:
+            raise ValueError(f"Provisioner '{provisioner_id}' already exists in project")
+        
+        project.global_provisioners.append(provisioner_id)
+        project.update_timestamp()
+        self._save_project_to_file(project)
+        return project
+
+    def remove_provisioner_from_project(self, project_id: UUID, provisioner_id: str) -> Project:
+        """
+        Remove a provisioner from a project's global provisioners.
+        
+        Args:
+            project_id: Project UUID
+            provisioner_id: ID of provisioner to remove
+            
+        Returns:
+            Updated Project instance
+            
+        Raises:
+            ProjectNotFoundError: If project doesn't exist
+            ValueError: If provisioner not found in project
+        """
+        project = self._load_project_from_file(project_id)
+        
+        if provisioner_id not in project.global_provisioners:
+            raise ValueError(f"Provisioner '{provisioner_id}' not found in project")
+        
+        project.global_provisioners.remove(provisioner_id)
+        project.update_timestamp()
+        self._save_project_to_file(project)
+        return project
