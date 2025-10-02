@@ -18,6 +18,7 @@ class Plugin(BaseModel):
     source_url: Optional[str] = Field(default=None, description="Source code repository URL")
     documentation_url: Optional[str] = Field(default=None, description="Documentation URL")
     default_version: Optional[str] = Field(default=None, description="Default version constraint")
+    configuration: Optional[str] = Field(default=None, description="Plugin-specific configuration (Ruby code)")
     is_deprecated: bool = Field(default=False, description="Whether the plugin is deprecated")
     created_at: str = Field(..., description="Creation timestamp")
     updated_at: str = Field(..., description="Last update timestamp")
@@ -46,6 +47,7 @@ class PluginCreate(BaseModel):
     source_url: Optional[str] = Field(default=None, description="Source code repository URL")
     documentation_url: Optional[str] = Field(default=None, description="Documentation URL")
     default_version: Optional[str] = Field(default=None, description="Default version constraint")
+    configuration: Optional[str] = Field(default=None, description="Plugin-specific configuration (Ruby code)")
     is_deprecated: bool = Field(default=False, description="Whether the plugin is deprecated")
 
 
@@ -57,6 +59,7 @@ class PluginUpdate(BaseModel):
     source_url: Optional[str] = Field(default=None, description="Source code repository URL")
     documentation_url: Optional[str] = Field(default=None, description="Documentation URL")
     default_version: Optional[str] = Field(default=None, description="Default version constraint")
+    configuration: Optional[str] = Field(default=None, description="Plugin-specific configuration (Ruby code)")
     is_deprecated: Optional[bool] = Field(default=None, description="Whether the plugin is deprecated")
 
 

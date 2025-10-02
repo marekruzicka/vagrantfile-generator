@@ -80,6 +80,7 @@ function vagrantApp() {
             source_url: '',
             documentation_url: '',
             default_version: '',
+            configuration: '',
             is_deprecated: false
         },
         
@@ -289,6 +290,7 @@ function vagrantApp() {
                 source_url: '',
                 documentation_url: '',
                 default_version: '',
+                configuration: '',
                 is_deprecated: false
             };
             this.showPluginModal = true;
@@ -310,6 +312,7 @@ function vagrantApp() {
                     source_url: fullPlugin.source_url || '',
                     documentation_url: fullPlugin.documentation_url || '',
                     default_version: fullPlugin.default_version || '',
+                    configuration: fullPlugin.configuration || '',
                     is_deprecated: fullPlugin.is_deprecated || false
                 };
             } catch (error) {
@@ -321,6 +324,7 @@ function vagrantApp() {
                     source_url: '',
                     documentation_url: '',
                     default_version: '',
+                    configuration: '',
                     is_deprecated: this.editingPlugin.is_deprecated || false
                 };
             }
@@ -335,6 +339,7 @@ function vagrantApp() {
                 source_url: '',
                 documentation_url: '',
                 default_version: '',
+                configuration: '',
                 is_deprecated: false
             };
         },
@@ -352,6 +357,7 @@ function vagrantApp() {
                     source_url: this.pluginForm.source_url.trim() || null,
                     documentation_url: this.pluginForm.documentation_url.trim() || null,
                     default_version: this.pluginForm.default_version.trim() || null,
+                    configuration: this.pluginForm.configuration.trim() || null,
                     is_deprecated: this.pluginForm.is_deprecated
                 };
                 
