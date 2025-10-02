@@ -1,5 +1,57 @@
 # Changelog
 
+## 🚀 Version 1.9.0 - Provisioner Management System
+**Date:** October 2, 2025
+
+### ✨ New Features
+- **Global Provisioner Management**: Add and configure Vagrant provisioners for your projects
+  - Manage shell provisioners through the Settings page
+  - Add, edit, and delete provisioner configurations
+  - Configure shell scripts, privilege levels, and run modes (once/always)
+  - Support for inline scripts and script paths
+  - View provisioner descriptions and details
+
+- **Project-Level Provisioner Configuration**: Assign provisioners to individual projects
+  - Add multiple provisioners to any project from the project detail page
+  - Multiselect modal with checkbox-based selection for adding multiple provisioners at once
+  - Visual provisioner cards showing name, type, and description
+  - Bulk selection and deletion of provisioners
+  - Edit provisioners directly from the project detail page
+  - Smart filtering: only shows provisioners not yet added to the project
+  - Simple empty state when no provisioners are configured
+  - Provisioners are organized in the Settings page, separate from plugins
+
+- **Enhanced Plugin Management**: Improved plugin workflow and UX
+  - **Smart Filtering**: Plugin modal now only shows plugins not yet added to the project
+  - **Edit from Project Detail**: Edit plugins directly from the project detail page without navigating away
+  - **Improved Error Handling**: Better feedback when plugins already exist or fail to add
+  - **Empty States**: Clear messages when all plugins are added or none are available
+  - **Context-Aware Modals**: Edit modals stay on the current page instead of navigating to Settings
+
+- **Enhanced Vagrantfile Generation**: Generated Vagrantfiles now include provisioner configurations
+  - Provisioners are automatically added to the Vagrant configuration
+  - Proper Ruby syntax with shell script blocks
+  - Support for privileged and non-privileged execution
+  - Run mode configuration (once/always)
+
+### 🎨 UI/UX Improvements
+- **Consistent Modal Design**: Plugin and provisioner modals now have the same look and feel
+- **Multiselect Capability**: Both plugins and provisioners support selecting multiple items at once
+- **Better Visual Feedback**: Selected items are highlighted with blue rings
+- **Green Action Buttons**: Primary actions (Add Plugin, Add Provisioner) now use green buttons for consistency
+- **Hover-Based Actions**: Edit and delete buttons appear on hover for cleaner interface
+- **Selection Counters**: Real-time feedback showing how many items are selected
+- **Bulk Operations**: Select All, Clear Selection, and Bulk Delete buttons for efficient management
+
+### 🐛 Bug Fixes
+- Fixed plugin addition error when plugins already exist in project
+- Fixed provisioner modal displaying only provisioners not yet in the project
+- Fixed edit modals navigating away from current page
+- Improved error messages for better user feedback
+- Fixed selection state persistence across modal operations
+
+---
+
 ## 🚀 Version 1.8.0 - Plugin Management System
 **Date:** October 1, 2025
 
