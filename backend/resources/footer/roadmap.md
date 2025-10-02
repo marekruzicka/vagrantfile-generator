@@ -2,7 +2,7 @@
 This is in no particular order, just using it to store ideas.
 
 ## Contents
-- [Plugin specific configuration](#per-plugin-configuration)
+- ~~[Plugin specific configuration](#plugin-specific-configuration)~~
 - [Provisioners](#provisioners)
 - [Triggers](#triggers)
 - [Networking rework](#networking-rework)
@@ -37,22 +37,60 @@ end
 
 
 ## Provisioners
-- Add general support for provisioners.
-  1. ansible
-  2. shell
-No idea how to integrate it, but working on it :)
+- ✅ Add general support for provisioners.
+### Scope
+  - ✅ global (all vms within a project) - DONE
+  - local (selected vms only) - ToDo later
+### Types
+  1. ✅ shell - DONE
+  2. ansible - ToDo later
+
+Provisioners are defined globally in Settings (like plugin templates), then added to individual projects (like project plugins).
+- ✅ Settings section for defining provisioner templates
+- ✅ Project detail page section for adding/removing provisioners
+- ✅ Add/Edit modal with shell provisioner type
+
+#### Shell
+- Add New Provisioner modal tab
+  - Provisioner Name (required)
+  - Description (optional)
+  - Script (required, default "echo 'Vagrant shell provisioner'")
 ```ruby
-# Ansible provisioner
-config.vm.provision "ansible" do |ansible|
-  ansible.playbook = "common.yml"
-  ansible.skip_tags  = "debug"
-  ansible.extra_vars = {
-    "root_pw" => root_pw,
-    "nfs_server_ip" => nfs_server_ip,
-    "nfs_export_path" => nfs_export_path,
-    "nfs_mountpoint" => nfs_mountpoint,
-    "proxy_url" => proxy_url
-  }
+$script = <<-SCRIPT
+echo 'Vagrant shell provisioner'
+SCRIPT
+
+Vagrant.configure("2") do |config|
+  config.vm.provision "shell", inline: $script
+end
+```
+
+#### Ansible
+- Add New Provisioner modal tab
+  - Provisioner Name (required)
+  - Description (optional)
+  - Playbook (required)
+  - tags (optional)
+  - skip_tags (optional)
+  - extra_vars (optional)
+  - vault_password_file (optional)
+
+```ruby
+Vagrant.configure("2") do |config|
+  # Ansible provisioner - global
+  config.vm.provision "ansible" do |ansible|
+    ansible.playbook = "common.yml"
+    ansible.tags = ["tag1", "tag2"]
+    ansible.skip_tags  = "debug"
+    ansible.vault_password_file = ".vault_pass.txt"
+    ansible.extra_vars = {
+      "root_pw" => "heslo",
+      "nfs_server_ip" => "1.2.3.4",
+      "nfs_export_path" => "/srv/vms/_shared_data",
+      "nfs_mountpoint" => "/mnt/shared",
+      "proxy_url" => ""
+    }
+  end
 end
 ```
 

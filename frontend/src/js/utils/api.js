@@ -113,6 +113,22 @@ class VagrantAPI {
     async updatePlugin(id, pluginData) { return this.request(`/plugins/${id}`, { method: 'PUT', body: pluginData }); }
     async deletePlugin(id) { return this.request(`/plugins/${id}`, { method: 'DELETE' }); }
 
+    // Global Provisioner management methods
+    async getProvisionersList() { return this.request('/provisioners'); }
+    async getProvisioner(id) { return this.request(`/provisioners/${id}`); }
+    async createProvisioner(provisionerData) { return this.request('/provisioners', { method: 'POST', body: provisionerData }); }
+    async updateProvisioner(id, provisionerData) { return this.request(`/provisioners/${id}`, { method: 'PUT', body: provisionerData }); }
+    async deleteProvisioner(id) { return this.request(`/provisioners/${id}`, { method: 'DELETE' }); }
+
+    // Project Provisioner management methods
+    async getProjectProvisioners(projectId) { return this.request(`/projects/${projectId}/provisioners`); }
+    async addProvisionerToProject(projectId, provisionerId) { 
+        return this.request(`/projects/${projectId}/provisioners/${provisionerId}`, { method: 'POST' }); 
+    }
+    async removeProvisionerFromProject(projectId, provisionerId) { 
+        return this.request(`/projects/${projectId}/provisioners/${provisionerId}`, { method: 'DELETE' }); 
+    }
+
     // Project Plugin management methods
     async getProjectPlugins(projectId) { return this.request(`/projects/${projectId}/plugins`); }
     async addPluginToProject(projectId, pluginData) { 

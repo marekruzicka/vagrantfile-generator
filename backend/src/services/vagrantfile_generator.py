@@ -55,6 +55,14 @@ Vagrant.configure("2") do |config|
 {% endif %}
 {% endfor %}
 {% endif %}
+{% if global_provisioners %}
+
+  # Global Provisioners
+{% for provisioner in global_provisioners %}
+  {{ provisioner.get_vagrant_config() | indent(2, first=True) }}
+
+{% endfor %}
+{% endif %}
 
 {% for vm in project.vms %}
 
@@ -188,6 +196,22 @@ end
                     'is_deprecated': plugin_config.is_deprecated
                 })
         
+        # Load global provisioners for this project
+        from .global_provisioner_service import GlobalProvisionerService
+        provisioner_service = GlobalProvisionerService()
+        
+        global_provisioners = []
+        if project.global_provisioners:
+            try:
+                for provisioner_id in project.global_provisioners:
+                    try:
+                        provisioner = provisioner_service.get_provisioner(provisioner_id)
+                        global_provisioners.append(provisioner)
+                    except Exception as e:
+                        warnings.append(f"Provisioner '{provisioner_id}' not found: {str(e)}")
+            except Exception as e:
+                warnings.append(f"Failed to load global provisioners: {str(e)}")
+        
         # Generate content even if there are warnings
         content = ""
         if project.vms:  # Only generate if there are VMs
@@ -203,6 +227,7 @@ end
                 
                 content = template.render(
                     project=project_for_template,
+                    global_provisioners=global_provisioners,
                     generation_timestamp=datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S UTC")
                 )
             except Exception as e:
