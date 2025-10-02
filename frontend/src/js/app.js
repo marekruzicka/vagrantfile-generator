@@ -113,7 +113,14 @@ function vagrantApp() {
         
         // Project Provisioner management state
         showAddProjectProvisionerModal: false,
+        showDeleteProjectProvisionerModal: false,
+        showBulkDeleteProvisionersModal: false,
+        deletingProjectProvisioner: null,
+        selectedProvisioners: [],
         projectProvisionersCache: {}, // Cache provisioner details by ID
+        projectProvisionerForm: {
+            selectedProvisionerIds: []
+        },
         
         // VM labeling and selection state
         selectedVMs: [],
@@ -567,6 +574,60 @@ function vagrantApp() {
             }
         },
         
+        // Provisioner Selection Management
+        isProvisionerSelected(provisionerId) {
+            return this.selectedProvisioners.includes(provisionerId);
+        },
+        
+        toggleProvisionerSelection(provisionerId) {
+            const index = this.selectedProvisioners.indexOf(provisionerId);
+            if (index > -1) {
+                this.selectedProvisioners.splice(index, 1);
+            } else {
+                this.selectedProvisioners.push(provisionerId);
+            }
+        },
+        
+        selectAllProvisioners() {
+            if (!this.currentProject || !this.currentProject.global_provisioners) return;
+            this.selectedProvisioners = [...this.currentProject.global_provisioners];
+        },
+        
+        clearProvisionerSelection() {
+            this.selectedProvisioners = [];
+        },
+        
+        openBulkDeleteProvisionersModal() {
+            if (this.selectedProvisioners.length === 0) return;
+            this.showBulkDeleteProvisionersModal = true;
+        },
+        
+        async bulkDeleteProvisioners() {
+            if (!this.currentProject || this.selectedProvisioners.length === 0) return;
+            
+            try {
+                // Delete each selected provisioner
+                const deletePromises = this.selectedProvisioners.map(provisionerId => 
+                    api.removeProvisionerFromProject(this.currentProject.id, provisionerId)
+                );
+                
+                await Promise.all(deletePromises);
+                
+                // Remove from current project
+                this.currentProject.global_provisioners = this.currentProject.global_provisioners.filter(
+                    id => !this.selectedProvisioners.includes(id)
+                );
+                
+                this.syncProjectInList();
+                this.showBulkDeleteProvisionersModal = false;
+                this.clearProvisionerSelection();
+                this.setSuccess('Provisioners removed from project');
+            } catch (error) {
+                console.error('Failed to bulk delete provisioners:', error);
+                alert('Failed to delete some provisioners: ' + (error.message || 'Unknown error'));
+            }
+        },
+        
         // Project Provisioner Management
         openAddProjectProvisionerModal() {
             this.showAddProjectProvisionerModal = true;
@@ -574,6 +635,109 @@ function vagrantApp() {
         
         closeAddProjectProvisionerModal() {
             this.showAddProjectProvisionerModal = false;
+        },
+        
+        toggleProvisionerForAdd(provisionerId) {
+            const index = this.projectProvisionerForm.selectedProvisionerIds.indexOf(provisionerId);
+            if (index === -1) {
+                this.projectProvisionerForm.selectedProvisionerIds.push(provisionerId);
+            } else {
+                this.projectProvisionerForm.selectedProvisionerIds.splice(index, 1);
+            }
+        },
+        
+        async addProjectProvisioners() {
+            if (!this.currentProject || this.projectProvisionerForm.selectedProvisionerIds.length === 0) return;
+            
+            try {
+                const addedProvisioners = [];
+                
+                // Add each selected provisioner to the project
+                for (const provisionerId of this.projectProvisionerForm.selectedProvisionerIds) {
+                    try {
+                        const provisioner = this.availableProvisioners.find(p => p.id === provisionerId);
+                        if (!provisioner) continue;
+                        
+                        // Check if provisioner is already in the project
+                        if (this.currentProject.global_provisioners?.includes(provisionerId)) {
+                            continue; // Skip if already added
+                        }
+                        
+                        await api.addProvisionerToProject(this.currentProject.id, provisionerId);
+                        
+                        // Add to current project
+                        if (!this.currentProject.global_provisioners) {
+                            this.currentProject.global_provisioners = [];
+                        }
+                        this.currentProject.global_provisioners.push(provisionerId);
+                        
+                        // Cache the provisioner details
+                        this.projectProvisionersCache[provisionerId] = provisioner;
+                        
+                        addedProvisioners.push(provisioner);
+                    } catch (error) {
+                        console.error(`Failed to add provisioner ${provisionerId}:`, error);
+                    }
+                }
+                
+                this.syncProjectInList();
+                
+                // Show appropriate message
+                if (addedProvisioners.length > 0) {
+                    if (addedProvisioners.length < this.projectProvisionerForm.selectedProvisionerIds.length) {
+                        alert(`Successfully added ${addedProvisioners.length} of ${this.projectProvisionerForm.selectedProvisionerIds.length} provisioners. Some provisioners may already exist in the project.`);
+                    } else {
+                        this.setSuccess(`${addedProvisioners.length} provisioner(s) added to project`);
+                    }
+                }
+                
+                this.resetProjectProvisionerForm();
+                this.showAddProjectProvisionerModal = false;
+            } catch (error) {
+                console.error('Failed to add provisioners:', error);
+                alert('Failed to add provisioners: ' + (error.message || 'Unknown error'));
+            }
+        },
+        
+        resetProjectProvisionerForm() {
+            this.projectProvisionerForm = {
+                selectedProvisionerIds: []
+            };
+        },
+        
+        openDeleteProjectProvisionerModal(provisionerId) {
+            this.deletingProjectProvisioner = this.projectProvisionersCache[provisionerId];
+            this.showDeleteProjectProvisionerModal = true;
+        },
+        
+        async deleteProjectProvisioner() {
+            if (!this.currentProject || !this.deletingProjectProvisioner) return;
+            
+            try {
+                await api.removeProvisionerFromProject(this.currentProject.id, this.deletingProjectProvisioner.id);
+                
+                // Remove from current project
+                this.currentProject.global_provisioners = this.currentProject.global_provisioners.filter(
+                    id => id !== this.deletingProjectProvisioner.id
+                );
+                
+                this.syncProjectInList();
+                this.showDeleteProjectProvisionerModal = false;
+                this.deletingProjectProvisioner = null;
+                this.setSuccess('Provisioner removed from project');
+            } catch (error) {
+                console.error('Failed to remove provisioner:', error);
+                alert('Failed to remove provisioner: ' + (error.message || 'Unknown error'));
+            }
+        },
+        
+        openEditProjectProvisionerModal(provisionerId) {
+            // Navigate to settings and open edit modal for this provisioner
+            const provisioner = this.projectProvisionersCache[provisionerId];
+            if (provisioner) {
+                this.currentView = 'settings';
+                this.openEditProvisionerModal(provisioner);
+            }
         },
         
         async addProvisionerToProject(provisionerId) {
@@ -597,27 +761,6 @@ function vagrantApp() {
             } catch (error) {
                 console.error('Failed to add provisioner to project:', error);
                 alert('Failed to add provisioner: ' + (error.message || 'Unknown error'));
-            }
-        },
-        
-        async removeProvisionerFromProject(provisionerId) {
-            if (!this.currentProject) return;
-            
-            if (!confirm('Remove this provisioner from the project?')) return;
-            
-            try {
-                await api.removeProvisionerFromProject(this.currentProject.id, provisionerId);
-                
-                // Remove from current project
-                this.currentProject.global_provisioners = this.currentProject.global_provisioners.filter(
-                    id => id !== provisionerId
-                );
-                
-                this.syncProjectInList();
-                this.setSuccess('Provisioner removed from project');
-            } catch (error) {
-                console.error('Failed to remove provisioner:', error);
-                alert('Failed to remove provisioner: ' + (error.message || 'Unknown error'));
             }
         },
         
