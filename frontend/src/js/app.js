@@ -462,7 +462,9 @@ function vagrantApp() {
                     
                     try {
                         const addedPlugin = await api.addPluginToProject(this.currentProject.id, pluginData);
-                        addedPlugins.push(addedPlugin);
+                        if (addedPlugin) {
+                            addedPlugins.push(addedPlugin);
+                        }
                     } catch (error) {
                         console.error(`Failed to add plugin ${plugin.name}:`, error);
                         // Continue with other plugins
@@ -473,14 +475,21 @@ function vagrantApp() {
                 if (!this.currentProject.global_plugins) {
                     this.currentProject.global_plugins = [];
                 }
-                this.currentProject.global_plugins.push(...addedPlugins);
+                if (addedPlugins.length > 0) {
+                    this.currentProject.global_plugins.push(...addedPlugins);
+                }
                 
                 this.syncProjectInList();
                 this.showAddProjectPluginModal = false;
                 this.resetProjectPluginForm();
                 
-                if (addedPlugins.length < this.projectPluginForm.selectedPluginIds.length) {
+                // Show appropriate message
+                if (addedPlugins.length === 0) {
+                    alert('No plugins were added. They may already exist in the project.');
+                } else if (addedPlugins.length < this.projectPluginForm.selectedPluginIds.length) {
                     alert(`Successfully added ${addedPlugins.length} of ${this.projectPluginForm.selectedPluginIds.length} plugins. Some plugins may already exist in the project.`);
+                } else {
+                    this.setSuccess(`${addedPlugins.length} plugin(s) added to project`);
                 }
             } catch (error) {
                 console.error('Failed to add plugins to project:', error);
@@ -512,6 +521,15 @@ function vagrantApp() {
             } catch (error) {
                 console.error('Failed to remove plugin from project:', error);
                 alert('Failed to remove plugin: ' + (error.message || 'Unknown error'));
+            }
+        },
+        
+        openEditProjectPluginModal(pluginName) {
+            // Navigate to settings and open edit modal for this plugin
+            const plugin = this.availablePlugins.find(p => p.name === pluginName);
+            if (plugin) {
+                this.currentView = 'settings';
+                this.openEditPluginModal(plugin);
             }
         },
         
