@@ -45,6 +45,15 @@ Vagrant.configure("2") do |config|
 {% endif %}
 {% endfor %}
   ]
+
+  # Plugin-specific configuration
+{% for plugin in project.global_plugins %}
+{% if plugin.configuration %}
+  # Configuration for {{ plugin.name }}
+{{ plugin.configuration | indent(2, first=True) }}
+
+{% endif %}
+{% endfor %}
 {% endif %}
 
 {% for vm in project.vms %}
@@ -140,17 +149,60 @@ end
             Dictionary with generated content and validation results
         """
         from datetime import datetime
+        from .plugin_service import PluginService
         
         # Validate project first
         is_valid, errors, warnings = project.validate_for_generation()
+        
+        # Enrich global_plugins with full plugin details (including configuration)
+        plugin_service = PluginService()
+        enriched_plugins = []
+        
+        for plugin_config in project.global_plugins:
+            try:
+                # Try to get full plugin details by name
+                full_plugin = plugin_service.get_plugin_by_name(plugin_config.name)
+                if full_plugin:
+                    # Create enriched plugin object with configuration
+                    enriched_plugin = {
+                        'name': plugin_config.name,
+                        'version': plugin_config.version,
+                        'configuration': full_plugin.configuration,
+                        'is_deprecated': plugin_config.is_deprecated
+                    }
+                    enriched_plugins.append(enriched_plugin)
+                else:
+                    # Fallback to basic info if plugin not found
+                    enriched_plugins.append({
+                        'name': plugin_config.name,
+                        'version': plugin_config.version,
+                        'configuration': None,
+                        'is_deprecated': plugin_config.is_deprecated
+                    })
+            except Exception as e:
+                # If fetching fails, use basic info
+                enriched_plugins.append({
+                    'name': plugin_config.name,
+                    'version': plugin_config.version,
+                    'configuration': None,
+                    'is_deprecated': plugin_config.is_deprecated
+                })
         
         # Generate content even if there are warnings
         content = ""
         if project.vms:  # Only generate if there are VMs
             try:
                 template = self.env.get_template("")
+                # Create a modified project dict with enriched plugins
+                from types import SimpleNamespace
+                project_dict = project.model_dump()
+                project_dict['global_plugins'] = [SimpleNamespace(**p) for p in enriched_plugins]
+                project_for_template = SimpleNamespace(**project_dict)
+                # Convert VMs to proper namespace objects
+                project_for_template.vms = project.vms
+                
                 content = template.render(
-                    project=project,
+                    project=project_for_template,
                     generation_timestamp=datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S UTC")
                 )
             except Exception as e:
