@@ -525,10 +525,9 @@ function vagrantApp() {
         },
         
         openEditProjectPluginModal(pluginName) {
-            // Navigate to settings and open edit modal for this plugin
+            // Open edit modal for this plugin without changing view
             const plugin = this.availablePlugins.find(p => p.name === pluginName);
             if (plugin) {
-                this.currentView = 'settings';
                 this.openEditPluginModal(plugin);
             }
         },
@@ -750,10 +749,9 @@ function vagrantApp() {
         },
         
         openEditProjectProvisionerModal(provisionerId) {
-            // Navigate to settings and open edit modal for this provisioner
+            // Open edit modal for this provisioner without changing view
             const provisioner = this.projectProvisionersCache[provisionerId];
             if (provisioner) {
-                this.currentView = 'settings';
                 this.openEditProvisionerModal(provisioner);
             }
         },
