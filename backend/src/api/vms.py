@@ -1,5 +1,5 @@
 """
-VM API endpoints for Vagrantfile GUI Generator.
+VM API endpoints for Vagrantfile Generator.
 
 This module contains API endpoints for managing virtual machines within projects.
 """

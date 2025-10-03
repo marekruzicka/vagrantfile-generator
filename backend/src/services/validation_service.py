@@ -1,5 +1,5 @@
 """
-ValidationService for Vagrantfile GUI Generator.
+ValidationService for Vagrantfile Generator.
 
 This service provides validation logic for projects, VMs, and configurations.
 """

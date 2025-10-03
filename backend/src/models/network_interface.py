@@ -1,5 +1,5 @@
 """
-NetworkInterface model for Vagrantfile GUI Generator.
+NetworkInterface model for Vagrantfile Generator.
 
 This module defines network interface configurations for virtual machines.
 """

@@ -1,5 +1,5 @@
 """
-SyncedFolder model for Vagrantfile GUI Generator.
+SyncedFolder model for Vagrantfile Generator.
 
 This module defines synced folder configurations that map host directories
 to guest directories in virtual machines.

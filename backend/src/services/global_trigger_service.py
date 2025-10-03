@@ -1,5 +1,5 @@
 """
-Global Trigger Service for Vagrantfile GUI Generator.
+Global Trigger Service for Vagrantfile Generator.
 
 This service handles CRUD operations for global triggers.
 Follows the same file-based pattern as the provisioner service.

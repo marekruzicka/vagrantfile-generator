@@ -1,5 +1,5 @@
 """
-Project Trigger API endpoints for Vagrantfile GUI Generator.
+Project Trigger API endpoints for Vagrantfile Generator.
 
 This module provides REST API endpoints for managing triggers on projects.
 """

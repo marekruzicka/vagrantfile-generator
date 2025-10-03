@@ -1,5 +1,5 @@
 """
-PluginService for Vagrantfile GUI Generator.
+PluginService for Vagrantfile Generator.
 
 This service handles CRUD operations for Vagrant plugin configurations.
 Uses individual JSON files for each plugin stored in data/plugins/ directory.

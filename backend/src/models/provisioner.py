@@ -1,5 +1,5 @@
 """
-Provisioner model for Vagrantfile GUI Generator.
+Provisioner model for Vagrantfile Generator.
 
 This module defines provisioner configurations for setting up and configuring
 virtual machines with scripts and configuration management tools.

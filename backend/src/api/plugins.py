@@ -1,5 +1,5 @@
 """
-Plugin management API endpoints for Vagrantfile GUI Generator.
+Plugin management API endpoints for Vagrantfile Generator.
 """
 
 from typing import List

@@ -1,5 +1,5 @@
 """
-Box management API endpoints for Vagrantfile GUI Generator.
+Box management API endpoints for Vagrantfile Generator.
 """
 
 from typing import List

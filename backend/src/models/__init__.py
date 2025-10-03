@@ -1,5 +1,5 @@
 """
-Models package for Vagrantfile GUI Generator.
+Models package for Vagrantfile Generator.
 
 This package contains all Pydantic models used for data validation,
 serialization, and business logic in the application.

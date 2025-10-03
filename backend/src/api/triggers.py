@@ -1,5 +1,5 @@
 """
-Global Trigger API endpoints for Vagrantfile GUI Generator.
+Global Trigger API endpoints for Vagrantfile Generator.
 
 This module provides REST API endpoints for managing global triggers.
 """

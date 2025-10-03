@@ -1,5 +1,5 @@
 """
-Project Provisioner API endpoints for Vagrantfile GUI Generator.
+Project Provisioner API endpoints for Vagrantfile Generator.
 
 This module contains API endpoints for managing provisioners within projects.
 """

@@ -1,5 +1,5 @@
 """
-ProjectService for Vagrantfile GUI Generator.
+ProjectService for Vagrantfile Generator.
 
 This service handles all CRUD operations for projects, including persistence
 to JSON files and business logic validation.

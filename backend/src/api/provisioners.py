@@ -1,5 +1,5 @@
 """
-Global Provisioner API endpoints for Vagrantfile GUI Generator.
+Global Provisioner API endpoints for Vagrantfile Generator.
 
 This module provides REST API endpoints for managing global provisioners.
 """

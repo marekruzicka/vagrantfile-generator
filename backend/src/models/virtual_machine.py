@@ -1,5 +1,5 @@
 """
-VirtualMachine model for Vagrantfile GUI Generator.
+VirtualMachine model for Vagrantfile Generator.
 
 This module defines the VirtualMachine entity and related models that represent
 a single VM configuration within a Vagrant project.

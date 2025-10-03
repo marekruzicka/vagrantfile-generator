@@ -1,4 +1,4 @@
-# Backend Dockerfile for Vagrantfile GUI Generator
+# Backend Dockerfile for Vagrantfile Generator
 FROM python:3.11-slim
 
 # Set working directory

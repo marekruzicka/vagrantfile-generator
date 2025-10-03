@@ -1,5 +1,5 @@
 """
-Global Provisioner models for Vagrantfile GUI Generator.
+Global Provisioner models for Vagrantfile Generator.
 
 These models represent global Vagrant provisioners that can be configured
 once in Settings and applied to all VMs in a project.

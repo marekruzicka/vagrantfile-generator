@@ -1,5 +1,5 @@
 """
-API endpoints package for Vagrantfile GUI Generator.
+API endpoints package for Vagrantfile Generator.
 
 This package contains all FastAPI routers for the application.
 """

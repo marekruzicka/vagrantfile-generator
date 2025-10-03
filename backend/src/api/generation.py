@@ -1,5 +1,5 @@
 """
-Generation API endpoints for Vagrantfile GUI Generator.
+Generation API endpoints for Vagrantfile Generator.
 
 This module contains API endpoints for generating and validating Vagrantfiles.
 """

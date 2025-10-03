@@ -1,5 +1,5 @@
 """
-Global Provisioner Service for Vagrantfile GUI Generator.
+Global Provisioner Service for Vagrantfile Generator.
 
 This service handles CRUD operations for global provisioners.
 Follows the same file-based pattern as the plugin service.

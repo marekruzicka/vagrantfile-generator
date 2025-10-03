@@ -1,5 +1,5 @@
 """
-Main FastAPI application for Vagrantfile GUI Generator.
+Main FastAPI application for Vagrantfile Generator.
 
 This module sets up the FastAPI application with all routes and middleware.
 """
@@ -34,7 +34,7 @@ def get_cors_origins() -> List[str]:
 
 # Create FastAPI application
 app = FastAPI(
-    title="Vagrantfile GUI Generator API",
+    title="Vagrantfile Generator API",
     description="API for generating Vagrantfiles through a web interface",
     version="1.0.0",
     docs_url="/docs",
@@ -93,7 +93,7 @@ async def health_check():
 async def root():
     """Root endpoint with API information."""
     return {
-        "message": "Vagrantfile GUI Generator API",
+        "message": "Vagrantfile Generator API",
         "version": "1.0.0",
         "docs": "/docs"
     }

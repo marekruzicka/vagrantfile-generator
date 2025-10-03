@@ -1,5 +1,5 @@
 """
-Project model for Vagrantfile GUI Generator.
+Project model for Vagrantfile Generator.
 
 This module defines the Project entity and related Pydantic models for data validation
 and serialization. The Project serves as the root container for a complete Vagrant

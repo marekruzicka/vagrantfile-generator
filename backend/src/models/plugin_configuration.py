@@ -1,5 +1,5 @@
 """
-PluginConfiguration model for Vagrantfile GUI Generator.
+PluginConfiguration model for Vagrantfile Generator.
 
 This module defines Vagrant plugin configurations that can be applied
 globally to a project or specifically to individual VMs.

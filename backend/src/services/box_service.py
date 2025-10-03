@@ -1,5 +1,5 @@
 """
-BoxService for Vagrantfile GUI Generator.
+BoxService for Vagrantfile Generator.
 
 This service handles CRUD operations for Vagrant box configurations.
 """

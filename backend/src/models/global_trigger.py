@@ -1,5 +1,5 @@
 """
-Global Trigger models for Vagrantfile GUI Generator.
+Global Trigger models for Vagrantfile Generator.
 
 These models represent global Vagrant triggers that can be configured
 once in Settings and applied to all VMs in a project.

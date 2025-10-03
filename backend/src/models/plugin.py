@@ -1,5 +1,5 @@
 """
-Plugin model for Vagrantfile GUI Generator.
+Plugin model for Vagrantfile Generator.
 
 This module defines the Plugin data model for storing and managing
 Vagrant plugin configurations.

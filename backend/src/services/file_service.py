@@ -1,5 +1,5 @@
 """
-FileService for Vagrantfile GUI Generator.
+FileService for Vagrantfile Generator.
 
 This service handles file I/O operations for project persistence.
 """

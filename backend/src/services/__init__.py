@@ -1,5 +1,5 @@
 """
-Services package for Vagrantfile GUI Generator.
+Services package for Vagrantfile Generator.
 
 This package contains business logic services that handle operations
 and coordinate between models and API endpoints.

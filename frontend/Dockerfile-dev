@@ -1,4 +1,4 @@
-# Frontend Dockerfile for Vagrantfile GUI Generator
+# Frontend Dockerfile for Vagrantfile Generator
 FROM node:18-alpine
 
 # Set working directory

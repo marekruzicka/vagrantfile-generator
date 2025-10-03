@@ -1,5 +1,5 @@
 """
-Project Plugin API endpoints for Vagrantfile GUI Generator.
+Project Plugin API endpoints for Vagrantfile Generator.
 
 This module contains API endpoints for managing plugins within projects.
 """

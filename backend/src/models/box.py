@@ -1,5 +1,5 @@
 """
-Box model for Vagrantfile GUI Generator.
+Box model for Vagrantfile Generator.
 
 This module defines the Box data model for storing and managing
 Vagrant box configurations.
