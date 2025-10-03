@@ -1,5 +1,23 @@
 # Changelog
 
+## Version 1.10.1 - Plugin Handling Fix
+**Date:** October 3, 2025
+
+### 🐛 Bug Fixes
+- **Fixed Critical Plugin Installation Bug**: Resolved "Invalid type provided for `plugins`" error in generated Vagrantfiles
+  - Moved plugin installation code outside `Vagrant.configure("2")` block where it belongs
+  - Replaced invalid `config.vagrant.plugins = [...]` assignment with proper Ruby plugin installation loop
+  - Added support for `--plugin-version` flag when specific plugin versions are configured
+  - Implemented error handling for failed plugin installations with user feedback
+  - Plugin installation now occurs before Vagrant configuration parsing as required
+
+### 🔧 Technical Improvements
+- **Enhanced Vagrantfile Template**: Improved plugin handling with proper Ruby syntax and command construction
+- **Better Error Handling**: Added fallback messaging when plugin installation fails
+- **Version Support**: Full support for plugin version constraints in generated Vagrantfiles
+
+---
+
 ## 🎨 Version 1.10.0 - UI/UX Improvements & Collapsible Sections
 **Date:** October 3, 2025
 

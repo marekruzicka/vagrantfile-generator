@@ -32,19 +32,33 @@ class VagrantfileGenerator:
 # Project: {{ project.name }}
 {% if project.description %}# Description: {{ project.description }}
 {% endif %}# Generated: {{ generation_timestamp }}
+{% if project.global_plugins %}
+
+# Ensure required plugins are installed before continuing
+required_plugins = [
+{% for plugin in project.global_plugins %}
+{% if plugin.version %}
+  { name: "{{ plugin.name }}", version: "{{ plugin.version }}" }{{ "," if not loop.last else "" }}
+{% else %}
+  "{{ plugin.name }}"{{ "," if not loop.last else "" }}
+{% endif %}
+{% endfor %}
+]
+
+required_plugins.each do |plugin|
+  plugin_name = plugin.is_a?(Hash) ? plugin[:name] : plugin
+  plugin_version = plugin.is_a?(Hash) ? plugin[:version] : nil
+  
+  unless Vagrant.has_plugin?(plugin_name)
+    cmd = "vagrant plugin install #{plugin_name}"
+    cmd += " --plugin-version #{plugin_version}" if plugin_version
+    system(cmd) || puts("Failed to install plugin: #{plugin_name}")
+  end
+end
+{% endif %}
 
 Vagrant.configure("2") do |config|
 {% if project.global_plugins %}
-  # Configure required plugins
-  config.vagrant.plugins = [
-{% for plugin in project.global_plugins %}
-{% if plugin.version %}
-    { name: "{{ plugin.name }}", version: "{{ plugin.version }}" }{{ "," if not loop.last else "" }}
-{% else %}
-    "{{ plugin.name }}"{{ "," if not loop.last else "" }}
-{% endif %}
-{% endfor %}
-  ]
 
   # Plugin-specific configuration
 {% for plugin in project.global_plugins %}
