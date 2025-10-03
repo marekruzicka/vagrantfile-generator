@@ -5,13 +5,13 @@
   "id": "d856afb8-ea43-4d08-b0f2-1fbd311756ef",
   "version": "1.0.0",
   "created_at": "2025-10-02T11:51:14.769608",
-  "updated_at": "2025-10-02T12:10:48.564542",
+  "updated_at": "2025-10-03T11:26:32.778450",
   "vms": [
     {
-      "name": "control-1",
-      "box": "generic/debian12",
-      "hostname": null,
-      "memory": 512,
+      "name": "control",
+      "box": "generic/rhel9",
+      "hostname": "control-node",
+      "memory": 1024,
       "cpus": 1,
       "network_interfaces": [
         {
@@ -23,18 +23,18 @@
           "host_port": null,
           "guest_port": null,
           "protocol": "tcp",
-          "id": "ni_0mgduyyy1"
+          "id": "ni_fh98oqa0c"
         },
         {
           "type": "private_network",
           "ip_assignment": "static",
-          "ip_address": "172.16.17.21",
+          "ip_address": "172.16.20.11",
           "netmask": "255.255.255.0",
           "bridge": null,
           "host_port": null,
           "guest_port": null,
           "protocol": "tcp",
-          "id": "ni_kkvki5e02"
+          "id": "ni_fjvo8py3f"
         }
       ],
       "synced_folders": [],
@@ -42,90 +42,22 @@
       "plugins": []
     },
     {
-      "name": "control-2",
-      "box": "generic/debian12",
-      "hostname": null,
-      "memory": 512,
-      "cpus": 1,
-      "network_interfaces": [
-        {
-          "type": "private_network",
-          "ip_assignment": "static",
-          "ip_address": "10.20.30.12",
-          "netmask": "255.255.255.0",
-          "bridge": null,
-          "host_port": null,
-          "guest_port": null,
-          "protocol": "tcp",
-          "id": "ni_0mgduyyy1"
-        },
-        {
-          "type": "private_network",
-          "ip_assignment": "static",
-          "ip_address": "172.16.17.22",
-          "netmask": "255.255.255.0",
-          "bridge": null,
-          "host_port": null,
-          "guest_port": null,
-          "protocol": "tcp",
-          "id": "ni_kkvki5e02"
-        }
-      ],
-      "synced_folders": [],
-      "provisioners": [],
-      "plugins": []
-    },
-    {
-      "name": "control-3",
-      "box": "generic/debian12",
-      "hostname": null,
-      "memory": 512,
-      "cpus": 1,
-      "network_interfaces": [
-        {
-          "type": "private_network",
-          "ip_assignment": "static",
-          "ip_address": "10.20.30.13",
-          "netmask": "255.255.255.0",
-          "bridge": null,
-          "host_port": null,
-          "guest_port": null,
-          "protocol": "tcp",
-          "id": "ni_0mgduyyy1"
-        },
-        {
-          "type": "private_network",
-          "ip_assignment": "static",
-          "ip_address": "172.16.17.23",
-          "netmask": "255.255.255.0",
-          "bridge": null,
-          "host_port": null,
-          "guest_port": null,
-          "protocol": "tcp",
-          "id": "ni_kkvki5e02"
-        }
-      ],
-      "synced_folders": [],
-      "provisioners": [],
-      "plugins": []
-    },
-    {
-      "name": "compute-1",
-      "box": "generic/debian12",
+      "name": "builder-1",
+      "box": "generic/rhel9",
       "hostname": null,
       "memory": 2048,
-      "cpus": 4,
+      "cpus": 2,
       "network_interfaces": [
         {
           "type": "private_network",
           "ip_assignment": "static",
-          "ip_address": "172.16.17.101",
+          "ip_address": "172.16.20.21",
           "netmask": "255.255.255.0",
           "bridge": null,
           "host_port": null,
           "guest_port": null,
           "protocol": "tcp",
-          "id": "ni_qv79fp94i"
+          "id": "ni_9uaf3kl3x"
         }
       ],
       "synced_folders": [],
@@ -133,68 +65,22 @@
       "plugins": []
     },
     {
-      "name": "compute-2",
-      "box": "generic/debian12",
+      "name": "builder-2",
+      "box": "generic/rhel9",
       "hostname": null,
       "memory": 2048,
-      "cpus": 4,
+      "cpus": 2,
       "network_interfaces": [
         {
           "type": "private_network",
           "ip_assignment": "static",
-          "ip_address": "172.16.17.102",
+          "ip_address": "172.16.20.22",
           "netmask": "255.255.255.0",
           "bridge": null,
           "host_port": null,
           "guest_port": null,
           "protocol": "tcp",
-          "id": "ni_qv79fp94i"
-        }
-      ],
-      "synced_folders": [],
-      "provisioners": [],
-      "plugins": []
-    },
-    {
-      "name": "compute-3",
-      "box": "generic/debian12",
-      "hostname": null,
-      "memory": 2048,
-      "cpus": 4,
-      "network_interfaces": [
-        {
-          "type": "private_network",
-          "ip_assignment": "static",
-          "ip_address": "172.16.17.103",
-          "netmask": "255.255.255.0",
-          "bridge": null,
-          "host_port": null,
-          "guest_port": null,
-          "protocol": "tcp",
-          "id": "ni_qv79fp94i"
-        }
-      ],
-      "synced_folders": [],
-      "provisioners": [],
-      "plugins": []
-    },
-    {
-      "name": "compute-4",
-      "box": "generic/debian12",
-      "hostname": null,
-      "memory": 2048,
-      "cpus": 4,
-      "network_interfaces": [
-        {
-          "type": "private_network",
-          "ip_assignment": "static",
-          "ip_address": "172.16.17.104",
-          "netmask": "255.255.255.0",
-          "bridge": null,
-          "host_port": null,
-          "guest_port": null,
-          "protocol": "tcp",
-          "id": "ni_qv79fp94i"
+          "id": "ni_9uaf3kl3x"
         }
       ],
       "synced_folders": [],
@@ -211,7 +97,7 @@
       "is_deprecated": false
     },
     {
-      "name": "vagrant-proxyconf",
+      "name": "vagrant-libvirt",
       "version": null,
       "config": {},
       "scope": "global",
@@ -223,13 +109,13 @@
       "config": {},
       "scope": "global",
       "is_deprecated": false
-    },
-    {
-      "name": "vagrant-libvirt",
-      "version": null,
-      "config": {},
-      "scope": "global",
-      "is_deprecated": false
     }
+  ],
+  "global_provisioners": [
+    "7b1dc927-2df6-43bd-8b84-9ccf89266a1e"
+  ],
+  "global_triggers": [
+    "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+    "b2c3d4e5-f6g7-8901-bcde-fg2345678901"
   ]
 }

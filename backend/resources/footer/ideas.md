@@ -1,40 +1,29 @@
-# Roadmap
+# Ideas / ToDo
 This is in no particular order, just using it to store ideas.
 
 ## Contents
 - ~~[Plugin specific configuration](#plugin-specific-configuration)~~
-- [Provisioners](#provisioners)
-- [Triggers](#triggers)
+- [Provisioners](#provisioners) - partialy done (global shell available)
+- [Triggers](#triggers) - partialy done (global triggers available)
 - [Networking rework](#networking-rework)
 - [Fix labels](#fix-labels)
 - [Support for networking in Bulk Edit](#support-for-networking-in-bulk-edit)
+- [Rewrite footer logic](#rewrite-footer-logic)
 
-## Plugin specific configuration
-Extend plugins so they could contain plugin specific configuration.
-```ruby
-Vagrant.configure("2") do |config|
-  ## Vagrant plugins settings
-  # Hostmanager
-  config.hostmanager.enabled = true
-  config.hostmanager.manage_host = true
-  config.hostmanager.manage_guest = false
+## Fix labels
+Labels are somehow implemented, but never worked properly (at all :))
+This could propbably be utilized with local provisioners and triggers -> apply based on tags.
+- per project
+- add labels to Vagrantfile as comments next to objects they apply to
 
-  # SSHConfigManager
-  config.sshconfigmanager.enabled = false
-  config.sshconfigmanager.ssh_config_dir = "~/.ssh/config.d"
-  config.sshconfigmanager.manage_includes = true
+## Support for networking in Bulk Edit
+- already have something like that for bulk create, so just add support to Bulk Edit modal
 
-  # Proxy
-  if defined?(proxy_url) && !proxy_url.to_s.empty?
-    config.proxy.http = proxy_url
-    config.proxy.https = proxy_url
-    config.proxy.no_proxy = no_proxy
-  end
-end
-```
-- Add additional input box (default config) to create_plugin modal.
-- Update the Vagrantfile template
-
+## Rewrite footer logic
+- order of links
+  - based on file: name 1_name.md, 1_1_name.md, 2_name.md
+- support for tabs on large pages (modals)
+    - H1 defines tabs
 
 ## Provisioners
 - ✅ Add general support for provisioners.
@@ -131,9 +120,29 @@ Create networks on the project level and assign them to VMs, instead of assign I
 - new network API
 - proper subnet handling
 
-## Fix labels
-Labels are somehow implemented, it never worked.
-Add labels to Vagrantfile as comments.
+## Plugin specific configuration
+Extend plugins so they could contain plugin specific configuration.
+```ruby
+Vagrant.configure("2") do |config|
+  ## Vagrant plugins settings
+  # Hostmanager
+  config.hostmanager.enabled = true
+  config.hostmanager.manage_host = true
+  config.hostmanager.manage_guest = false
 
-## Support for networking in Bulk Edit
-- already have something like that for bulk create, so just add support to Bulkd Edit modal
+  # SSHConfigManager
+  config.sshconfigmanager.enabled = false
+  config.sshconfigmanager.ssh_config_dir = "~/.ssh/config.d"
+  config.sshconfigmanager.manage_includes = true
+
+  # Proxy
+  if defined?(proxy_url) && !proxy_url.to_s.empty?
+    config.proxy.http = proxy_url
+    config.proxy.https = proxy_url
+    config.proxy.no_proxy = no_proxy
+  end
+end
+```
+- Add additional input box (default config) to create_plugin modal.
+- Update the Vagrantfile template
+

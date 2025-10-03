@@ -11,16 +11,6 @@
       "updated_at": "2025-09-25T15:40:00.876911"
     },
     {
-      "id": "06463740-3562-47e0-8e80-3977943dc4f7",
-      "name": "generic/centos7",
-      "description": "CentOS 7",
-      "provider": "libvirt",
-      "version": null,
-      "url": null,
-      "created_at": "2025-09-25T15:40:00.876920",
-      "updated_at": "2025-09-25T15:40:00.876921"
-    },
-    {
       "id": "84f3a6d2-f485-473c-a180-527d8fc3d22d",
       "name": "generic/debian12",
       "description": "Debian 12 (Bookworm)",
@@ -41,15 +31,25 @@
       "updated_at": "2025-09-25T15:40:00.876934"
     },
     {
-      "id": "104be756-02f2-4b5a-aa11-13f6594d31e0",
-      "name": "generic/fedora38",
-      "description": "Fedora 38",
+      "id": "3675fd65-d81f-47e1-b78b-c433ba2d8c4c",
+      "name": "generic/rhel9",
+      "description": "RedHat Enterprise Linux 9",
       "provider": "libvirt",
       "version": null,
       "url": null,
-      "created_at": "2025-09-25T15:40:00.876936",
-      "updated_at": "2025-09-25T15:40:00.876937"
+      "created_at": "2025-10-03T07:49:22.149746",
+      "updated_at": "2025-10-03T07:49:22.149746"
+    },
+    {
+      "id": "8bee0423-a6cf-4a87-b436-d0353a551657",
+      "name": "generic/rhel8",
+      "description": "RedHat Enterprise Linux 8",
+      "provider": "libvirt",
+      "version": null,
+      "url": null,
+      "created_at": "2025-10-03T07:49:32.279743",
+      "updated_at": "2025-10-03T07:49:32.279743"
     }
   ],
-  "last_updated": "2025-10-01T11:26:07.308309"
+  "last_updated": "2025-10-03T11:27:56.038279"
 }
