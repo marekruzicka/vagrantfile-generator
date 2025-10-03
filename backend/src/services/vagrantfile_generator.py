@@ -63,6 +63,14 @@ Vagrant.configure("2") do |config|
 
 {% endfor %}
 {% endif %}
+{% if global_triggers %}
+
+  # Global Triggers
+{% for trigger in global_triggers %}
+  {{ trigger.get_vagrant_config() | indent(2, first=True) }}
+
+{% endfor %}
+{% endif %}
 
 {% for vm in project.vms %}
 
@@ -212,6 +220,22 @@ end
             except Exception as e:
                 warnings.append(f"Failed to load global provisioners: {str(e)}")
         
+        # Load global triggers for this project
+        from .global_trigger_service import GlobalTriggerService
+        trigger_service = GlobalTriggerService()
+        
+        global_triggers = []
+        if project.global_triggers:
+            try:
+                for trigger_id in project.global_triggers:
+                    try:
+                        trigger = trigger_service.get_trigger(trigger_id)
+                        global_triggers.append(trigger)
+                    except Exception as e:
+                        warnings.append(f"Trigger '{trigger_id}' not found: {str(e)}")
+            except Exception as e:
+                warnings.append(f"Failed to load global triggers: {str(e)}")
+        
         # Generate content even if there are warnings
         content = ""
         if project.vms:  # Only generate if there are VMs
@@ -228,6 +252,7 @@ end
                 content = template.render(
                     project=project_for_template,
                     global_provisioners=global_provisioners,
+                    global_triggers=global_triggers,
                     generation_timestamp=datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S UTC")
                 )
             except Exception as e:

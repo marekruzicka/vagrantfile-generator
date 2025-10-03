@@ -249,6 +249,93 @@
     </div>
   </div>
 
+  <!-- Triggers Section -->
+  <div class="space-y-6">
+    <div class="flex justify-between items-center">
+      <div class="flex items-center space-x-4">
+        <h3 class="text-2xl font-bold text-gray-900">Triggers</h3>
+        <div x-show="selectedTriggers.length > 0 && currentProject?.deployment_status !== 'ready'" class="flex items-center space-x-2">
+          <span class="text-sm text-gray-600" x-text="`${selectedTriggers.length} selected`"></span>
+          <button @click="openBulkDeleteTriggersModal()" class="btn btn-danger text-sm">
+            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd"></path>
+            </svg>
+            Bulk Delete
+          </button>
+          <button @click="clearTriggerSelection()" class="btn btn-secondary text-sm">
+            Clear Selection
+          </button>
+        </div>
+      </div>
+      <div x-show="currentProject?.deployment_status !== 'ready'" class="flex items-center space-x-2">
+        <button x-show="currentProject?.global_triggers?.length > 0" @click="selectAllTriggers()" class="btn btn-secondary text-sm">
+          Select All
+        </button>
+        <button @click="openAddProjectTriggerModal()" class="btn btn-success">
+          <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd"></path>
+          </svg>
+          Add Trigger
+        </button>
+      </div>
+    </div>
+    
+    <!-- Triggers Grid -->
+    <div x-show="currentProject?.global_triggers?.length > 0" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+      <template x-for="triggerId in currentProject?.global_triggers" :key="triggerId">
+        <div class="border border-gray-200 rounded-lg p-4 hover:border-orange-300 transition-colors group"
+             :class="{ 'ring-2 ring-orange-500': isTriggerSelected(triggerId) }">
+          <div class="flex items-start justify-between mb-3">
+            <div class="flex items-center space-x-3">
+              <input type="checkbox" 
+                     :checked="isTriggerSelected(triggerId)"
+                     @change="toggleTriggerSelection(triggerId)"
+                     class="w-4 h-4 text-orange-600 border-gray-300 rounded focus:ring-orange-500">
+              <div class="w-10 h-10 bg-gradient-to-br from-orange-500 to-red-600 rounded-lg flex items-center justify-center flex-shrink-0">
+                <svg class="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
+                  <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clip-rule="evenodd"></path>
+                </svg>
+              </div>
+              <div>
+                <h4 class="text-base font-bold text-gray-900 mb-1" x-text="getTriggerName(triggerId)"></h4>
+                <div class="flex items-center space-x-1 text-xs">
+                  <span class="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium"
+                        :class="getTriggerTiming(triggerId) === 'before' ? 'bg-yellow-100 text-yellow-800' : 'bg-green-100 text-green-800'"
+                        x-text="getTriggerTiming(triggerId)"></span>
+                  <span class="text-gray-500">:</span>
+                  <span class="text-gray-600 font-medium" x-text="getTriggerStage(triggerId)"></span>
+                </div>
+              </div>
+            </div>
+            <div x-show="currentProject?.deployment_status !== 'ready'" class="flex space-x-1 opacity-0 group-hover:opacity-100 transition-opacity">
+              <button @click="openEditProjectTriggerModal(triggerId)" 
+                      class="text-orange-500 hover:text-orange-700 p-1 rounded hover:bg-orange-50"
+                      title="Edit trigger">
+                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                  <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z"></path>
+                </svg>
+              </button>
+              <button @click="confirmDeleteProjectTrigger(getTriggerById(triggerId))" 
+                      class="text-red-500 hover:text-red-700 p-1 rounded hover:bg-red-50"
+                      title="Remove trigger from project">
+                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                  <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd"></path>
+                </svg>
+              </button>
+            </div>
+          </div>
+          
+          <p class="text-sm text-gray-600 mb-2" x-text="getTriggerDescription(triggerId)"></p>
+        </div>
+      </template>
+    </div>
+
+    <!-- Empty Triggers State - Minimal -->
+    <div x-show="!currentProject?.global_triggers?.length" class="text-center py-4">
+      <p class="text-gray-500">No triggers configured for this project.</p>
+    </div>
+  </div>
+
   <!-- VMs Section -->
   <div class="space-y-6">
     <div class="flex justify-between items-center">

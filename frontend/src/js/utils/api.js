@@ -129,6 +129,22 @@ class VagrantAPI {
         return this.request(`/projects/${projectId}/provisioners/${provisionerId}`, { method: 'DELETE' }); 
     }
 
+    // Global Trigger management methods
+    async getTriggersList() { return this.request('/triggers'); }
+    async getTrigger(id) { return this.request(`/triggers/${id}`); }
+    async createTrigger(triggerData) { return this.request('/triggers', { method: 'POST', body: triggerData }); }
+    async updateTrigger(id, triggerData) { return this.request(`/triggers/${id}`, { method: 'PUT', body: triggerData }); }
+    async deleteTrigger(id) { return this.request(`/triggers/${id}`, { method: 'DELETE' }); }
+
+    // Project Trigger management methods
+    async getProjectTriggers(projectId) { return this.request(`/projects/${projectId}/triggers`); }
+    async addTriggerToProject(projectId, triggerId) { 
+        return this.request(`/projects/${projectId}/triggers/${triggerId}`, { method: 'POST' }); 
+    }
+    async removeTriggerFromProject(projectId, triggerId) { 
+        return this.request(`/projects/${projectId}/triggers/${triggerId}`, { method: 'DELETE' }); 
+    }
+
     // Project Plugin management methods
     async getProjectPlugins(projectId) { return this.request(`/projects/${projectId}/plugins`); }
     async addPluginToProject(projectId, pluginData) { 

@@ -18,6 +18,8 @@ from .api.plugins import router as plugins_router
 from .api.project_plugins import router as project_plugins_router
 from .api.provisioners import router as provisioners_router
 from .api.project_provisioners import router as project_provisioners_router
+from .api.triggers import router as triggers_router
+from .api.project_triggers import router as project_triggers_router
 from .services import ProjectNotFoundError
 
 # Get environment variables for configuration
@@ -62,6 +64,8 @@ app.include_router(plugins_router, prefix="/api", tags=["plugins"])
 app.include_router(project_plugins_router, prefix="/api", tags=["project-plugins"])
 app.include_router(provisioners_router, prefix="/api", tags=["provisioners"])
 app.include_router(project_provisioners_router, prefix="/api", tags=["project-provisioners"])
+app.include_router(triggers_router, prefix="/api", tags=["triggers"])
+app.include_router(project_triggers_router, prefix="/api", tags=["project-triggers"])
 
 # Global exception handlers
 @app.exception_handler(ProjectNotFoundError)

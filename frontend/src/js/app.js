@@ -122,6 +122,41 @@ function vagrantApp() {
             selectedProvisionerIds: []
         },
         
+        // Global Trigger management state
+        availableTriggers: [],
+        showEditTriggerModal: false,
+        showDeleteTriggerConfirmModal: false,
+        triggerToDelete: null,
+        editingTrigger: null,
+        returnToProjectTriggerModal: false, // Track if we should return to add project trigger modal
+        triggerForm: {
+            name: '',
+            description: '',
+            executionTarget: 'run', // 'run' or 'run_remote'
+            trigger_config: {
+                timing: 'after',
+                stage: 'up',
+                run: '',
+                run_remote_inline: '',
+                name: '',
+                info: '',
+                warn: '',
+                on_error: 'continue'
+            }
+        },
+        
+        // Project Trigger management state
+        showAddProjectTriggerModal: false,
+        showDeleteProjectTriggerModal: false,
+        showBulkDeleteTriggersModal: false,
+        deletingProjectTrigger: null,
+        selectedTriggers: [],
+        projectTriggersCache: {}, // Cache trigger details by ID
+        projectTriggerForm: {
+            selectedTriggerIds: []
+        },
+        triggerSearchQuery: '', // Search query for trigger modal
+        
         // VM labeling and selection state
         selectedVMs: [],
         projectLabels: [], // All available labels for current project
@@ -156,6 +191,7 @@ function vagrantApp() {
             await this.loadBoxes();
             await this.loadPlugins();
             await this.loadProvisioners();
+            await this.loadTriggers();
         },
         
         // Configuration management
@@ -800,6 +836,26 @@ function vagrantApp() {
             }
         },
         
+        async loadProjectTriggers() {
+            if (!this.currentProject || !this.currentProject.global_triggers) return;
+            
+            // Load details for all triggers in the project
+            for (const triggerId of this.currentProject.global_triggers) {
+                if (!this.projectTriggersCache[triggerId]) {
+                    await this.loadTriggerDetails(triggerId);
+                }
+            }
+        },
+        
+        async loadTriggerDetails(triggerId) {
+            try {
+                const trigger = await api.getTrigger(triggerId);
+                this.projectTriggersCache[triggerId] = trigger;
+            } catch (error) {
+                console.error(`Failed to load trigger ${triggerId}:`, error);
+            }
+        },
+        
         getProvisionerName(provisionerId) {
             const provisioner = this.projectProvisionersCache[provisionerId];
             return provisioner ? provisioner.name : 'Loading...';
@@ -813,6 +869,39 @@ function vagrantApp() {
         getProvisionerDescription(provisionerId) {
             const provisioner = this.projectProvisionersCache[provisionerId];
             return provisioner ? (provisioner.description || 'No description') : '';
+        },
+        
+        // Trigger helper functions
+        getTriggerById(triggerId) {
+            return this.projectTriggersCache[triggerId] || 
+                   this.availableTriggers.find(t => t.id === triggerId);
+        },
+        
+        getTriggerName(triggerId) {
+            const trigger = this.projectTriggersCache[triggerId];
+            return trigger ? trigger.name : 'Loading...';
+        },
+        
+        getTriggerTiming(triggerId) {
+            const trigger = this.projectTriggersCache[triggerId];
+            return trigger ? trigger.trigger_config?.timing || trigger.timing || '' : '';
+        },
+        
+        getTriggerStage(triggerId) {
+            const trigger = this.projectTriggersCache[triggerId];
+            return trigger ? trigger.trigger_config?.stage || trigger.stage || '' : '';
+        },
+        
+        getTriggerDescription(triggerId) {
+            const trigger = this.projectTriggersCache[triggerId];
+            return trigger ? (trigger.description || 'No description') : '';
+        },
+        
+        openEditProjectTriggerModal(triggerId) {
+            const trigger = this.getTriggerById(triggerId);
+            if (trigger) {
+                this.openEditTriggerModal(trigger);
+            }
         },
         
         // Projects
@@ -932,6 +1021,9 @@ function vagrantApp() {
                 
                 // Load project provisioners
                 await this.loadProjectProvisioners();
+                
+                // Load project triggers
+                await this.loadProjectTriggers();
                 
                 // Clear selections
                 this.clearVMSelection();
@@ -1442,6 +1534,352 @@ function vagrantApp() {
             } catch (error) {
                 console.error('Failed to delete provisioner:', error);
                 alert('Failed to delete provisioner: ' + (error.message || 'Unknown error'));
+            }
+        },
+
+        // Global Trigger Management
+        async loadTriggers() {
+            try {
+                const result = await api.getTriggersList();
+                this.availableTriggers = result || [];
+            } catch (error) {
+                console.error('Failed to load triggers:', error);
+            }
+        },
+        
+        openCreateTriggerModal(returnToProjectModal = false) {
+            this.editingTrigger = null;
+            this.returnToProjectTriggerModal = returnToProjectModal;
+            this.triggerForm = {
+                name: '',
+                description: '',
+                executionTarget: 'run',
+                trigger_config: {
+                    timing: 'after',
+                    stage: 'up',
+                    run: '',
+                    run_remote_inline: '',
+                    name: '',
+                    info: '',
+                    warn: '',
+                    on_error: 'continue'
+                }
+            };
+            this.showEditTriggerModal = true;
+        },
+        
+        openEditTriggerModal(trigger) {
+            this.editingTrigger = trigger;
+            this.loadTriggerForEdit(trigger.id);
+            this.showEditTriggerModal = true;
+        },
+        
+        async loadTriggerForEdit(triggerId) {
+            try {
+                const fullTrigger = await api.getTrigger(triggerId);
+                this.triggerForm = {
+                    name: fullTrigger.name || '',
+                    description: fullTrigger.description || '',
+                    executionTarget: fullTrigger.trigger_config?.run ? 'run' : 'run_remote',
+                    trigger_config: {
+                        timing: fullTrigger.trigger_config?.timing || 'after',
+                        stage: fullTrigger.trigger_config?.stage || 'up',
+                        run: fullTrigger.trigger_config?.run || '',
+                        run_remote_inline: fullTrigger.trigger_config?.run_remote_inline || '',
+                        name: fullTrigger.trigger_config?.name || '',
+                        info: fullTrigger.trigger_config?.info || '',
+                        warn: fullTrigger.trigger_config?.warn || '',
+                        on_error: fullTrigger.trigger_config?.on_error || 'continue'
+                    }
+                };
+            } catch (error) {
+                console.error('Failed to load trigger details:', error);
+                this.triggerForm = {
+                    name: this.editingTrigger.name || '',
+                    description: this.editingTrigger.description || '',
+                    executionTarget: 'run',
+                    trigger_config: {
+                        timing: 'after',
+                        stage: 'up',
+                        run: '',
+                        run_remote_inline: '',
+                        name: '',
+                        info: '',
+                        warn: '',
+                        on_error: 'continue'
+                    }
+                };
+            }
+        },
+        
+        closeEditTriggerModal() {
+            this.showEditTriggerModal = false;
+            this.editingTrigger = null;
+            this.triggerForm = {
+                name: '',
+                description: '',
+                executionTarget: 'run',
+                trigger_config: {
+                    timing: 'after',
+                    stage: 'up',
+                    run: '',
+                    run_remote_inline: '',
+                    name: '',
+                    info: '',
+                    warn: '',
+                    on_error: 'continue'
+                }
+            };
+        },
+        
+        async createTrigger() {
+            try {
+                if (!this.triggerForm.name.trim()) {
+                    alert('Trigger name is required');
+                    return;
+                }
+                
+                const command = this.triggerForm.executionTarget === 'run' 
+                    ? this.triggerForm.trigger_config.run.trim()
+                    : this.triggerForm.trigger_config.run_remote_inline.trim();
+                
+                if (!command) {
+                    alert('Command is required');
+                    return;
+                }
+                
+                const triggerData = {
+                    name: this.triggerForm.name.trim(),
+                    description: this.triggerForm.description.trim() || null,
+                    trigger_config: {
+                        timing: this.triggerForm.trigger_config.timing,
+                        stage: this.triggerForm.trigger_config.stage,
+                        on_error: this.triggerForm.trigger_config.on_error
+                    }
+                };
+                
+                // Add execution target
+                if (this.triggerForm.executionTarget === 'run') {
+                    triggerData.trigger_config.run = command;
+                } else {
+                    triggerData.trigger_config.run_remote_inline = command;
+                }
+                
+                // Add optional fields if provided
+                if (this.triggerForm.trigger_config.name.trim()) {
+                    triggerData.trigger_config.name = this.triggerForm.trigger_config.name.trim();
+                }
+                if (this.triggerForm.trigger_config.info.trim()) {
+                    triggerData.trigger_config.info = this.triggerForm.trigger_config.info.trim();
+                }
+                if (this.triggerForm.trigger_config.warn.trim()) {
+                    triggerData.trigger_config.warn = this.triggerForm.trigger_config.warn.trim();
+                }
+                
+                await api.createTrigger(triggerData);
+                await this.loadTriggers();
+                this.closeEditTriggerModal();
+                this.setSuccess('Trigger created successfully');
+                
+                // If we came from the project trigger modal, reopen it
+                if (this.returnToProjectTriggerModal) {
+                    this.returnToProjectTriggerModal = false;
+                    this.openAddProjectTriggerModal();
+                }
+            } catch (error) {
+                console.error('Failed to create trigger:', error);
+                alert('Failed to create trigger: ' + (error.message || 'Unknown error'));
+            }
+        },
+        
+        async updateTrigger() {
+            try {
+                if (!this.triggerForm.name.trim()) {
+                    alert('Trigger name is required');
+                    return;
+                }
+                
+                const command = this.triggerForm.executionTarget === 'run' 
+                    ? this.triggerForm.trigger_config.run.trim()
+                    : this.triggerForm.trigger_config.run_remote_inline.trim();
+                
+                if (!command) {
+                    alert('Command is required');
+                    return;
+                }
+                
+                const triggerData = {
+                    name: this.triggerForm.name.trim(),
+                    description: this.triggerForm.description.trim() || null,
+                    trigger_config: {
+                        timing: this.triggerForm.trigger_config.timing,
+                        stage: this.triggerForm.trigger_config.stage,
+                        on_error: this.triggerForm.trigger_config.on_error
+                    }
+                };
+                
+                // Add execution target
+                if (this.triggerForm.executionTarget === 'run') {
+                    triggerData.trigger_config.run = command;
+                } else {
+                    triggerData.trigger_config.run_remote_inline = command;
+                }
+                
+                // Add optional fields if provided
+                if (this.triggerForm.trigger_config.name.trim()) {
+                    triggerData.trigger_config.name = this.triggerForm.trigger_config.name.trim();
+                }
+                if (this.triggerForm.trigger_config.info.trim()) {
+                    triggerData.trigger_config.info = this.triggerForm.trigger_config.info.trim();
+                }
+                if (this.triggerForm.trigger_config.warn.trim()) {
+                    triggerData.trigger_config.warn = this.triggerForm.trigger_config.warn.trim();
+                }
+                
+                await api.updateTrigger(this.editingTrigger.id, triggerData);
+                await this.loadTriggers();
+                this.closeEditTriggerModal();
+                this.setSuccess('Trigger updated successfully');
+            } catch (error) {
+                console.error('Failed to update trigger:', error);
+                alert('Failed to update trigger: ' + (error.message || 'Unknown error'));
+            }
+        },
+        
+        confirmDeleteTrigger(trigger) {
+            this.triggerToDelete = trigger;
+            this.showDeleteTriggerConfirmModal = true;
+        },
+        
+        closeDeleteTriggerModal() {
+            this.showDeleteTriggerConfirmModal = false;
+            this.triggerToDelete = null;
+        },
+        
+        async deleteTrigger() {
+            if (!this.triggerToDelete) return;
+            
+            try {
+                await api.deleteTrigger(this.triggerToDelete.id);
+                await this.loadTriggers();
+                this.closeDeleteTriggerModal();
+                this.setSuccess('Trigger deleted successfully');
+            } catch (error) {
+                console.error('Failed to delete trigger:', error);
+                alert('Failed to delete trigger: ' + (error.message || 'Unknown error'));
+            }
+        },
+        
+        // Project Trigger Management
+        toggleTriggerForAdd(triggerId) {
+            const index = this.projectTriggerForm.selectedTriggerIds.indexOf(triggerId);
+            if (index > -1) {
+                this.projectTriggerForm.selectedTriggerIds.splice(index, 1);
+            } else {
+                this.projectTriggerForm.selectedTriggerIds.push(triggerId);
+            }
+        },
+        
+        isTriggerSelectedForAdd(triggerId) {
+            return this.projectTriggerForm.selectedTriggerIds.includes(triggerId);
+        },
+        
+        openAddProjectTriggerModal() {
+            this.projectTriggerForm.selectedTriggerIds = [];
+            this.showAddProjectTriggerModal = true;
+        },
+        
+        closeAddProjectTriggerModal() {
+            this.showAddProjectTriggerModal = false;
+            this.projectTriggerForm.selectedTriggerIds = [];
+        },
+        
+        async addProjectTriggers() {
+            if (this.projectTriggerForm.selectedTriggerIds.length === 0) {
+                alert('Please select at least one trigger');
+                return;
+            }
+            
+            try {
+                for (const triggerId of this.projectTriggerForm.selectedTriggerIds) {
+                    await api.addTriggerToProject(this.currentProject.id, triggerId);
+                }
+                
+                await this.loadProject(this.currentProject.id);
+                this.closeAddProjectTriggerModal();
+                this.setSuccess(`${this.projectTriggerForm.selectedTriggerIds.length} trigger(s) added successfully`);
+            } catch (error) {
+                console.error('Failed to add triggers:', error);
+                alert('Failed to add triggers: ' + (error.message || 'Unknown error'));
+            }
+        },
+        
+        confirmDeleteProjectTrigger(trigger) {
+            this.deletingProjectTrigger = trigger;
+            this.showDeleteProjectTriggerModal = true;
+        },
+        
+        closeDeleteProjectTriggerModal() {
+            this.showDeleteProjectTriggerModal = false;
+            this.deletingProjectTrigger = null;
+        },
+        
+        async removeProjectTrigger() {
+            if (!this.deletingProjectTrigger) return;
+            
+            try {
+                await api.removeTriggerFromProject(this.currentProject.id, this.deletingProjectTrigger.id);
+                await this.loadProject(this.currentProject.id);
+                this.closeDeleteProjectTriggerModal();
+                this.setSuccess('Trigger removed from project successfully');
+            } catch (error) {
+                console.error('Failed to remove trigger:', error);
+                alert('Failed to remove trigger: ' + (error.message || 'Unknown error'));
+            }
+        },
+        
+        toggleTriggerSelection(triggerId) {
+            const index = this.selectedTriggers.indexOf(triggerId);
+            if (index > -1) {
+                this.selectedTriggers.splice(index, 1);
+            } else {
+                this.selectedTriggers.push(triggerId);
+            }
+        },
+        
+        isTriggerSelected(triggerId) {
+            return this.selectedTriggers.includes(triggerId);
+        },
+        
+        selectAllTriggers() {
+            if (!this.currentProject || !this.currentProject.global_triggers) return;
+            this.selectedTriggers = [...this.currentProject.global_triggers];
+        },
+        
+        clearTriggerSelection() {
+            this.selectedTriggers = [];
+        },
+        
+        openBulkDeleteTriggersModal() {
+            if (this.selectedTriggers.length === 0) return;
+            this.showBulkDeleteTriggersModal = true;
+        },
+        
+        async bulkDeleteTriggers() {
+            if (this.selectedTriggers.length === 0) return;
+            
+            try {
+                for (const triggerId of this.selectedTriggers) {
+                    await api.removeTriggerFromProject(this.currentProject.id, triggerId);
+                }
+                
+                await this.loadProject(this.currentProject.id);
+                this.clearTriggerSelection();
+                this.showBulkDeleteTriggersModal = false;
+                this.setSuccess(`${this.selectedTriggers.length} trigger(s) removed successfully`);
+            } catch (error) {
+                console.error('Failed to remove triggers:', error);
+                alert('Failed to remove triggers: ' + (error.message || 'Unknown error'));
             }
         },
 

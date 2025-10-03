@@ -555,3 +555,54 @@ class ProjectService:
         project.update_timestamp()
         self._save_project_to_file(project)
         return project
+
+    def add_trigger_to_project(self, project_id: UUID, trigger_id: str) -> Project:
+        """
+        Add a trigger to a project's global triggers.
+        
+        Args:
+            project_id: Project UUID
+            trigger_id: ID of trigger to add
+            
+        Returns:
+            Updated Project instance
+            
+        Raises:
+            ProjectNotFoundError: If project doesn't exist
+            ValueError: If trigger already exists in project
+        """
+        project = self._load_project_from_file(project_id)
+        
+        # Check if trigger already exists
+        if trigger_id in project.global_triggers:
+            raise ValueError(f"Trigger '{trigger_id}' already exists in project")
+        
+        project.global_triggers.append(trigger_id)
+        project.update_timestamp()
+        self._save_project_to_file(project)
+        return project
+
+    def remove_trigger_from_project(self, project_id: UUID, trigger_id: str) -> Project:
+        """
+        Remove a trigger from a project's global triggers.
+        
+        Args:
+            project_id: Project UUID
+            trigger_id: ID of trigger to remove
+            
+        Returns:
+            Updated Project instance
+            
+        Raises:
+            ProjectNotFoundError: If project doesn't exist
+            ValueError: If trigger not found in project
+        """
+        project = self._load_project_from_file(project_id)
+        
+        if trigger_id not in project.global_triggers:
+            raise ValueError(f"Trigger '{trigger_id}' not found in project")
+        
+        project.global_triggers.remove(trigger_id)
+        project.update_timestamp()
+        self._save_project_to_file(project)
+        return project

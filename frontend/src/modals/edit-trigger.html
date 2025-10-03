@@ -1,0 +1,183 @@
+<!-- Edit/Create Trigger Modal -->
+<div x-show="showEditTriggerModal" 
+     x-cloak
+     class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50"
+     @click.self="showEditTriggerModal = false">
+    
+    <div class="relative top-10 mx-auto p-5 border w-11/12 md:w-3/4 lg:w-2/3 shadow-lg rounded-md bg-white max-h-[90vh] flex flex-col">
+        <!-- Header -->
+        <div class="flex justify-between items-center pb-3 border-b">
+            <h3 class="text-xl font-semibold text-gray-900" x-text="triggerForm.id ? 'Edit Trigger' : 'Create New Trigger'"></h3>
+            <button @click="showEditTriggerModal = false" class="text-gray-400 hover:text-gray-600">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                </svg>
+            </button>
+        </div>
+
+        <!-- Form -->
+        <form @submit.prevent="triggerForm.id ? updateTrigger() : createTrigger()" class="mt-4 flex-1 overflow-y-auto">
+            <div class="space-y-4">
+                <!-- Name -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">
+                        Trigger Name <span class="text-red-500">*</span>
+                    </label>
+                    <input type="text" 
+                           x-model="triggerForm.name" 
+                           required
+                           placeholder="e.g., RHC Connect"
+                           class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                </div>
+
+                <!-- Description -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">
+                        Description
+                    </label>
+                    <textarea x-model="triggerForm.description" 
+                              rows="2"
+                              placeholder="Optional description of what this trigger does"
+                              class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"></textarea>
+                </div>
+
+                <!-- Timing and Stage -->
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">
+                            Timing <span class="text-red-500">*</span>
+                        </label>
+                        <select x-model="triggerForm.trigger_config.timing" 
+                                required
+                                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <option value="before">Before</option>
+                            <option value="after">After</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">
+                            Stage <span class="text-red-500">*</span>
+                        </label>
+                        <select x-model="triggerForm.trigger_config.stage" 
+                                required
+                                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <option value="up">up</option>
+                            <option value="destroy">destroy</option>
+                            <option value="halt">halt</option>
+                            <option value="resume">resume</option>
+                            <option value="provision">provision</option>
+                            <option value="reload">reload</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Execution Target -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">
+                        Execution Target <span class="text-red-500">*</span>
+                    </label>
+                    <div class="space-y-2">
+                        <label class="flex items-center">
+                            <input type="radio" 
+                                   x-model="triggerForm.executionTarget" 
+                                   value="run"
+                                   class="h-4 w-4 text-blue-600">
+                            <span class="ml-2 text-sm text-gray-700">Run locally (on host machine)</span>
+                        </label>
+                        <label class="flex items-center">
+                            <input type="radio" 
+                                   x-model="triggerForm.executionTarget" 
+                                   value="run_remote"
+                                   class="h-4 w-4 text-blue-600">
+                            <span class="ml-2 text-sm text-gray-700">Run remotely (inside VM)</span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Command -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">
+                        Command <span class="text-red-500">*</span>
+                    </label>
+                    <textarea x-show="triggerForm.executionTarget === 'run'"
+                              x-model="triggerForm.trigger_config.run" 
+                              rows="4"
+                              required
+                              placeholder="e.g., echo 'Starting backup...'"
+                              class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono text-sm"></textarea>
+                    
+                    <textarea x-show="triggerForm.executionTarget === 'run_remote'"
+                              x-model="triggerForm.trigger_config.run_remote_inline" 
+                              rows="4"
+                              required
+                              placeholder="e.g., sudo systemctl restart myservice"
+                              class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono text-sm"></textarea>
+                </div>
+
+                <!-- Optional Fields -->
+                <details class="border rounded-md p-3">
+                    <summary class="cursor-pointer font-medium text-gray-700">Optional Fields</summary>
+                    <div class="mt-3 space-y-3">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">
+                                Trigger Identifier (name)
+                            </label>
+                            <input type="text" 
+                                   x-model="triggerForm.trigger_config.name" 
+                                   placeholder="e.g., backup_trigger"
+                                   class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <p class="text-xs text-gray-500 mt-1">Internal identifier used in Vagrantfile</p>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">
+                                Info Message
+                            </label>
+                            <input type="text" 
+                                   x-model="triggerForm.trigger_config.info" 
+                                   placeholder="e.g., Starting backup process..."
+                                   class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">
+                                Warning Message
+                            </label>
+                            <input type="text" 
+                                   x-model="triggerForm.trigger_config.warn" 
+                                   placeholder="Optional warning message"
+                                   class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        </div>
+                    </div>
+                </details>
+
+                <!-- Error Handling -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">
+                        On Error <span class="text-red-500">*</span>
+                    </label>
+                    <select x-model="triggerForm.trigger_config.on_error" 
+                            required
+                            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <option value="continue">Continue (ignore errors)</option>
+                        <option value="halt">Halt (stop on error)</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Footer -->
+            <div class="mt-6 pt-3 border-t flex justify-end space-x-3">
+                <button type="button" 
+                        @click="showEditTriggerModal = false" 
+                        class="btn btn-secondary">
+                    Cancel
+                </button>
+                <button type="submit" 
+                        class="btn btn-primary">
+                    <span x-text="triggerForm.id ? 'Update Trigger' : 'Create Trigger'"></span>
+                </button>
+            </div>
+        </form>
+    </div>
+</div>

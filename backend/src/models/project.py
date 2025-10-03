@@ -71,6 +71,10 @@ class ProjectUpdate(ProjectBase):
         default_factory=list,
         description="List of global provisioner IDs applied to all VMs"
     )
+    global_triggers: List[str] = Field(
+        default_factory=list,
+        description="List of global trigger IDs applied to the project"
+    )
 
     @validator('vms')
     def validate_vm_names_unique(cls, v):
@@ -97,6 +101,10 @@ class Project(ProjectBase):
     global_provisioners: List[str] = Field(
         default_factory=list,
         description="List of global provisioner IDs applied to all VMs"
+    )
+    global_triggers: List[str] = Field(
+        default_factory=list,
+        description="List of global trigger IDs applied to the project"
     )
 
     class Config:
