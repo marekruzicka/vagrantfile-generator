@@ -68,9 +68,8 @@ jobs:
       - name: Build and push image
         uses: docker/build-push-action@v5
         with:
-          context: .
-          # Adjust Dockerfile path per service; this example assumes frontend/ and backend/ Dockerfiles at repo root
-          file: ${{ matrix.service }}/Dockerfile
+          context: ${{ matrix.service }}
+          file: Dockerfile
           push: true
           platforms: linux/amd64,linux/arm64
           tags: |
