@@ -1,6 +1,7 @@
 {
   "name": "vagrantfile-generator-frontend",
   "version": "0.1.0",
+  "license": "MIT",
   "description": "Frontend for Vagrantfile Generator",
   "scripts": {
     "dev": "vite",

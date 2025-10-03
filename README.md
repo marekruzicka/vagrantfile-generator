@@ -1,5 +1,7 @@
 # Vagrantfile Generator
 
+MIT License — see the `LICENSE` file for details.
+
 A modern web-based application for generating Vagrantfiles with an intuitive interface. Create and manage multiple virtual machines, configure networking, and generate production-ready Vagrant configurations with ease.
 
 ## Features

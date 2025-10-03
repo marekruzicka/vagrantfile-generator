@@ -8,6 +8,7 @@ dynamic = ["version"]
 description = "Web application for generating Vagrantfiles"
 authors = [{name = "Vagrantfile Generator Team"}]
 license = {text = "MIT"}
+license-expression = "MIT"
 readme = "README.md"
 requires-python = ">=3.11"
 classifiers = [
