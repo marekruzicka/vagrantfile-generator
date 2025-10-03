@@ -1,10 +1,10 @@
 <!-- Projects List View -->
-<div x-show="currentView === 'projects'" class="space-y-8">
+<div x-show="currentView === 'projects'" class="space-y-4">
   <!-- Page Header -->
-  <div class="text-center py-12">
-    <div class="hero-gradient rounded-3xl p-8 text-white mb-8">
+  <div class="text-center py-3">
+    <div class="hero-gradient rounded-3xl p-8 text-white mb-4">
       <h2 class="hero-title text-4xl md:text-5xl font-bold mb-4">Your Vagrant Projects</h2>
-      <p class="text-lg md:text-xl opacity-90 max-w-3xl mx-auto">Create and manage isolated development environments with ease. Each project can contain multiple virtual machines with custom configurations.</p>
+      <p class="text-lg md:text-xl opacity-90 max-w-3xl mx-auto">Create and manage isolated development environments with ease.</p>
     </div>
     
     <!-- Empty State Section - Only when NO projects exist at all -->
@@ -47,37 +47,55 @@
     </div>
     
     <!-- Quick Stats - Show when projects exist -->
-    <div x-show="projectStats && projectStats.total_projects > 0" class="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-8">
+    <div x-show="projectStats && projectStats.total_projects > 0" class="mb-4">
+      <!-- All Stats Cards in One Row -->
+      <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
+        <div class="card text-center cursor-pointer hover:shadow-lg transition-shadow" 
+        @click="setProjectFilter('all')"
+        :class="projectFilter === 'all' ? 'ring-2 ring-blue-500' : ''">
+        <div class="feature-icon mx-auto mb-3" style="background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);">
+          <span x-text="projectStats.total_projects" class="text-2xl"></span>
+        </div>
+        <h3 class="font-semibold text-gray-900">Projects</h3>
+      </div>
+      <div class="card text-center">
+        <div class="feature-icon mx-auto mb-3" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%);">
+          <span x-text="projectStats.total_vms" class="text-2xl"></span>
+        </div>
+        <h3 class="font-semibold text-gray-900">VMs</h3>
+      </div>
+      <div class="card text-center">
+        <div class="feature-icon mx-auto mb-3 bg-gradient-to-br from-purple-500 to-pink-600">
+          <span x-text="globalStats.total_plugins || 0" class="text-2xl"></span>
+        </div>
+        <h3 class="font-semibold text-gray-900">Plugins</h3>
+      </div>
+      <div class="card text-center">
+        <div class="feature-icon mx-auto mb-3 bg-gradient-to-br from-blue-500 to-cyan-600">
+          <span x-text="globalStats.total_provisioners || 0" class="text-2xl"></span>
+        </div>
+        <h3 class="font-semibold text-gray-900">Provisioners</h3>
+      </div>
+      <div class="card text-center">
+        <div class="feature-icon mx-auto mb-3 bg-gradient-to-br from-orange-500 to-red-600">
+          <span x-text="globalStats.total_triggers || 0" class="text-2xl"></span>
+        </div>
+        <h3 class="font-semibold text-gray-900">Triggers</h3>
+      </div>
       <div class="card text-center cursor-pointer hover:shadow-lg transition-shadow" 
-      @click="setProjectFilter('all')"
-      :class="projectFilter === 'all' ? 'ring-2 ring-blue-500' : ''">
-      <div class="feature-icon mx-auto mb-3" style="background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);">
-        <span x-text="projectStats.total_projects" class="text-2xl"></span>
+      @click="setProjectFilter('ready')"
+      :class="projectFilter === 'ready' ? 'ring-2 ring-purple-500' : ''">
+      <div class="feature-icon mx-auto mb-3" style="background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);">
+        <span x-text="projectStats.ready" class="text-2xl"></span>
       </div>
-      <h3 class="font-semibold text-gray-900">Projects</h3>
-      <p class="text-sm text-gray-600">Total projects created</p>
+      <h3 class="font-semibold text-gray-900">Ready</h3>
     </div>
-    <div class="card text-center">
-      <div class="feature-icon mx-auto mb-3" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%);">
-        <span x-text="projectStats.total_vms" class="text-2xl"></span>
-      </div>
-      <h3 class="font-semibold text-gray-900">Virtual Machines</h3>
-      <p class="text-sm text-gray-600">Total VMs configured</p>
-    </div>
-    <div class="card text-center cursor-pointer hover:shadow-lg transition-shadow" 
-    @click="setProjectFilter('ready')"
-    :class="projectFilter === 'ready' ? 'ring-2 ring-purple-500' : ''">
-    <div class="feature-icon mx-auto mb-3" style="background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);">
-      <span x-text="projectStats.ready" class="text-2xl"></span>
-    </div>
-    <h3 class="font-semibold text-gray-900">Ready to Deploy</h3>
-    <p class="text-sm text-gray-600">Environment-ready projects</p>
   </div>
 </div>
 </div>
 
 <!-- Filter Bar - Show when projects exist -->
-<div x-show="projectStats && projectStats.total_projects > 0" class="mb-6">
+<div x-show="projectStats && projectStats.total_projects > 0">
   <div class="bg-white shadow rounded-lg border border-gray-200 px-4 py-3">
     <div class="flex flex-wrap items-center gap-3">
       <div class="flex items-center space-x-2 text-gray-600">

@@ -108,6 +108,7 @@ class VagrantAPI {
 
     // Plugin management methods
     async getPluginsList() { return this.request('/plugins'); }
+    async getPlugins() { return this.getPluginsList(); } // Alias
     async getPlugin(id) { return this.request(`/plugins/${id}`); }
     async createPlugin(pluginData) { return this.request('/plugins', { method: 'POST', body: pluginData }); }
     async updatePlugin(id, pluginData) { return this.request(`/plugins/${id}`, { method: 'PUT', body: pluginData }); }
@@ -115,6 +116,7 @@ class VagrantAPI {
 
     // Global Provisioner management methods
     async getProvisionersList() { return this.request('/provisioners'); }
+    async getProvisioners() { return this.getProvisionersList(); } // Alias
     async getProvisioner(id) { return this.request(`/provisioners/${id}`); }
     async createProvisioner(provisionerData) { return this.request('/provisioners', { method: 'POST', body: provisionerData }); }
     async updateProvisioner(id, provisionerData) { return this.request(`/provisioners/${id}`, { method: 'PUT', body: provisionerData }); }
@@ -131,6 +133,7 @@ class VagrantAPI {
 
     // Global Trigger management methods
     async getTriggersList() { return this.request('/triggers'); }
+    async getTriggers() { return this.getTriggersList(); } // Alias
     async getTrigger(id) { return this.request(`/triggers/${id}`); }
     async createTrigger(triggerData) { return this.request('/triggers', { method: 'POST', body: triggerData }); }
     async updateTrigger(id, triggerData) { return this.request(`/triggers/${id}`, { method: 'PUT', body: triggerData }); }

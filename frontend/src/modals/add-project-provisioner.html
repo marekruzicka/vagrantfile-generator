@@ -89,8 +89,9 @@
         </button>
         <button type="submit" 
                 :disabled="projectProvisionerForm.selectedProvisionerIds.length === 0 || currentProject?.deployment_status === 'ready'" 
-                class="btn btn-success">
-          Add Selected Provisioners
+                class="btn btn-success"
+                :class="{ 'opacity-50 cursor-not-allowed': projectProvisionerForm.selectedProvisionerIds.length === 0 }">
+          <span x-text="projectProvisionerForm.selectedProvisionerIds.length === 1 ? 'Add Provisioner' : `Add ${projectProvisionerForm.selectedProvisionerIds.length} Provisioners`"></span>
         </button>
       </div>
     </form>

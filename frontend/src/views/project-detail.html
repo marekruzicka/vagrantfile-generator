@@ -76,8 +76,15 @@
   <div class="space-y-6">
     <div class="flex justify-between items-center">
       <div class="flex items-center space-x-4">
-        <h3 class="text-2xl font-bold text-gray-900">Plugins</h3>
-        <div x-show="selectedPlugins.length > 0 && currentProject?.deployment_status !== 'ready'" class="flex items-center space-x-2">
+        <button @click="sectionsOpen.projectPlugins = !sectionsOpen.projectPlugins" 
+                class="text-gray-500 hover:text-gray-700 transition-colors p-1">
+          <svg class="w-5 h-5 transition-transform" :class="{ 'rotate-180': !sectionsOpen.projectPlugins }" fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"></path>
+          </svg>
+        </button>
+        <h3 @click="sectionsOpen.projectPlugins = !sectionsOpen.projectPlugins" 
+            class="text-2xl font-bold text-gray-900 cursor-pointer hover:text-gray-700 transition-colors">Plugins</h3>
+        <div x-show="sectionsOpen.projectPlugins && selectedPlugins.length > 0 && currentProject?.deployment_status !== 'ready'" class="flex items-center space-x-2">
           <span class="text-sm text-gray-600" x-text="`${selectedPlugins.length} selected`"></span>
           <button @click="openBulkDeletePluginsModal()" class="btn btn-danger text-sm">
             <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
@@ -90,7 +97,7 @@
           </button>
         </div>
       </div>
-      <div x-show="currentProject?.deployment_status !== 'ready'" class="flex items-center space-x-2">
+      <div x-show="sectionsOpen.projectPlugins && currentProject?.deployment_status !== 'ready'" class="flex items-center space-x-2">
         <button x-show="currentProject?.global_plugins?.length > 0" @click="selectAllPlugins()" class="btn btn-secondary text-sm">
           Select All
         </button>
@@ -104,7 +111,7 @@
     </div>
     
     <!-- Plugins Grid -->
-    <div x-show="currentProject?.global_plugins?.length > 0" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+    <div x-show="sectionsOpen.projectPlugins && currentProject?.global_plugins?.length > 0" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
       <template x-for="plugin in currentProject?.global_plugins" :key="plugin.name">
         <div class="border border-gray-200 rounded-lg p-4 hover:border-purple-300 transition-colors group"
              :class="{ 'ring-2 ring-purple-500': isPluginSelected(plugin.name) }">
@@ -154,7 +161,7 @@
     </div>
 
     <!-- Empty Plugins State - Minimal -->
-    <div x-show="!currentProject?.global_plugins?.length" class="text-center py-4">
+    <div x-show="sectionsOpen.projectPlugins && !currentProject?.global_plugins?.length" class="text-center py-4">
       <p class="text-gray-500">No plugins configured for this project.</p>
     </div>
   </div>
@@ -163,8 +170,15 @@
   <div class="space-y-6">
     <div class="flex justify-between items-center">
       <div class="flex items-center space-x-4">
-        <h3 class="text-2xl font-bold text-gray-900">Provisioners</h3>
-        <div x-show="selectedProvisioners.length > 0 && currentProject?.deployment_status !== 'ready'" class="flex items-center space-x-2">
+        <button @click="sectionsOpen.projectProvisioners = !sectionsOpen.projectProvisioners" 
+                class="text-gray-500 hover:text-gray-700 transition-colors p-1">
+          <svg class="w-5 h-5 transition-transform" :class="{ 'rotate-180': !sectionsOpen.projectProvisioners }" fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"></path>
+          </svg>
+        </button>
+        <h3 @click="sectionsOpen.projectProvisioners = !sectionsOpen.projectProvisioners" 
+            class="text-2xl font-bold text-gray-900 cursor-pointer hover:text-gray-700 transition-colors">Provisioners</h3>
+        <div x-show="sectionsOpen.projectProvisioners && selectedProvisioners.length > 0 && currentProject?.deployment_status !== 'ready'" class="flex items-center space-x-2">
           <span class="text-sm text-gray-600" x-text="`${selectedProvisioners.length} selected`"></span>
           <button @click="openBulkDeleteProvisionersModal()" class="btn btn-danger text-sm">
             <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
@@ -177,7 +191,7 @@
           </button>
         </div>
       </div>
-      <div x-show="currentProject?.deployment_status !== 'ready'" class="flex items-center space-x-2">
+      <div x-show="sectionsOpen.projectProvisioners && currentProject?.deployment_status !== 'ready'" class="flex items-center space-x-2">
         <button x-show="currentProject?.global_provisioners?.length > 0" @click="selectAllProvisioners()" class="btn btn-secondary text-sm">
           Select All
         </button>
@@ -191,7 +205,7 @@
     </div>
     
     <!-- Provisioners Grid -->
-    <div x-show="currentProject?.global_provisioners?.length > 0" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+    <div x-show="sectionsOpen.projectProvisioners && currentProject?.global_provisioners?.length > 0" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
       <template x-for="provisionerId in currentProject?.global_provisioners" :key="provisionerId">
         <div class="border border-gray-200 rounded-lg p-4 hover:border-blue-300 transition-colors group"
              :class="{ 'ring-2 ring-blue-500': isProvisionerSelected(provisionerId) }">
@@ -244,7 +258,7 @@
     </div>
 
     <!-- Empty Provisioners State - Minimal -->
-    <div x-show="!currentProject?.global_provisioners?.length" class="text-center py-4">
+    <div x-show="sectionsOpen.projectProvisioners && !currentProject?.global_provisioners?.length" class="text-center py-4">
       <p class="text-gray-500">No provisioners configured for this project.</p>
     </div>
   </div>
@@ -253,7 +267,14 @@
   <div class="space-y-6">
     <div class="flex justify-between items-center">
       <div class="flex items-center space-x-4">
-        <h3 class="text-2xl font-bold text-gray-900">Triggers</h3>
+        <button @click="sectionsOpen.projectTriggers = !sectionsOpen.projectTriggers" 
+                class="text-gray-500 hover:text-gray-700 transition-colors p-1">
+          <svg class="w-5 h-5 transition-transform" :class="{ 'rotate-180': !sectionsOpen.projectTriggers }" fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"></path>
+          </svg>
+        </button>
+        <h3 @click="sectionsOpen.projectTriggers = !sectionsOpen.projectTriggers" 
+            class="text-2xl font-bold text-gray-900 cursor-pointer hover:text-gray-700 transition-colors">Triggers</h3>
         <div x-show="selectedTriggers.length > 0 && currentProject?.deployment_status !== 'ready'" class="flex items-center space-x-2">
           <span class="text-sm text-gray-600" x-text="`${selectedTriggers.length} selected`"></span>
           <button @click="openBulkDeleteTriggersModal()" class="btn btn-danger text-sm">
@@ -267,7 +288,7 @@
           </button>
         </div>
       </div>
-      <div x-show="currentProject?.deployment_status !== 'ready'" class="flex items-center space-x-2">
+      <div x-show="sectionsOpen.projectTriggers && currentProject?.deployment_status !== 'ready'" class="flex items-center space-x-2">
         <button x-show="currentProject?.global_triggers?.length > 0" @click="selectAllTriggers()" class="btn btn-secondary text-sm">
           Select All
         </button>
@@ -281,7 +302,7 @@
     </div>
     
     <!-- Triggers Grid -->
-    <div x-show="currentProject?.global_triggers?.length > 0" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+    <div x-show="sectionsOpen.projectTriggers && currentProject?.global_triggers?.length > 0" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
       <template x-for="triggerId in currentProject?.global_triggers" :key="triggerId">
         <div class="border border-gray-200 rounded-lg p-4 hover:border-orange-300 transition-colors group"
              :class="{ 'ring-2 ring-orange-500': isTriggerSelected(triggerId) }">
@@ -331,7 +352,7 @@
     </div>
 
     <!-- Empty Triggers State - Minimal -->
-    <div x-show="!currentProject?.global_triggers?.length" class="text-center py-4">
+    <div x-show="sectionsOpen.projectTriggers && !currentProject?.global_triggers?.length" class="text-center py-4">
       <p class="text-gray-500">No triggers configured for this project.</p>
     </div>
   </div>
@@ -340,7 +361,14 @@
   <div class="space-y-6">
     <div class="flex justify-between items-center">
       <div class="flex items-center space-x-4">
-        <h3 class="text-2xl font-bold text-gray-900">Virtual Machines</h3>
+        <button @click="sectionsOpen.projectVMs = !sectionsOpen.projectVMs" 
+                class="text-gray-500 hover:text-gray-700 transition-colors p-1">
+          <svg class="w-5 h-5 transition-transform" :class="{ 'rotate-180': !sectionsOpen.projectVMs }" fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"></path>
+          </svg>
+        </button>
+        <h3 @click="sectionsOpen.projectVMs = !sectionsOpen.projectVMs" 
+            class="text-2xl font-bold text-gray-900 cursor-pointer hover:text-gray-700 transition-colors">Virtual Machines</h3>
         <div x-show="selectedVMs.length > 0 && currentProject?.deployment_status !== 'ready'" class="flex items-center space-x-2">
           <span class="text-sm text-gray-600" x-text="`${selectedVMs.length} selected`"></span>
           <button @click="openBulkEditModal()" class="btn btn-secondary text-sm">
@@ -360,7 +388,7 @@
           </button>
         </div>
       </div>
-      <div x-show="currentProject?.deployment_status !== 'ready'" class="flex items-center space-x-2">
+      <div x-show="sectionsOpen.projectVMs && currentProject?.deployment_status !== 'ready'" class="flex items-center space-x-2">
         <button x-show="currentProject?.vms?.length > 0" @click="selectAllVMs()" class="btn btn-secondary text-sm">
           Select All
         </button>
@@ -374,7 +402,7 @@
     </div>
     
     <!-- Label-based Quick Selection -->
-    <div x-show="projectLabels && projectLabels.length > 0" class="bg-gray-50 border border-gray-200 rounded-lg p-4 mb-6">
+    <div x-show="sectionsOpen.projectVMs && projectLabels && projectLabels.length > 0" class="bg-gray-50 border border-gray-200 rounded-lg p-4 mb-6">
       <h4 class="text-sm font-medium text-gray-700 mb-3">Quick Select by Labels:</h4>
       <div class="flex flex-wrap gap-2">
         <template x-for="label in projectLabels" :key="label">
@@ -392,7 +420,7 @@
     </div>
 
     <!-- VMs Grid -->
-    <div x-show="currentProject?.vms?.length > 0" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+    <div x-show="sectionsOpen.projectVMs && currentProject?.vms?.length > 0" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
       <template x-for="vm in currentProject?.vms" :key="vm.name">
         <div class="vm-card group" :class="{ 'ring-2 ring-blue-500': isVMSelected(vm.name) }">
           <div class="flex justify-between items-start mb-4">
@@ -487,7 +515,7 @@
     </div>
 
     <!-- Empty VMs State -->
-    <div x-show="!currentProject?.vms?.length" class="text-center py-16">
+    <div x-show="sectionsOpen.projectVMs && !currentProject?.vms?.length" class="text-center py-16">
       <div class="mx-auto h-24 w-24 bg-gradient-to-br from-gray-100 to-gray-200 rounded-full flex items-center justify-center mb-6">
         <svg class="h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>

@@ -9,10 +9,29 @@ function vagrantApp() {
             ready: 0,
             draft: 0
         },
+        globalStats: {
+            total_plugins: 0,
+            total_provisioners: 0,
+            total_triggers: 0
+        },
         currentProject: null,
         currentView: 'projects',
         projectFilter: 'all', // 'all', 'draft', 'ready'
         isLoading: false,
+        
+        // Section collapse state
+        sectionsOpen: {
+            // Project detail page
+            projectPlugins: true,
+            projectProvisioners: true,
+            projectTriggers: true,
+            projectVMs: true,
+            // Settings page
+            settingsBoxes: true,
+            settingsPlugins: true,
+            settingsProvisioners: true,
+            settingsTriggers: true
+        },
         error: null,
         successMessage: null,
         
@@ -913,8 +932,11 @@ function vagrantApp() {
                 const result = await api.getProjects(filter);
                 this.projects = result.projects || result;
                 
-                // Load project statistics
-                await this.loadProjectStats();
+                // Load project and global statistics
+                await Promise.all([
+                    this.loadProjectStats(),
+                    this.loadGlobalStats()
+                ]);
                 this.clearError();
             } catch (error) {
                 this.setError('Failed to load projects: ' + error.message);
@@ -928,6 +950,25 @@ function vagrantApp() {
                 this.projectStats = await api.getProjectStats();
             } catch (error) {
                 console.warn('Failed to load project stats:', error);
+            }
+        },
+
+        async loadGlobalStats() {
+            try {
+                // Load global resources counts
+                const [plugins, provisioners, triggers] = await Promise.all([
+                    api.getPlugins().catch(() => []),
+                    api.getProvisioners().catch(() => []),
+                    api.getTriggers().catch(() => [])
+                ]);
+                
+                this.globalStats = {
+                    total_plugins: plugins.length,
+                    total_provisioners: provisioners.length,
+                    total_triggers: triggers.length
+                };
+            } catch (error) {
+                console.warn('Failed to load global stats:', error);
             }
         },
 

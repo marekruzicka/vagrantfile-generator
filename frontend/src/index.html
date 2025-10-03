@@ -96,11 +96,19 @@
             <!-- Vagrant Boxes Section -->
             <div class="card">
                 <div class="flex justify-between items-center mb-6">
-                    <div>
-                        <h3 class="text-2xl font-bold text-gray-900">Vagrant Boxes</h3>
-                        <p class="text-gray-600 mt-1">Manage available box images for virtual machines</p>
+                    <div class="flex items-center space-x-4">
+                        <button @click="sectionsOpen.settingsBoxes = !sectionsOpen.settingsBoxes" 
+                                class="text-gray-500 hover:text-gray-700 transition-colors p-1">
+                            <svg class="w-5 h-5 transition-transform" :class="{ 'rotate-180': !sectionsOpen.settingsBoxes }" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"></path>
+                            </svg>
+                        </button>
+                        <div @click="sectionsOpen.settingsBoxes = !sectionsOpen.settingsBoxes" class="cursor-pointer">
+                                <h3 class="text-2xl font-bold text-gray-900 hover:text-gray-700 transition-colors">Vagrant Boxes</h3>
+                            <p class="text-gray-600 mt-1">Manage available box images for virtual machines</p>
+                        </div>
                     </div>
-                    <div class="flex items-center space-x-3">
+                    <div x-show="sectionsOpen.settingsBoxes" class="flex items-center space-x-3">
                         <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800">
                             <span x-text="`${availableBoxes.length} boxes available`"></span>
                         </span>
@@ -120,7 +128,7 @@
                 </div>
 
                 <!-- Boxes Grid -->
-                <div x-show="availableBoxes.length > 0" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <div x-show="sectionsOpen.settingsBoxes && availableBoxes.length > 0" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                     <template x-for="box in availableBoxes" :key="box.id">
                         <div class="border border-gray-200 rounded-lg p-4 hover:border-blue-300 transition-colors">
                             <div class="flex items-start justify-between mb-3">
@@ -166,7 +174,7 @@
                 </div>
 
                 <!-- Empty Boxes State -->
-                <div x-show="availableBoxes.length === 0" class="text-center py-12">
+                <div x-show="sectionsOpen.settingsBoxes && availableBoxes.length === 0" class="text-center py-12">
                     <div class="mx-auto h-24 w-24 bg-gradient-to-br from-gray-100 to-gray-200 rounded-full flex items-center justify-center mb-6">
                         <svg class="h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path>
@@ -186,11 +194,19 @@
             <!-- Vagrant Plugins Section -->
             <div class="card">
                 <div class="flex justify-between items-center mb-6">
-                    <div>
-                        <h3 class="text-2xl font-bold text-gray-900">Vagrant Plugins</h3>
-                        <p class="text-gray-600 mt-1">Manage available Vagrant plugins for enhanced functionality</p>
+                    <div class="flex items-center space-x-4">
+                        <button @click="sectionsOpen.settingsPlugins = !sectionsOpen.settingsPlugins" 
+                                class="text-gray-500 hover:text-gray-700 transition-colors p-1">
+                            <svg class="w-5 h-5 transition-transform" :class="{ 'rotate-180': !sectionsOpen.settingsPlugins }" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"></path>
+                            </svg>
+                        </button>
+                        <div @click="sectionsOpen.settingsPlugins = !sectionsOpen.settingsPlugins" class="cursor-pointer">
+                            <h3 class="text-2xl font-bold text-gray-900 hover:text-gray-700 transition-colors">Vagrant Plugins</h3>
+                            <p class="text-gray-600 mt-1">Manage available Vagrant plugins for enhanced functionality</p>
+                        </div>
                     </div>
-                    <div class="flex items-center space-x-3">
+                    <div x-show="sectionsOpen.settingsPlugins" class="flex items-center space-x-3">
                         <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-purple-100 text-purple-800">
                             <span x-text="`${availablePlugins.length} plugins available`"></span>
                         </span>
@@ -210,7 +226,7 @@
                 </div>
 
                 <!-- Plugins Grid -->
-                <div x-show="availablePlugins.length > 0" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <div x-show="sectionsOpen.settingsPlugins && availablePlugins.length > 0" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                     <template x-for="plugin in availablePlugins" :key="plugin.id">
                         <div class="border border-gray-200 rounded-lg p-4 hover:border-purple-300 transition-colors"
                              :class="{ 'opacity-60': plugin.is_deprecated }">
@@ -268,7 +284,7 @@
                 </div>
 
                 <!-- Empty Plugins State -->
-                <div x-show="availablePlugins.length === 0" class="text-center py-12">
+                <div x-show="sectionsOpen.settingsPlugins && availablePlugins.length === 0" class="text-center py-12">
                     <div class="mx-auto h-24 w-24 bg-gradient-to-br from-gray-100 to-gray-200 rounded-full flex items-center justify-center mb-6">
                         <svg class="h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M11 4a2 2 0 114 0v1a1 1 0 001 1h3a1 1 0 011 1v3a1 1 0 01-1 1h-1a2 2 0 100 4h1a1 1 0 011 1v3a1 1 0 01-1 1h-3a1 1 0 01-1-1v-1a2 2 0 10-4 0v1a1 1 0 01-1 1H7a1 1 0 01-1-1v-3a1 1 0 00-1-1H4a2 2 0 110-4h1a1 1 0 001-1V7a1 1 0 011-1h3a1 1 0 001-1V4z"></path>
@@ -288,11 +304,19 @@
             <!-- Global Provisioners Section -->
             <div class="card">
                 <div class="flex justify-between items-center mb-6">
-                    <div>
-                        <h3 class="text-2xl font-bold text-gray-900">Global Provisioners</h3>
-                        <p class="text-gray-600 mt-1">Configure provisioners that run on all VMs</p>
+                    <div class="flex items-center space-x-4">
+                        <button @click="sectionsOpen.settingsProvisioners = !sectionsOpen.settingsProvisioners" 
+                                class="text-gray-500 hover:text-gray-700 transition-colors p-1">
+                            <svg class="w-5 h-5 transition-transform" :class="{ 'rotate-180': !sectionsOpen.settingsProvisioners }" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"></path>
+                            </svg>
+                        </button>
+                        <div @click="sectionsOpen.settingsProvisioners = !sectionsOpen.settingsProvisioners" class="cursor-pointer">
+                            <h3 class="text-2xl font-bold text-gray-900 hover:text-gray-700 transition-colors">Global Provisioners</h3>
+                            <p class="text-gray-600 mt-1">Configure provisioners that run on all VMs</p>
+                        </div>
                     </div>
-                    <div class="flex items-center space-x-3">
+                    <div x-show="sectionsOpen.settingsProvisioners" class="flex items-center space-x-3">
                         <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800">
                             <span x-text="`${availableProvisioners.length} provisioners configured`"></span>
                         </span>
@@ -312,7 +336,7 @@
                 </div>
 
                 <!-- Provisioners Grid -->
-                <div x-show="availableProvisioners.length > 0" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <div x-show="sectionsOpen.settingsProvisioners && availableProvisioners.length > 0" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                     <template x-for="provisioner in availableProvisioners" :key="provisioner.id">
                         <div class="border border-gray-200 rounded-lg p-4 hover:border-blue-300 transition-colors">
                             <div class="flex items-start justify-between mb-3">
@@ -356,7 +380,7 @@
                 </div>
 
                 <!-- Empty State -->
-                <div x-show="availableProvisioners.length === 0" class="text-center py-12">
+                <div x-show="sectionsOpen.settingsProvisioners && availableProvisioners.length === 0" class="text-center py-12">
                     <div class="mx-auto w-24 h-24 bg-gradient-to-br from-blue-100 to-cyan-100 rounded-full flex items-center justify-center mb-4">
                         <svg class="w-12 h-12 text-blue-500" fill="currentColor" viewBox="0 0 20 20">
                             <path d="M3 12v3c0 1.657 3.134 3 7 3s7-1.343 7-3v-3c0 1.657-3.134 3-7 3s-7-1.343-7-3z"></path>
@@ -378,11 +402,19 @@
             <!-- Global Triggers Section -->
             <div class="card">
                 <div class="flex justify-between items-center mb-6">
-                    <div>
-                        <h3 class="text-2xl font-bold text-gray-900">Global Triggers</h3>
-                        <p class="text-gray-600 mt-1">Configure triggers that execute before/after Vagrant commands</p>
+                    <div class="flex items-center space-x-4">
+                        <button @click="sectionsOpen.settingsTriggers = !sectionsOpen.settingsTriggers" 
+                                class="text-gray-500 hover:text-gray-700 transition-colors p-1">
+                            <svg class="w-5 h-5 transition-transform" :class="{ 'rotate-180': !sectionsOpen.settingsTriggers }" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"></path>
+                            </svg>
+                        </button>
+                        <div @click="sectionsOpen.settingsTriggers = !sectionsOpen.settingsTriggers" class="cursor-pointer">
+                            <h3 class="text-2xl font-bold text-gray-900 hover:text-gray-700 transition-colors">Global Triggers</h3>
+                            <p class="text-gray-600 mt-1">Configure triggers that execute before/after Vagrant commands</p>
+                        </div>
                     </div>
-                    <div class="flex items-center space-x-3">
+                    <div x-show="sectionsOpen.settingsTriggers" class="flex items-center space-x-3">
                         <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-orange-100 text-orange-800">
                             <span x-text="`${availableTriggers.length} triggers configured`"></span>
                         </span>
@@ -402,7 +434,7 @@
                 </div>
 
                 <!-- Triggers Grid -->
-                <div x-show="availableTriggers.length > 0" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <div x-show="sectionsOpen.settingsTriggers && availableTriggers.length > 0" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                     <template x-for="trigger in availableTriggers" :key="trigger.id">
                         <div class="border border-gray-200 rounded-lg p-4 hover:border-orange-300 transition-colors">
                             <div class="flex items-start justify-between mb-3">
@@ -445,7 +477,7 @@
                 </div>
 
                 <!-- Empty State -->
-                <div x-show="availableTriggers.length === 0" class="text-center py-12">
+                <div x-show="sectionsOpen.settingsTriggers && availableTriggers.length === 0" class="text-center py-12">
                     <div class="mx-auto w-24 h-24 bg-gradient-to-br from-orange-100 to-red-100 rounded-full flex items-center justify-center mb-4">
                         <svg class="w-12 h-12 text-orange-500" fill="currentColor" viewBox="0 0 20 20">
                             <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clip-rule="evenodd"></path>
@@ -699,11 +731,11 @@
                 
                 <div class="flex justify-end space-x-3 pt-4">
                     <button type="button" @click="closeBoxModal()" 
-                            class="px-4 py-2 text-gray-700 bg-gray-200 rounded-md hover:bg-gray-300 transition-colors">
+                            class="btn btn-secondary">
                         Cancel
                     </button>
                     <button type="submit" 
-                            class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors">
+                            class="btn btn-primary">
                         <span x-text="editingBox ? 'Update Box' : 'Add Box'"></span>
                     </button>
                 </div>
@@ -862,11 +894,11 @@
                 
                 <div class="flex justify-end space-x-3 pt-4">
                     <button type="button" @click="closePluginModal()" 
-                            class="px-4 py-2 text-gray-700 bg-gray-200 rounded-md hover:bg-gray-300 transition-colors">
+                            class="btn btn-secondary">
                         Cancel
                     </button>
                     <button type="submit" 
-                            class="px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700 transition-colors">
+                            class="btn btn-primary">
                         <span x-text="editingPlugin ? 'Update Plugin' : 'Add Plugin'"></span>
                     </button>
                 </div>
@@ -1035,11 +1067,11 @@
                 
                 <div class="flex justify-end space-x-3 pt-4">
                     <button type="button" @click="closeProvisionerModal()" 
-                            class="px-4 py-2 text-gray-700 bg-gray-200 rounded-md hover:bg-gray-300 transition-colors">
+                            class="btn btn-secondary">
                         Cancel
                     </button>
                     <button type="submit" 
-                            class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors">
+                            class="btn btn-primary">
                         <span x-text="editingProvisioner ? 'Update Provisioner' : 'Add Provisioner'"></span>
                     </button>
                 </div>
