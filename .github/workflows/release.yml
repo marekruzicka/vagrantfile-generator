@@ -1,0 +1,134 @@
+name: Build, Publish & Release
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'                # trigger on tags (e.g. v1.10.0)
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version (e.g. 1.10.0) for manual run'
+        required: false
+
+permissions:
+  contents: write        # needed for actions/create-release
+  packages: write        # needed to push to GHCR
+  id-token: write
+
+env:
+  REGISTRY: ghcr.io
+  REPO_OWNER: ${{ github.repository_owner }}
+  REPOSITORY: ${{ github.event.repository.name }}
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        service: [frontend, backend]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up QEMU (for multi-arch builds)
+        uses: docker/setup-qemu-action@v2
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+
+      - name: Determine version and tag
+        id: vars
+        run: | #shell
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            if [ -n "${{ github.event.inputs.version }}" ]; then
+              VERSION="${{ github.event.inputs.version }}"
+              TAG="v${VERSION}"
+            else
+              echo "No version provided for manual run. Use the 'version' input." >&2
+              exit 1
+            fi
+          else
+            # when triggered by tag push
+            REF=${GITHUB_REF#refs/tags/}
+            TAG="$REF"
+            VERSION="${TAG#v}"
+          fi
+          echo "TAG=$TAG" >> $GITHUB_OUTPUT
+          echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v2
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          # Adjust Dockerfile path per service; this example assumes frontend/ and backend/ Dockerfiles at repo root
+          file: ./{{ matrix.service }}/Dockerfile
+          push: true
+          platforms: linux/amd64,linux/arm64
+          tags: |
+            ${{ env.REGISTRY }}/${{ env.REPO_OWNER }}/${{ env.REPOSITORY }}-${{ matrix.service }}:${{ steps.vars.outputs.VERSION }}
+            ${{ env.REGISTRY }}/${{ env.REPO_OWNER }}/${{ env.REPOSITORY }}-${{ matrix.service }}:latest
+          cache-from: type=registry,ref=${{ env.REGISTRY }}/${{ env.REPO_OWNER }}/${{ env.REPOSITORY }}-${{ matrix.service }}:buildcache
+          cache-to: type=registry,ref=${{ env.REGISTRY }}/${{ env.REPO_OWNER }}/${{ env.REPOSITORY }}-${{ matrix.service }}:buildcache,mode=max
+
+  create-release:
+    needs: build-and-push
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Determine tag and version
+        id: vars
+        run: | #shell
+          # Same logic as above: if workflow_dispatch, use input; else use pushed tag
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            VERSION="${{ github.event.inputs.version }}"
+            TAG="v${VERSION}"
+          else
+            TAG="${GITHUB_REF#refs/tags/}"
+            VERSION="${TAG#v}"
+          fi
+          echo "TAG=$TAG" >> $GITHUB_OUTPUT
+          echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
+
+      - name: Extract release notes from CHANGELOG.md
+        id: notes
+        run: | #shell
+          VERSION="${{ steps.vars.outputs.VERSION }}"
+          # awk: print lines under the matching "## ... Version X.Y.Z ..." header
+          awk -v ver="$VERSION" '
+            BEGIN {found=0}
+            /^## .*Version[[:space:]]/ {
+              if (found) exit
+              if ($0 ~ ver) { found=1; next }
+            }
+            { if (found) print }
+          ' CHANGELOG.md > release_notes.md
+          # trim leading blank lines
+          sed -i '1{/^$/d;}' release_notes.md
+          # write to GITHUB_OUTPUT
+          echo "notes<<EOF" >> $GITHUB_OUTPUT
+          cat release_notes.md >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      - name: Create GitHub release
+        uses: actions/create-release@v1
+        with:
+          tag_name: ${{ steps.vars.outputs.TAG }}
+          release_name: "Release ${{ steps.vars.outputs.VERSION }}"
+          body: ${{ steps.notes.outputs.notes }}
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
