@@ -1,5 +1,14 @@
 # Changelog
 
+## Version 1.10.3
+
+**Date:** October 3, 2025
+
+### 🐛 Bug Fixes
+- **Fixed Bulk Edit VMs - Box selection**: Replaced the free-form box input in the Bulk Edit VMs modal with a dropdown menu populated from configured boxes. This fixes cases where bulk edits failed or applied invalid box names; selecting a box now applies the value to all selected VMs.
+
+---
+
 ## Version 1.10.2 - Trigger bulk-delete & modal fixes
 **Date:** October 3, 2025
 

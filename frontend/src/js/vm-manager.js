@@ -131,6 +131,9 @@ const VagrantVMManager = {
                 if (updates.cpus && updates.cpus.toString().trim()) {
                     vmData.cpus = parseInt(updates.cpus);
                 }
+                if (updates.box && updates.box.trim()) {
+                    vmData.box = updates.box;
+                }
                 
                 // Handle labels - merge new labels with existing ones
                 if (updates.labels && updates.labels.length > 0) {
@@ -156,6 +159,7 @@ const VagrantVMManager = {
             app.bulkEditForm = {
                 memory: '',
                 cpus: '',
+                box: '',
                 labels: []
             };
             

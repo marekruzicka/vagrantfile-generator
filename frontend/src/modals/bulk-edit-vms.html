@@ -37,7 +37,12 @@
 
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Box</label>
-                    <input type="text" x-model="bulkEditForm.box" class="w-full border border-gray-300 rounded-md px-3 py-2" placeholder="Leave empty to ignore">
+                    <select x-model="bulkEditForm.box" class="w-full border border-gray-300 rounded-md px-3 py-2">
+                        <option value="">Leave empty to ignore</option>
+                        <template x-for="box in availableBoxes" :key="box.name">
+                            <option :value="box.name" x-text="`${box.name} - ${box.description}`"></option>
+                        </template>
+                    </select>
                 </div>
 
                 <div>

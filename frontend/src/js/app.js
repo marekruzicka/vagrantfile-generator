@@ -196,6 +196,7 @@ function vagrantApp() {
         bulkEditForm: {
             memory: '',
             cpus: '',
+            box: '',
             labels: []
         },
         labelForm: {
