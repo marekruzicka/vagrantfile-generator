@@ -1,7 +1,26 @@
 # Changelog
 
-## Version 1.10.3
+## Version 1.11.0
+**Date:** October 3, 2025
 
+### ✨ New Features
+- **Bulk Edit — add network configuration**: You can now add full network interface configurations when bulk editing VMs. The Bulk Edit modal lets you add private/public networks and port forwarding entries that will be applied to all selected VMs. Supported fields include IP assignment (DHCP or static), IP address, netmask, bridge interface, and host/guest ports for forwarded ports.
+
+### 🎨 UI / UX Improvements
+- **Bulk Edit VMs modal restyle**: Unified the Bulk Edit modal UI with the Bulk Create modal. The modal now uses a white background, a blue info notification showing the number and names of VMs being edited, and VM name badges for clearer context.
+- **Network Interface UX parity**: The Bulk Edit network interface form now matches the single-VM creation/edit flows (consistent inputs for private/public network options and port forwarding), including clearer controls for adding/removing interfaces.
+- **Form behavior fixes**: Added `novalidate` to forms where necessary and cleaned up stray markup that previously broke modal layouts.
+
+### 🐛 Bug Fixes
+- **Network interface validation**: Backend/front-end validation was hardened by deleting unused optional fields instead of setting them to null, preventing spurious validation errors for network interface payloads.
+- **Bulk Edit reliability**: Fixed remaining Bulk Edit issues — box selection now uses a dropdown populated from configured boxes, form validation issues resolved, and markup fixes to ensure the modal renders and submits reliably.
+
+### 🔧 Technical Notes
+- The bulk-edit network feature reuses existing utilities for IP handling. An optional IP incrementing helper is available and used when applying a base static IP across multiple VMs, but the primary new feature is the ability to add network interfaces in bulk — IP incrementing is an implementation detail, not the headline feature.
+
+---
+
+## Version 1.10.3
 **Date:** October 3, 2025
 
 ### 🐛 Bug Fixes

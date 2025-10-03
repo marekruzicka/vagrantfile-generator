@@ -2,7 +2,7 @@
 # 
 # This Makefile provides convenient commands for development using Podman containers
 
-.PHONY: help build up down logs clean test backend-test restart backend-logs frontend-logs
+.PHONY: help dev build up down logs clean restart backend-logs frontend-logs
 
 # Default target
 help:
@@ -20,10 +20,7 @@ help:
 	@echo "  make frontend-logs  - Show frontend logs"
 	@echo "  make clean          - Remove containers and volumes"
 	@echo ""
-	@echo "Configuration:"
-	@echo "  Dev (default): Defaults to localhost"
-	@echo "  Prod: Set CORS_ORIGINS and VITE_API_URL environment variables"
-	@echo ""
+	@echo "Configuration"
 	@echo "URLs:"
 	@echo "  Frontend: http://localhost:5173"
 	@echo "  Backend:  http://localhost:8000"

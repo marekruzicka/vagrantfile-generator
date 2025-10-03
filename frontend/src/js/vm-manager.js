@@ -121,7 +121,7 @@ const VagrantVMManager = {
         
         app.setLoading(true);
         try {
-            const promises = selectedVMs.map(vm => {
+            const promises = selectedVMs.map((vm, vmIndex) => {
                 const vmData = { ...vm };
                 
                 // Apply updates, but only for fields that have values
@@ -142,6 +142,62 @@ const VagrantVMManager = {
                     vmData.labels = newLabels;
                 }
                 
+                // Handle network interfaces - add new interfaces to existing ones
+                if (updates.network_interfaces && updates.network_interfaces.length > 0) {
+                    const existingInterfaces = vmData.network_interfaces || [];
+                    // Create new interfaces with unique IDs for each VM and sanitize based on type
+                    const newInterfaces = updates.network_interfaces.map(iface => {
+                        const sanitized = {
+                            ...iface,
+                            id: VagrantUIHelpers.generateId() // Generate unique ID for each interface
+                        };
+                        
+                        // Sanitize fields based on network type - delete unused fields entirely
+                        if (sanitized.type === 'private_network') {
+                            // Private networks don't use bridge, host_port, guest_port, protocol
+                            delete sanitized.bridge;
+                            delete sanitized.host_port;
+                            delete sanitized.guest_port;
+                            delete sanitized.protocol;
+                            // Convert empty strings to null for optional fields
+                            if (sanitized.ip_address === '') sanitized.ip_address = null;
+                            if (sanitized.netmask === '') sanitized.netmask = null;
+                            
+                            // Handle IP address incrementing for bulk edit (same logic as bulk creation)
+                            if (selectedVMs.length > 1 && sanitized.ip_assignment === 'static' && sanitized.ip_address) {
+                                const incrementedIP = VagrantUIHelpers.incrementIP(sanitized.ip_address, vmIndex);
+                                if (incrementedIP) {
+                                    sanitized.ip_address = incrementedIP;
+                                }
+                            }
+                        } else if (sanitized.type === 'public_network') {
+                            // Public networks only use bridge (optional) - delete all other fields
+                            delete sanitized.host_port;
+                            delete sanitized.guest_port;
+                            delete sanitized.ip_address;
+                            delete sanitized.netmask;
+                            delete sanitized.ip_assignment;
+                            delete sanitized.protocol;
+                            // Convert empty string bridge to null (optional field)
+                            if (sanitized.bridge === '') delete sanitized.bridge;
+                        } else if (sanitized.type === 'forwarded_port') {
+                            // Forwarded ports don't use bridge, ip_address, netmask, ip_assignment
+                            delete sanitized.bridge;
+                            delete sanitized.ip_address;
+                            delete sanitized.netmask;
+                            delete sanitized.ip_assignment;
+                            // Ensure ports are integers or null
+                            sanitized.host_port = sanitized.host_port ? parseInt(sanitized.host_port) : null;
+                            sanitized.guest_port = sanitized.guest_port ? parseInt(sanitized.guest_port) : null;
+                            // Ensure protocol is set (default to tcp)
+                            if (!sanitized.protocol || sanitized.protocol === '') sanitized.protocol = 'tcp';
+                        }
+                        
+                        return sanitized;
+                    });
+                    vmData.network_interfaces = [...existingInterfaces, ...newInterfaces];
+                }
+                
                 delete vmData.originalName;
                 return api.updateVM(app.currentProject.id, vm.name, vmData);
             });
@@ -160,7 +216,8 @@ const VagrantVMManager = {
                 memory: '',
                 cpus: '',
                 box: '',
-                labels: []
+                labels: [],
+                network_interfaces: []
             };
             
             app.setSuccess(`${selectedVMs.length} VMs updated successfully!`);
