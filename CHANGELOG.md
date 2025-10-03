@@ -1,5 +1,58 @@
 # Changelog
 
+## 🎨 Version 1.10.0 - UI/UX Improvements & Collapsible Sections
+**Date:** October 3, 2025
+
+### ✨ New Features
+- **Collapsible Sections**: Improved content organization and navigation
+  - All major sections (Plugins, Provisioners, Triggers, VMs) can now be collapsed/expanded
+  - Toggle sections by clicking either the chevron icon or the section name
+  - Smooth expand/collapse transitions with visual feedback
+  - State management ensures sections remember their open/closed state during session
+  - Consistent chevron indicators that rotate 180° when collapsed
+  - Available on both Project Detail and Settings pages (8 collapsible sections total)
+
+- **Enhanced Main Page Layout**: More compact and efficient use of screen space
+  - Reduced header padding and spacing for less whitespace
+  - Added global statistics cards showing total Plugins, Provisioners, and Triggers
+  - Implemented 6-column responsive grid layout for statistics cards
+  - Cards automatically adjust to 2 columns on mobile, 3 on tablet, 6 on desktop
+  - All stat cards unified with consistent 134px height without secondary text
+  - "Ready to Deploy" card repositioned to the end for better visual flow
+
+- **Improved Visual Design**: Consistent styling and better user feedback
+  - Standardized chevron sizes across all sections (w-5 h-5)
+  - Color-matched gradient icons from Settings page to main dashboard
+  - Added hover effects on section titles with cursor pointer feedback
+  - Consistent button styling and positioning across modals
+  - Enhanced empty state messages with appropriate icons
+
+### 🎨 UI/UX Improvements
+- **Better Interaction Design**: More intuitive and accessible controls
+  - Section headers are now fully clickable, not just the chevron buttons
+  - Hover states provide clear visual feedback on interactive elements
+  - Reduced visual clutter by removing unnecessary subtitle text from cards
+  - Progressive disclosure pattern improves navigation with large datasets
+
+- **Modal Enhancements**: Standardized and improved modal experiences
+  - Trigger modal now uses checkmark icon instead of plus sign (consistent with other modals)
+  - Enhanced empty states with X icons for better visual communication
+  - Improved button consistency across all modals
+
+- **Responsive Grid System**: Optimal display across all device sizes
+  - Mobile: 2-column grid for compact display
+  - Tablet: 3-column grid for balanced layout
+  - Desktop: 6-column grid for maximum information density
+  - All cards maintain equal height for clean visual alignment
+
+### 🐛 Bug Fixes
+- Fixed inconsistent chevron sizes between sections
+- Standardized icon styling across Project Detail and Settings pages
+- Improved spacing consistency throughout the application
+- Fixed card alignment issues in statistics grid
+
+---
+
 ## 🚀 Version 1.9.0 - Provisioner Management System
 **Date:** October 2, 2025
 
