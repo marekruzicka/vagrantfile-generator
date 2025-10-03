@@ -7,7 +7,7 @@ Create and manage multiple virtual machines, configure networking, provisioners,
 ## Features
 
 - **🚀 Modern Interface**: Clean, responsive web interface that works on any device
-- **📦 Multiple VMs**: Create and configure multiple virtual machines with custom memory, CPUs, and boxes
+- **📦 Multiple VMs**: Create and edit multiple virtual machines with custom memory, CPUs, boxes, and network settings
 - **🌐 Advanced Networking**: Static IPs, DHCP, port forwarding, and private networks between VMs
 - **🔧 Provisioners**: Add shell scripts for VM setup (anisble to come)
 - **⚙️ Plugins & Triggers**: Install Vagrant plugins and configure triggers for pre/post Vagrant actions

@@ -2,12 +2,12 @@
 This is in no particular order, just using it to store ideas.
 
 ## Contents
-- ~~[Plugin specific configuration](#plugin-specific-configuration)~~
+- ~~[Plugin specific configuration](#plugin-specific-configuration)~~ (done)
 - [Provisioners](#provisioners) - partialy done (global shell available)
 - [Triggers](#triggers) - partialy done (global triggers available)
 - [Networking rework](#networking-rework)
 - [Fix labels](#fix-labels)
-- [Support for networking in Bulk Edit](#support-for-networking-in-bulk-edit)
+- ~~[Support for networking in Bulk Edit](#support-for-networking-in-bulk-edit)~~ (done)
 - [Rewrite footer logic](#rewrite-footer-logic)
 
 ## Fix labels
