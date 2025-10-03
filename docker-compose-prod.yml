@@ -1,5 +1,8 @@
 version: '3.9'
 
+x-common-variables: &common-variables
+  FE_LISTEN_URL: http://notas.lan:8080
+
 services:
   backend:
     build:
@@ -8,7 +11,8 @@ services:
     image: vagrantfile-backend:prod
     command: ["uvicorn", "src.main:app", "--host", "0.0.0.0", "--port", "8000"]
     environment:
-      CORS_ORIGINS: ${BACKEND_CORS_ORIGINS:-http://notas.lan:8080}
+      <<: *common-variables
+      CORS_ORIGINS: ${FE_LISTEN_URL}
     # volumes:
     #   - backend-data:/app/data
     healthcheck:
@@ -24,6 +28,7 @@ services:
       dockerfile: Dockerfile-prod
     image: vagrantfile-frontend:prod
     environment:
+      <<: *common-variables
       FRONTEND_API_URL: ${FRONTEND_API_URL:-/api}
     ports:
       - "8080:80"
