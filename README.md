@@ -44,6 +44,7 @@ make dev
 ## Support & Documentation
 
 - **Development Setup**: See [Development Guide](DEVELOPMENT.md) for detailed setup instructions
+- **Production Deployment**: Follow the [Frontend Production Guide](docs/FRONTEND_PRODUCTION.md) for the nginx-based runtime-configured stack
 - **Issues**: Report bugs and feature requests through the project repository
 - **Contributing**: Fork the repository and submit pull requests for improvements
 

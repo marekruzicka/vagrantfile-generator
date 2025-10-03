@@ -1,0 +1,45 @@
+version: '3.9'
+
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    image: vagrantfile-backend:prod
+    command: ["uvicorn", "src.main:app", "--host", "0.0.0.0", "--port", "8000"]
+    environment:
+      CORS_ORIGINS: ${BACKEND_CORS_ORIGINS:-http://notas.lan:8080}
+    # volumes:
+    #   - backend-data:/app/data
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 20s
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile-prod
+    image: vagrantfile-frontend:prod
+    environment:
+      FRONTEND_API_URL: ${FRONTEND_API_URL:-/api}
+    ports:
+      - "8080:80"
+    depends_on:
+      backend:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://127.0.0.1"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+
+# volumes:
+#   backend-data:
+
+networks:
+  default:
+    name: vagrantfile-prod-net
