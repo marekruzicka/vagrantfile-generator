@@ -1,5 +1,21 @@
 # Changelog
 
+## Version 1.10.2 - Trigger bulk-delete & modal fixes
+**Date:** October 3, 2025
+
+### 🐛 Bug Fixes
+- **Fixed Bulk Delete for Triggers on Project Detail page**: Resolved an issue where the Bulk Delete confirmation modal invoked a non-existent handler, preventing the removal of selected triggers. The modal now calls the existing `bulkDeleteTriggers()` method which removes the selected triggers and refreshes the project view.
+- **Fixed Delete Modal Positioning**: The trigger delete / bulk-delete modals opened too high on some viewports. Updated modal markup to use the shared `modal-overlay` / `modal-content` pattern so modals are centered and consistent with other confirmation dialogs.
+
+### 🎨 UI/UX Improvements
+- Standardized bulk-delete modal layout to match other bulk-delete dialogs (plugins/provisioners): improved spacing, iconography and action layout for a clearer confirmation flow.
+- Improved user feedback: the UI closes the modal on success and shows a success notification indicating how many triggers were removed.
+
+### 🔧 Technical Notes
+- Files changed (frontend): `frontend/src/modals/bulk-delete-triggers.html`, minor JS wiring to use existing `bulkDeleteTriggers()` method. No backend API changes required.
+
+---
+
 ## Version 1.10.1 - Plugin Handling Fix
 **Date:** October 3, 2025
 

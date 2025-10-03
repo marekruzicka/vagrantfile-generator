@@ -9,7 +9,7 @@ services:
     build:
       context: ./backend
       dockerfile: Dockerfile
-    container_name: vagrantfile-gen-backend
+    container_name: vagrantfile-backend
     ports:
       - "8000:8000"
     volumes:
@@ -29,8 +29,8 @@ services:
   frontend:
     build:
       context: ./frontend
-      dockerfile: Dockerfile
-    container_name: vagrantfile-gen-frontend
+      dockerfile: Dockerfile-dev
+    container_name: vagrantfile-frontend
     ports:
       - "5173:5173"
     volumes:
@@ -49,10 +49,6 @@ services:
       start_period: 40s
     restart: unless-stopped
 
-volumes:
-  backend-data:
-    driver: local
-
 networks:
   default:
-    name: vagrantfile-gen-network
+    name: vagrantfile-net

@@ -10,6 +10,7 @@ help:
 	@echo "======================================================="
 	@echo ""
 	@echo "Commands:"
+	@echo "	 make dev						 - Build and run all containers"
 	@echo "  make build          - Build all containers"
 	@echo "  make up             - Start all services"
 	@echo "  make down           - Stop all services"
@@ -28,34 +29,38 @@ help:
 	@echo "  Backend:  http://localhost:8000"
 	@echo "  API Docs: http://localhost:8000/docs"
 
+# Build and run all containers
+dev:
+	podman-compose -f docker-compose-dev.yml up -d --build
+
 # Build all containers
 build:
-	podman-compose build
+	podman-compose -f docker-compose-dev.yml build
 
 # Start all services
 up:
-	podman-compose up -d
+	podman-compose -f docker-compose-dev.yml up -d
 
 # Stop all services
 down:
-	podman-compose down
+	podman-compose -f docker-compose-dev.yml down
 
 # Restart services
 restart: down up
 
 # Show logs from all services
 logs:
-	podman-compose logs
+	podman-compose -f docker-compose-dev.yml logs
 
 # Show backend logs
 backend-logs:
-	podman-compose logs backend
+	podman-compose -f docker-compose-dev.yml logs backend
 
 # Show frontend logs
 frontend-logs:
-	podman-compose logs frontend
+	podman-compose -f docker-compose-dev.yml logs frontend
 
 # Clean up containers and volumes
 clean:
-	podman-compose down -v
+	podman-compose -f docker-compose-dev.yml down -v
 	podman system prune -f
