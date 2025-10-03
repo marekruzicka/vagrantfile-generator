@@ -18,12 +18,7 @@
 ### 🔧 Technical Notes
 - The bulk-edit network feature reuses existing utilities for IP handling. An optional IP incrementing helper is available and used when applying a base static IP across multiple VMs, but the primary new feature is the ability to add network interfaces in bulk — IP incrementing is an implementation detail, not the headline feature.
 
-### Files changed (not exhaustive)
-- frontend/src/modals/bulk-edit-vms.html — UI and markup for Bulk Edit modal, notification and VM badges
-- frontend/src/js/vm-manager.js — bulk edit logic, VM index tracking, network-interface application
-- frontend/src/js/utils/ui-helpers.js — IP arithmetic helper (incrementIP)
-- backend/src/services/validation_service.py — network interface sanitization/validation improvements
-
+---
 
 ## Version 1.10.3
 **Date:** October 3, 2025
