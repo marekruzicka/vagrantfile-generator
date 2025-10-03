@@ -70,7 +70,7 @@ jobs:
         with:
           context: .
           # Adjust Dockerfile path per service; this example assumes frontend/ and backend/ Dockerfiles at repo root
-          file: ./{{ matrix.service }}/Dockerfile
+          file: ${{ matrix.service }}/Dockerfile
           push: true
           platforms: linux/amd64,linux/arm64
           tags: |
