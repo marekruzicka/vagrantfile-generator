@@ -3,17 +3,16 @@
     <div class="app-container">
         <div class="flex justify-between items-center py-4">
             <div class="flex items-center space-x-4">
-                <div class="flex items-center space-x-3">
-                    <div class="w-10 h-10 gradient-bg rounded-xl flex items-center justify-center">
-                        <svg class="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 20 20">
-                            <path d="M3 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1V4zM3 10a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H4a1 1 0 01-1-1v-6zM14 9a1 1 0 00-1 1v6a1 1 0 001 1h2a1 1 0 001-1v-6a1 1 0 00-1-1h-2z"></path>
-                        </svg>
-                    </div>
+                <a @click="showProjects()" class="flex items-center space-x-3 cursor-pointer group">
+                    <img src="/images/icon-tr.png" 
+                         alt="Vagrantfile Generator Icon" 
+                         class="h-15 w-15 transition-transform group-hover:scale-105"
+                         style="image-rendering: -webkit-optimize-contrast; width: 60px; height: 60px;">
                     <div>
-                        <h1 class="text-2xl font-bold text-gray-900">Vagrantfile Generator</h1>
-                        <p class="text-sm text-gray-600">Create & manage development environments</p>
+                        <h1 class="text-2xl font-bold text-gray-900 group-hover:text-blue-600 transition-colors">Vagrantfile Generator</h1>
+                        <p class="text-sm text-gray-600 group-hover:text-gray-800 transition-colors">Create & manage development environments</p>
                     </div>
-                </div>
+                </a>
                 
                 <!-- Breadcrumb -->
                 <nav class="hidden sm:flex" aria-label="Breadcrumb">
