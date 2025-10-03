@@ -197,7 +197,8 @@ function vagrantApp() {
             memory: '',
             cpus: '',
             box: '',
-            labels: []
+            labels: [],
+            network_interfaces: []
         },
         labelForm: {
             name: '',

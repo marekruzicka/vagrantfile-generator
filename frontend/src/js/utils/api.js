@@ -10,8 +10,8 @@ class VagrantAPI {
                     baseURL += '/api';
                 }
             } else {
-                // Default to localhost for development
-                baseURL = 'http://localhost:8000/api';
+                // Default to using Vite proxy (relative /api) for development
+                baseURL = '/api';
             }
         }
         this.baseURL = baseURL;
