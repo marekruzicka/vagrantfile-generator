@@ -131,3 +131,10 @@ jobs:
           prerelease: false
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Upload docker-compose.yml to release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: docker-compose.yml
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
