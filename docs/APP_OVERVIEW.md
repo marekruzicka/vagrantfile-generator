@@ -1,6 +1,6 @@
 # App Overview
 
-This is a **quick tour** - short visual overview of Vagrantfile Generator.
+This is a **quick tour** of the app interface.
 
 ## Projects list / Frontpage
 This is the main projects page where you can create, search and filter your Vagrant projects. Each card shows basic stats (VM count, status) and quick actions.
