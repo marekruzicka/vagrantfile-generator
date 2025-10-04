@@ -23,26 +23,25 @@ Take a [Quick Tour](./docs/APP_OVERVIEW.md) through app inteface.
 ## Requirements
 Docker or Podman installed on your system
 Modern web browser (Chrome, Firefox, Safari, Edge)
-Available port 5173 (and possibly 8000) on your machine
+Available port 8080 (and possibly 8000 if you want to expose backend) on your machine
 
 ## Quick Start
 
 ```bash
 # Download latest docker-compose.yml
-curl -fsSL "https://<url>/docker-compose.yml" -o /tmp/docker-compose.yml
+curl -fsSL "https://github.com/marekruzicka/vagrantfile-generator/blob/master/docker-compose.yml" -o /tmp/docker-compose.yml
 
 # Start the application
 cd /tmp
-podman-compose up -d  # or docker compose up -d
+podman-compose up -d  # docker compose up -d
 
-# Open your browser
-# Application: http://localhost:5173
+# Open your browser: http://localhost:8080
 ```
 
 ## How to Use
 
 1. **Start the application** using the quick start command above
-2. **Open your browser** and go to http://localhost:5173
+2. **Open your browser** and go to http://localhost:8080
 3. **Click on shiny things** - it's pretty self explanatory
 
 ## Support & Documentation
