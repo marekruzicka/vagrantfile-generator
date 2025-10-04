@@ -1,3 +1,6 @@
+# Update FE_LISTEN_URL to set your frontend URL
+# Uncomment volumes section to persist backend data
+
 version: '3.9'
 
 x-common-variables: &common-variables
@@ -10,7 +13,8 @@ services:
       dockerfile: Dockerfile
     image: vagrantfile-backend:prod
     container_name: vagrantfile-be-prod
-    command: ["uvicorn", "src.main:app", "--host", "0.0.0.0", "--port", "8000"]
+    # ports:
+    #   - "8000:8000"
     environment:
       <<: *common-variables
       CORS_ORIGINS: ${FE_LISTEN_URL}

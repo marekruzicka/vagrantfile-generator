@@ -1,24 +1,17 @@
-version: '3.9'
+# Update FE_LISTEN_URL to set your frontend URL
 
 x-common-variables: &common-variables
-  FE_LISTEN_URL: http://notas.lan:8080
+  FE_LISTEN_URL: http://localhost:8080
 
 services:
   backend:
     image: vagrantfile-backend:prod
     container_name: vagrantfile-be
-    command: ["uvicorn", "src.main:app", "--host", "0.0.0.0", "--port", "8000"]
     environment:
       <<: *common-variables
       CORS_ORIGINS: ${FE_LISTEN_URL}
     volumes:
       - backend-data:/app/data
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 5s
 
   frontend:
     image: vagrantfile-frontend:prod
@@ -31,12 +24,6 @@ services:
     depends_on:
       backend:
         condition: service_healthy
-    healthcheck:
-      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://127.0.0.1"]
-      interval: 30s
-      timeout: 5s
-      retries: 3
-      start_period: 10s
 
 volumes:
   backend-data:
