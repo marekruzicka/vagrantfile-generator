@@ -1,0 +1,1 @@
+# [Changelog](https://github.com/marekruzicka/vagrantfile-generator/blob/master/CHANGELOG.md)
