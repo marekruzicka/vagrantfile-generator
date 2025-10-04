@@ -1,0 +1,55 @@
+{
+  "boxes": [
+    {
+      "id": "e724b9a6-88dc-4348-bfe5-554b3d33aa8a",
+      "name": "generic/ubuntu2204",
+      "description": "Ubuntu 22.04 LTS (Jammy Jellyfish)",
+      "provider": "libvirt",
+      "version": null,
+      "url": null,
+      "created_at": "2025-09-25T15:40:00.876903",
+      "updated_at": "2025-09-25T15:40:00.876911"
+    },
+    {
+      "id": "84f3a6d2-f485-473c-a180-527d8fc3d22d",
+      "name": "generic/debian12",
+      "description": "Debian 12 (Bookworm)",
+      "provider": "libvirt",
+      "version": null,
+      "url": null,
+      "created_at": "2025-09-25T15:40:00.876930",
+      "updated_at": "2025-09-25T15:40:00.876931"
+    },
+    {
+      "id": "5af90c9a-e8a8-48e9-9dde-265d0bdb962b",
+      "name": "generic/alpine318",
+      "description": "Alpine Linux 3.18",
+      "provider": "libvirt",
+      "version": null,
+      "url": null,
+      "created_at": "2025-09-25T15:40:00.876933",
+      "updated_at": "2025-09-25T15:40:00.876934"
+    },
+    {
+      "id": "3675fd65-d81f-47e1-b78b-c433ba2d8c4c",
+      "name": "generic/rhel9",
+      "description": "RedHat Enterprise Linux 9",
+      "provider": "libvirt",
+      "version": null,
+      "url": null,
+      "created_at": "2025-10-03T07:49:22.149746",
+      "updated_at": "2025-10-03T07:49:22.149746"
+    },
+    {
+      "id": "8bee0423-a6cf-4a87-b436-d0353a551657",
+      "name": "generic/rhel8",
+      "description": "RedHat Enterprise Linux 8",
+      "provider": "libvirt",
+      "version": null,
+      "url": null,
+      "created_at": "2025-10-03T07:49:32.279743",
+      "updated_at": "2025-10-03T07:49:32.279743"
+    }
+  ],
+  "last_updated": "2025-10-03T11:27:56.038279"
+}
