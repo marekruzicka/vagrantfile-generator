@@ -25,52 +25,50 @@
                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
             </div>
 
-            <!-- Selection Counter -->
-            <div x-show="projectTriggerForm.selectedTriggerIds.length > 0" 
-                 class="mb-3 px-3 py-2 bg-blue-50 rounded-md text-sm text-blue-700">
-                <span x-text="projectTriggerForm.selectedTriggerIds.length"></span> trigger(s) selected
-            </div>
-
             <!-- Triggers List -->
-            <div class="space-y-2">
+            <div class="max-h-96 overflow-y-auto border border-gray-300 rounded-lg">
                 <template x-for="trigger in availableTriggers.filter(t => 
                     (!triggerSearchQuery || t.name.toLowerCase().includes(triggerSearchQuery.toLowerCase()) || 
                      (t.description && t.description.toLowerCase().includes(triggerSearchQuery.toLowerCase()))) &&
                     !currentProject.global_triggers?.includes(t.id)
                 )" :key="trigger.id">
-                    <div class="border rounded-lg p-3 hover:bg-gray-50 cursor-pointer"
-                         :class="{ 'bg-blue-50 border-blue-300': projectTriggerForm.selectedTriggerIds.includes(trigger.id) }"
+                    <div class="flex items-start p-3 hover:bg-orange-50 border-b border-gray-100 last:border-b-0 cursor-pointer"
                          @click="toggleTriggerForAdd(trigger.id)">
-                        <div class="flex items-start space-x-3">
-                            <!-- Checkbox -->
-                            <input type="checkbox" 
-                                   :checked="projectTriggerForm.selectedTriggerIds.includes(trigger.id)"
-                                   @click.stop="toggleTriggerForAdd(trigger.id)"
-                                   class="mt-1 h-4 w-4 text-blue-600 rounded">
-                            
-                            <!-- Trigger Icon -->
-                            <div class="w-10 h-10 bg-gradient-to-br from-orange-500 to-red-600 rounded-lg flex items-center justify-center flex-shrink-0">
-                                <svg class="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
-                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clip-rule="evenodd"></path>
-                                </svg>
-                            </div>
-                            
-                            <!-- Trigger Info -->
-                            <div class="flex-1">
-                                <div class="flex items-center space-x-2">
-                                    <h4 class="font-medium text-gray-900" x-text="trigger.name"></h4>
-                                    <span class="text-xs px-2 py-1 rounded"
-                                          :class="trigger.timing === 'before' ? 'bg-orange-100 text-orange-700' : 'bg-green-100 text-green-700'"
-                                          x-text="trigger.timing + ' ' + trigger.stage"></span>
+                        <!-- Checkbox -->
+                        <input type="checkbox" 
+                               :checked="projectTriggerForm.selectedTriggerIds.includes(trigger.id)"
+                               @click.stop="toggleTriggerForAdd(trigger.id)"
+                               class="mt-1 w-4 h-4 text-orange-600 border-gray-300 rounded focus:ring-orange-500">
+                        
+                        <div class="ml-3 flex-1">
+                            <div class="flex items-center space-x-2">
+                                <!-- Trigger Icon -->
+                                <div class="w-8 h-8 bg-gradient-to-br from-orange-500 to-red-600 rounded flex items-center justify-center flex-shrink-0">
+                                    <svg class="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clip-rule="evenodd"></path>
+                                    </svg>
                                 </div>
-                                <p x-show="trigger.description" 
-                                   class="text-sm text-gray-600 mt-1" 
-                                   x-text="trigger.description"></p>
+                                
+                                <!-- Trigger Info -->
+                                <div class="flex-1">
+                                    <div class="flex items-center space-x-2">
+                                        <span class="text-sm font-semibold text-gray-900" x-text="trigger.name"></span>
+                                        <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium"
+                                              :class="trigger.timing === 'before' ? 'bg-orange-100 text-orange-800' : 'bg-green-100 text-green-800'"
+                                              x-text="trigger.timing + ' ' + trigger.stage"></span>
+                                    </div>
+                                    <p x-show="trigger.description" 
+                                       class="text-xs text-gray-500 mt-1" 
+                                       x-text="trigger.description"></p>
+                                </div>
                             </div>
                         </div>
                     </div>
                 </template>
             </div>
+            <p class="text-xs text-gray-500 mt-2">
+                <span x-text="projectTriggerForm.selectedTriggerIds.length"></span> trigger(s) selected
+            </p>
 
             <!-- Empty States -->
             <div x-show="availableTriggers.filter(t => !currentProject.global_triggers?.includes(t.id)).length === 0 && !triggerSearchQuery"
