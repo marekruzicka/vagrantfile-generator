@@ -1,4 +1,4 @@
-![logo](pics/logo_light_cropped.png)
+![logo](./docs/pics/logo_light_512.png)
 # Overview
 
 A modern web-based application for generating Vagrantfiles with an intuitive interface.  
