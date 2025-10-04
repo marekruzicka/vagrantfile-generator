@@ -1,8 +1,11 @@
-![logo](./docs/pics/logo_light_512.png)
+![logo](./docs/pics/logo_light.png#gh-light-mode-only)
+![logo](./docs/pics/logo_dark.png#gh-dark-mode-only)
 # Overview
 
 A modern web-based application for generating Vagrantfiles with an intuitive interface.  
-Create and manage multiple virtual machines, configure networking, provisioners, triggers, plugins, and generate working Vagrant configurations with ease.
+Create and manage multiple virtual machines, configure networking, provisioners, triggers, plugins, and generate working Vagrant configurations with ease.  
+
+Take a [Quick Tour](./docs/APP_OVERVIEW.md) through app inteface.
 
 ## Features
 
@@ -19,7 +22,7 @@ Create and manage multiple virtual machines, configure networking, provisioners,
 ## Requirements
 Docker or Podman installed on your system
 Modern web browser (Chrome, Firefox, Safari, Edge)
-Available ports 5173 and 8000 on your machine
+Available port 5173 (and possibly 8000) on your machine
 
 ## Quick Start
 
@@ -44,7 +47,6 @@ podman-compose up -d  # or docker compose up -d
 ## Support & Documentation
 
 - **Development Setup**: See [Development Guide](DEVELOPMENT.md) for detailed setup instructions
-- **Production Deployment**: Follow the [Frontend Production Guide](docs/FRONTEND_PRODUCTION.md) for the nginx-based runtime-configured stack
 - **Issues**: Report bugs and feature requests through the project repository
 - **Contributing**: Fork the repository and submit pull requests for improvements
 
