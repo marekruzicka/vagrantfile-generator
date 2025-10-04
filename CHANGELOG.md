@@ -1,6 +1,12 @@
 # Changelog
-## Version 1.12.0
+## Version 1.12.1
+**Date:** October 4, 2025
 
+### 🎨 UI / UX Improvements
+- **Add example user data**: Added bunch of boxes, few plugins, triggers, and provisioners to streamline your inital experience.
+---
+
+## Version 1.12.0
 **Date:** October 4, 2025
 
 ### 🎨 UI / UX Improvements
