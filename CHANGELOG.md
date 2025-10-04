@@ -1,4 +1,30 @@
 # Changelog
+## Version 1.12.0
+
+**Date:** October 4, 2025
+
+### 🎨 UI / UX Improvements
+- **Standardized "Add Triggers to Project" modal styling**: Updated the Add Triggers modal to match the look-and-feel of the Plugins and Provisioners multi-select modals. Changes include unified icon sizing, item list container, typography, badge styles, and consistent hover/selection behavior to improve visual parity across project-level add-modals.
+
+### 🐛 Bug Fixes
+- **Fixed trigger creation from Project Detail**: Resolved an HTML5 validation issue that prevented creating a new trigger when launched from the Project Detail "Add Triggers to Project" modal. The command textareas now use conditional `required` bindings so only the visible input is validated.
+
+### 🔧 Multi env container configuration
+**Dev:**
+- Browser loads assets from Vite dev server (localhost:5173), which can proxy /api to backend via Vite proxy.
+- CORS is often handled by Vite proxy so backend sees requests from Vite (same origin), reducing CORS errors.
+- The runtime config can point to localhost backend or the proxied /api base; env separation (internal vs browser API URLs) prevents accidental cross-origin calls.
+- Backend Process: uvicorn with --reload (single process, auto-reload for code changes).
+  - `uvicorn src.main:app --host 0.0.0.0 --port 8000 --reload`
+
+**Prod:**
+- Browser loads static files from Nginx (FE_LISTEN_URL hostname).
+- Nginx proxies /api to backend (single origin as far as browser sees it) — backend receives requests from nginx proxied path, and CORS remains simple because the browser origin is the FE_LISTEN_URL.
+- Nginx rejects unknown hostnames via the default_server 444.
+- Backend Process: gunicorn with Uvicorn worker class (multiple workers).
+    - `gunicorn -k uvicorn.workers.UvicornWorker src.main:app -b 0.0.0.0:8000 --workers 4`
+
+---
 
 ## Version 1.11.0
 **Date:** October 3, 2025
