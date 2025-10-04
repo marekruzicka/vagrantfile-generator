@@ -22,10 +22,11 @@ services:
     #   - backend-data:/app/data
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
-      interval: 30s
+      interval: 3s
       timeout: 10s
       retries: 3
       start_period: 5s
+    restart: unless-stopped
 
   frontend:
     build:
@@ -43,10 +44,11 @@ services:
         condition: service_healthy
     healthcheck:
       test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://127.0.0.1"]
-      interval: 30s
+      interval: 3s
       timeout: 5s
       retries: 3
-      start_period: 10s
+      start_period: 5s
+    restart: unless-stopped
 
 # volumes:
 #   backend-data:
