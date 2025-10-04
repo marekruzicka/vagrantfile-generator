@@ -42,8 +42,7 @@ fi
 
 SERVER_CONF=${SERVER_CONF:-/etc/nginx/conf.d/default.conf}
 if grep -q "__SERVER_NAME_PLACEHOLDER__" "$SERVER_CONF"; then
-  escaped_server_names=$(printf '%s' "$SERVER_NAMES" | sed 's/[&/]/\\&/g')
-  sed -i "0,/__SERVER_NAME_PLACEHOLDER__/s//${escaped_server_names}/" "$SERVER_CONF"
+  sed -i "s/__SERVER_NAME_PLACEHOLDER__/${SERVER_NAMES}/" "$SERVER_CONF"
   echo "Configured nginx server_name to: $SERVER_NAMES"
 else
   echo "Warning: server name placeholder not found in $SERVER_CONF" >&2
