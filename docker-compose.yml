@@ -1,0 +1,34 @@
+# Update FE_LISTEN_URL to set your frontend URL
+
+x-common-variables: &common-variables
+  FE_LISTEN_URL: http://localhost:8080
+
+services:
+  backend:
+    image: ghcr.io/marekruzicka/vagrantfile-generator-be:latest
+    container_name: vgf-be
+    environment:
+      <<: *common-variables
+      CORS_ORIGINS: ${FE_LISTEN_URL}
+    volumes:
+      - backend-data:/app/data
+
+  frontend:
+    image: ghcr.io/marekruzicka/vagrantfile-generator-fe:latest
+    container_name: vgf-fe
+    environment:
+      <<: *common-variables
+      FRONTEND_API_URL: ${FRONTEND_API_URL:-/api}
+    ports:
+      - "8080:80"
+    depends_on:
+      backend:
+        condition: service_healthy
+
+volumes:
+  backend-data:
+    driver: local
+
+networks:
+  default:
+    name: vagrantfile-net

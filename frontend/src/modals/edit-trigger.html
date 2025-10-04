@@ -103,14 +103,14 @@
                     <textarea x-show="triggerForm.executionTarget === 'run'"
                               x-model="triggerForm.trigger_config.run" 
                               rows="4"
-                              required
+                              :required="triggerForm.executionTarget === 'run'"
                               placeholder="e.g., echo 'Starting backup...'"
                               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono text-sm"></textarea>
                     
                     <textarea x-show="triggerForm.executionTarget === 'run_remote'"
                               x-model="triggerForm.trigger_config.run_remote_inline" 
                               rows="4"
-                              required
+                              :required="triggerForm.executionTarget === 'run_remote'"
                               placeholder="e.g., sudo systemctl restart myservice"
                               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono text-sm"></textarea>
                 </div>

@@ -1,8 +1,11 @@
-![logo](pics/logo_light_cropped.png)
+![logo](./docs/pics/logo_light.png#gh-light-mode-only)
+![logo](./docs/pics/logo_dark.png#gh-dark-mode-only)
 # Overview
 
 A modern web-based application for generating Vagrantfiles with an intuitive interface.  
-Create and manage multiple virtual machines, configure networking, provisioners, triggers, plugins, and generate working Vagrant configurations with ease.
+Create and manage multiple virtual machines, configure networking, provisioners, triggers, plugins, and generate working Vagrant configurations with ease.  
+
+Take a [Quick Tour](./docs/APP_OVERVIEW.md) through app inteface.
 
 ## Features
 
@@ -19,17 +22,17 @@ Create and manage multiple virtual machines, configure networking, provisioners,
 ## Requirements
 Docker or Podman installed on your system
 Modern web browser (Chrome, Firefox, Safari, Edge)
-Available ports 5173 and 8000 on your machine
+Available port 5173 (and possibly 8000) on your machine
 
 ## Quick Start
 
 ```bash
-# Clone the repository
-git clone <repository-url>
-cd Vagrantfile-generator
+# Download latest docker-compose.yml
+curl -fsSL "https://<url>/docker-compose.yml" -o /tmp/docker-compose.yml
 
 # Start the application
-make dev
+cd /tmp
+podman-compose up -d  # or docker compose up -d
 
 # Open your browser
 # Application: http://localhost:5173
@@ -44,6 +47,7 @@ make dev
 ## Support & Documentation
 
 - **Development Setup**: See [Development Guide](DEVELOPMENT.md) for detailed setup instructions
+- **Local Hosting**: See [Different approaches](./docs/ENVIRONMENTS.md) to run this if you like to host it yourself
 - **Issues**: Report bugs and feature requests through the project repository
 - **Contributing**: Fork the repository and submit pull requests for improvements
 

@@ -22,6 +22,18 @@ document.addEventListener('alpine:init', () => {
 document.addEventListener('DOMContentLoaded', async function() {
     console.log('Main.js: DOMContentLoaded fired');
     
+    if (window.__loadRuntimeConfig && typeof window.__loadRuntimeConfig === 'function') {
+        try {
+            console.log('Main.js: Loading runtime config...');
+            await window.__loadRuntimeConfig();
+            console.log('Main.js: Runtime config loaded');
+        } catch (error) {
+            console.warn('Main.js: Runtime config loader failed', error);
+        }
+    } else {
+        console.log('Main.js: No runtime config loader present; skipping');
+    }
+
     // Wait for HTML partials to load
     if (window.htmlLoader) {
         console.log('Main.js: Loading HTML partials...');

@@ -1,0 +1,56 @@
+# Update FE_LISTEN_URL to set your frontend URL
+# Uncomment volumes section to persist backend data
+
+version: '3.9'
+
+x-common-variables: &common-variables
+  FE_LISTEN_URL: http://notas.lan:8080
+
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    image: vagrantfile-backend:prod
+    container_name: vagrantfile-be-prod
+    # ports:
+    #   - "8000:8000"
+    environment:
+      <<: *common-variables
+      CORS_ORIGINS: ${FE_LISTEN_URL}
+    # volumes:
+    #   - backend-data:/app/data
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 5s
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    image: vagrantfile-frontend:prod
+    container_name: vagrantfile-fe-prod
+    environment:
+      <<: *common-variables
+      FRONTEND_API_URL: ${FRONTEND_API_URL:-/api}
+    ports:
+      - "8080:80"
+    depends_on:
+      backend:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://127.0.0.1"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
+# volumes:
+#   backend-data:
+
+networks:
+  default:
+    name: vagrantfile-net

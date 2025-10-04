@@ -1,23 +1,51 @@
-// VagrantAPI class (keeping original functionality)
+function normalizeBaseURL(url) {
+    if (!url) {
+        return '/api';
+    }
+
+    const trimmed = url.trim();
+    if (trimmed === '') {
+        return '/api';
+    }
+
+    const withoutTrailingSlash = trimmed.replace(/\/+$/, '');
+    if (withoutTrailingSlash.endsWith('/api')) {
+        return withoutTrailingSlash;
+    }
+
+    return `${withoutTrailingSlash}/api`;
+}
+
 class VagrantAPI {
     constructor(baseURL = null) {
-        // Auto-detect the correct API URL based on configuration
-        if (!baseURL) {
-            // First try environment variable (for production/explicit configuration)
-            if (typeof __API_URL__ !== 'undefined' && __API_URL__ && __API_URL__.trim() !== '') {
-                baseURL = __API_URL__;
-                if (!baseURL.endsWith('/api')) {
-                    baseURL += '/api';
-                }
-            } else {
-                // Default to using Vite proxy (relative /api) for development
-                baseURL = '/api';
-            }
-        }
-        this.baseURL = baseURL;
         this.config = {};
-        
+        this.baseURL = baseURL ? normalizeBaseURL(baseURL) : this.computeBaseURL();
+
+        window.addEventListener('app:configLoaded', () => {
+            this.updateBaseURLFromConfig();
+        });
+
         console.log(`VagrantAPI initialized with baseURL: ${this.baseURL}`);
+    }
+
+    computeBaseURL() {
+        if (window?.APP_CONFIG?.API_URL) {
+            return normalizeBaseURL(window.APP_CONFIG.API_URL);
+        }
+
+        if (typeof __API_URL__ !== 'undefined' && __API_URL__ && __API_URL__.trim() !== '') {
+            return normalizeBaseURL(__API_URL__);
+        }
+
+        return '/api';
+    }
+
+    updateBaseURLFromConfig() {
+        const newBase = this.computeBaseURL();
+        if (newBase !== this.baseURL) {
+            console.log(`VagrantAPI: updating baseURL from ${this.baseURL} to ${newBase}`);
+            this.baseURL = newBase;
+        }
     }
 
     setConfig(config) {
@@ -195,3 +223,4 @@ class VagrantAPI {
 
 // Global API instance
 const api = new VagrantAPI();
+window.api = api;

@@ -1,5 +1,8 @@
 import { defineConfig } from 'vite'
 
+const internalApiTarget = process.env.VITE_API_URL || 'http://localhost:8000'
+const browserApiUrl = process.env.VITE_BROWSER_API_URL || ''
+
 export default defineConfig({
   root: 'src',
   build: {
@@ -24,7 +27,7 @@ export default defineConfig({
     // Proxy API requests to backend (reuse VITE_API_URL)
     proxy: {
       '/api': {
-        target: process.env.VITE_API_URL || 'http://localhost:8000',
+        target: internalApiTarget,
         changeOrigin: true,
         secure: false
       }
@@ -48,14 +51,14 @@ export default defineConfig({
     // Proxy API calls in preview as well
     proxy: {
       '/api': {
-        target: process.env.VITE_API_URL || 'http://localhost:8000',
+        target: internalApiTarget,
         changeOrigin: true,
         secure: false
       }
     }
   },
   define: {
-    // Make API URL available to the frontend
-    __API_URL__: JSON.stringify(process.env.VITE_API_URL || ''),
+    // Make browser-visible API URL available to the frontend
+    __API_URL__: JSON.stringify(browserApiUrl),
   }
 })

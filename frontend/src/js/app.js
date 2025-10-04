@@ -149,6 +149,7 @@ function vagrantApp() {
         editingTrigger: null,
         returnToProjectTriggerModal: false, // Track if we should return to add project trigger modal
         triggerForm: {
+            id: null,
             name: '',
             description: '',
             executionTarget: 'run', // 'run' or 'run_remote'
@@ -1594,6 +1595,7 @@ function vagrantApp() {
             this.editingTrigger = null;
             this.returnToProjectTriggerModal = returnToProjectModal;
             this.triggerForm = {
+                id: null,
                 name: '',
                 description: '',
                 executionTarget: 'run',
@@ -1621,6 +1623,7 @@ function vagrantApp() {
             try {
                 const fullTrigger = await api.getTrigger(triggerId);
                 this.triggerForm = {
+                    id: fullTrigger.id,
                     name: fullTrigger.name || '',
                     description: fullTrigger.description || '',
                     executionTarget: fullTrigger.trigger_config?.run ? 'run' : 'run_remote',
@@ -1638,6 +1641,7 @@ function vagrantApp() {
             } catch (error) {
                 console.error('Failed to load trigger details:', error);
                 this.triggerForm = {
+                    id: this.editingTrigger?.id || null,
                     name: this.editingTrigger.name || '',
                     description: this.editingTrigger.description || '',
                     executionTarget: 'run',
@@ -1659,6 +1663,7 @@ function vagrantApp() {
             this.showEditTriggerModal = false;
             this.editingTrigger = null;
             this.triggerForm = {
+                id: null,
                 name: '',
                 description: '',
                 executionTarget: 'run',
@@ -1727,7 +1732,7 @@ function vagrantApp() {
                 // If we came from the project trigger modal, reopen it
                 if (this.returnToProjectTriggerModal) {
                     this.returnToProjectTriggerModal = false;
-                    this.openAddProjectTriggerModal();
+                    await this.openAddProjectTriggerModal();
                 }
             } catch (error) {
                 console.error('Failed to create trigger:', error);
@@ -1827,8 +1832,9 @@ function vagrantApp() {
             return this.projectTriggerForm.selectedTriggerIds.includes(triggerId);
         },
         
-        openAddProjectTriggerModal() {
+        async openAddProjectTriggerModal() {
             this.projectTriggerForm.selectedTriggerIds = [];
+            await this.loadTriggers(); // Ensure we have the latest available triggers
             this.showAddProjectTriggerModal = true;
         },
         
