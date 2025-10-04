@@ -24,12 +24,12 @@ Available ports 5173 and 8000 on your machine
 ## Quick Start
 
 ```bash
-# Clone the repository
-git clone <repository-url>
-cd Vagrantfile-generator
+# Download latest docker-compose.yml
+curl -fsSL "https://<url>/docker-compose.yml" -o /tmp/docker-compose.yml
 
 # Start the application
-make dev
+cd /tmp
+podman-compose up -d  # or docker compose up -d
 
 # Open your browser
 # Application: http://localhost:5173
