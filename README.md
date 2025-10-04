@@ -29,7 +29,7 @@ Available port 8080 (and possibly 8000 if you want to expose backend) on your ma
 
 ```bash
 # Download latest docker-compose.yml
-curl -fsSL "https://github.com/marekruzicka/vagrantfile-generator/blob/master/docker-compose.yml" -o /tmp/docker-compose.yml
+curl -fsSL "https://raw.githubusercontent.com/marekruzicka/vagrantfile-generator/refs/heads/master/docker-compose.yml" -o /tmp/docker-compose.yml
 
 # Start the application
 cd /tmp
