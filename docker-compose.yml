@@ -5,17 +5,14 @@ x-common-variables: &common-variables
 
 services:
   backend:
-    build:
-      context: ./backend
-      dockerfile: Dockerfile
     image: vagrantfile-backend:prod
-    container_name: vagrantfile-be-prod
+    container_name: vagrantfile-be
     command: ["uvicorn", "src.main:app", "--host", "0.0.0.0", "--port", "8000"]
     environment:
       <<: *common-variables
       CORS_ORIGINS: ${FE_LISTEN_URL}
-    # volumes:
-    #   - backend-data:/app/data
+    volumes:
+      - backend-data:/app/data
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
       interval: 30s
@@ -24,11 +21,8 @@ services:
       start_period: 5s
 
   frontend:
-    build:
-      context: ./frontend
-      dockerfile: Dockerfile
     image: vagrantfile-frontend:prod
-    container_name: vagrantfile-fe-prod
+    container_name: vagrantfile-fe
     environment:
       <<: *common-variables
       FRONTEND_API_URL: ${FRONTEND_API_URL:-/api}
@@ -44,8 +38,9 @@ services:
       retries: 3
       start_period: 10s
 
-# volumes:
-#   backend-data:
+volumes:
+  backend-data:
+    driver: local
 
 networks:
   default:

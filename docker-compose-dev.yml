@@ -6,7 +6,7 @@ services:
       context: ./backend
       dockerfile: Dockerfile
     image: vagrantfile-backend:dev
-    container_name: vagrantfile-backend-dev
+    container_name: vagrantfile-be-dev
     ports:
       - "8000:8000"
     volumes:
@@ -20,7 +20,7 @@ services:
       interval: 30s
       timeout: 10s
       retries: 3
-      start_period: 40s
+      start_period: 10s
     restart: unless-stopped
 
   frontend:
@@ -28,7 +28,7 @@ services:
       context: ./frontend
       dockerfile: Dockerfile-dev
     image: vagrantfile-frontend:dev
-    container_name: vagrantfile-frontend-dev
+    container_name: vagrantfile-fe-dev
     ports:
       - "5173:5173"
     volumes:
@@ -45,9 +45,9 @@ services:
       interval: 30s
       timeout: 10s
       retries: 3
-      start_period: 40s
+      start_period: 10s
     restart: unless-stopped
 
 networks:
   default:
-    name: vagrantfile-net
+    name: vagrantfile-net-dev
