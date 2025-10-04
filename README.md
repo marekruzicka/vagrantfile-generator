@@ -1,6 +1,7 @@
 ![logo](./docs/pics/logo_light.png#gh-light-mode-only)
 ![logo](./docs/pics/logo_dark.png#gh-dark-mode-only)
-# Overview
+# Overview [![Build, Publish & Release](https://github.com/marekruzicka/vagrantfile-generator/actions/workflows/release.yml/badge.svg)](https://github.com/marekruzicka/vagrantfile-generator/actions/workflows/release.yml) ![Latest Release](https://img.shields.io/github/v/release/marekruzicka/vagrantfile-generator.svg)
+
 
 A modern web-based application for generating Vagrantfiles with an intuitive interface.  
 Create and manage multiple virtual machines, configure networking, provisioners, triggers, plugins, and generate working Vagrant configurations with ease.  

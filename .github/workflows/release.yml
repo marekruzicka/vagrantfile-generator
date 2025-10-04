@@ -10,11 +10,6 @@ on:
         description: 'Version (e.g. 1.10.0) for manual run'
         required: false
 
-permissions:
-  contents: write        # needed for actions/create-release
-  packages: write        # needed to push to GHCR
-  id-token: write
-
 env:
   REGISTRY: ghcr.io
   REPO_OWNER: ${{ github.repository_owner }}
@@ -24,6 +19,12 @@ env:
 jobs:
   build-and-push:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    outputs:
+      tag: ${{ steps.vars.outputs.TAG }}
+      version: ${{ steps.vars.outputs.VERSION }}
     strategy:
       matrix:
         include:
@@ -86,30 +87,19 @@ jobs:
   create-release:
     needs: build-and-push
     runs-on: ubuntu-latest
+    permissions:
+      contents: write      # Needed to create or update GitHub release
+      packages: read       # Only need to read GHCR info
     steps:
       - name: Checkout
         uses: actions/checkout@v4
         with:
           fetch-depth: 1
 
-      - name: Determine tag and version
-        id: vars
-        run: | #shell
-          # Same logic as above: if workflow_dispatch, use input; else use pushed tag
-          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
-            VERSION="${{ github.event.inputs.version }}"
-            TAG="v${VERSION}"
-          else
-            TAG="${GITHUB_REF#refs/tags/}"
-            VERSION="${TAG#v}"
-          fi
-          echo "TAG=$TAG" >> $GITHUB_OUTPUT
-          echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
-
       - name: Extract release notes from CHANGELOG.md
         id: notes
         run: | #shell
-          VERSION="${{ steps.vars.outputs.VERSION }}"
+          VERSION="${{ needs.build-and-push.outputs.version }}"
           # awk: print lines under the matching "## ... Version X.Y.Z ..." header
           awk -v ver="$VERSION" '
             BEGIN {found=0}
@@ -119,6 +109,9 @@ jobs:
             }
             { if (found) print }
           ' CHANGELOG.md > release_notes.md
+          if [ ! -s release_notes.md ]; then
+            echo "No changelog entry found for $VERSION" > release_notes.md
+          fi
           # trim leading blank lines
           sed -i '1{/^$/d;}' release_notes.md
           # write to GITHUB_OUTPUT
@@ -126,21 +119,14 @@ jobs:
           cat release_notes.md >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
 
-      - name: Create GitHub release
-        uses: actions/create-release@v1
-        with:
-          tag_name: ${{ steps.vars.outputs.TAG }}
-          release_name: "Release ${{ steps.vars.outputs.VERSION }}"
-          body: ${{ steps.notes.outputs.notes }}
-          draft: false
-          prerelease: false
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Upload docker-compose.yml to release
+      - name: Create or update GitHub release
         uses: softprops/action-gh-release@v2
         with:
+          tag_name: ${{ needs.build-and-push.outputs.tag }}
+          name: "Release ${{ needs.build-and-push.outputs.version }}"
+          body: ${{ steps.notes.outputs.notes }}
           files: docker-compose.yml
           overwrite_files: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
