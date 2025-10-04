@@ -47,6 +47,7 @@ podman-compose up -d  # or docker compose up -d
 ## Support & Documentation
 
 - **Development Setup**: See [Development Guide](DEVELOPMENT.md) for detailed setup instructions
+- **Local Hosting**: See [Different approaches](./docs/ENVIRONMENTS.md) to run this if you like to host it yourself
 - **Issues**: Report bugs and feature requests through the project repository
 - **Contributing**: Fork the repository and submit pull requests for improvements
 

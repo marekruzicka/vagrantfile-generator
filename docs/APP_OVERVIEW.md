@@ -1,5 +1,3 @@
-![LOGO](./pics/logo_light_512.png)
-
 # App Overview
 
 This is a **quick tour** - short visual overview of Vagrantfile Generator.
