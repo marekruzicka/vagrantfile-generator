@@ -5,8 +5,8 @@ x-common-variables: &common-variables
 
 services:
   backend:
-    image: vagrantfile-backend:prod
-    container_name: vagrantfile-be
+    image: ghcr.io/marekruzicka/vagrantfile-generator-be:latest
+    container_name: vgf-be
     environment:
       <<: *common-variables
       CORS_ORIGINS: ${FE_LISTEN_URL}
@@ -14,8 +14,8 @@ services:
       - backend-data:/app/data
 
   frontend:
-    image: vagrantfile-frontend:prod
-    container_name: vagrantfile-fe
+    image: ghcr.io/marekruzicka/vagrantfile-generator-fe:latest
+    container_name: vgf-fe
     environment:
       <<: *common-variables
       FRONTEND_API_URL: ${FRONTEND_API_URL:-/api}

@@ -19,13 +19,20 @@ env:
   REGISTRY: ghcr.io
   REPO_OWNER: ${{ github.repository_owner }}
   REPOSITORY: ${{ github.event.repository.name }}
+  REPOSITORY_SHORT: vfg
 
 jobs:
   build-and-push:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        service: [frontend, backend]
+        include:
+        - service: frontend
+          dir: frontend        # build context / path to Dockerfile
+          short: fe            # short alias used in tags (vagrantfile-generator-fe)
+        - service: backend
+          dir: backend
+          short: be
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -68,15 +75,13 @@ jobs:
       - name: Build and push image
         uses: docker/build-push-action@v5
         with:
-          context: ${{ matrix.service }}
-          file: ${{ matrix.service }}/Dockerfile
+          context: ${{ matrix.dir }}                # build context -> frontend/ or backend/
+          file: ${{ matrix.dir }}/Dockerfile
           push: true
           platforms: linux/amd64,linux/arm64
           tags: |
-            ${{ env.REGISTRY }}/${{ env.REPO_OWNER }}/${{ env.REPOSITORY }}-${{ matrix.service }}:${{ steps.vars.outputs.VERSION }}
-            ${{ env.REGISTRY }}/${{ env.REPO_OWNER }}/${{ env.REPOSITORY }}-${{ matrix.service }}:latest
-          cache-from: type=registry,ref=${{ env.REGISTRY }}/${{ env.REPO_OWNER }}/${{ env.REPOSITORY }}-${{ matrix.service }}:buildcache
-          cache-to: type=registry,ref=${{ env.REGISTRY }}/${{ env.REPO_OWNER }}/${{ env.REPOSITORY }}-${{ matrix.service }}:buildcache,mode=max
+            ${{ env.REGISTRY }}/${{ env.REPO_OWNER }}/${{ env.REPOSITORY }}-${{ matrix.short }}:${{ steps.vars.outputs.VERSION }}
+            ${{ env.REGISTRY }}/${{ env.REPO_OWNER }}/${{ env.REPOSITORY }}-${{ matrix.short }}:latest
 
   create-release:
     needs: build-and-push
