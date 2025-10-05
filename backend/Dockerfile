@@ -19,6 +19,12 @@ COPY . .
 # Create data directory for persistence
 RUN mkdir -p /app/data
 
+# Create a non-root user
+RUN useradd -r -s /bin/false appuser && chown -R appuser:appuser /app
+
+# Switch to non-root user
+USER appuser
+
 # Expose port
 EXPOSE 8000
 

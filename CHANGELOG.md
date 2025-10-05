@@ -1,4 +1,12 @@
 # Changelog
+## Version 1.12.2
+**Date:** October 5, 2025
+
+### 🔧 Run app as non-root user
+- **Update Dockerfiles to run as appuser**: Updated "prod" version of apps (both frontend, and backend) to run as non-root.
+Dev version of frontend was not changed to keep possible troubleshooting simple. There is only single version of backend, so it is running as non-root also in dev.
+---
+
 ## Version 1.12.1
 **Date:** October 4, 2025
 
