@@ -7,7 +7,7 @@ This document provides guidance for developing Vagrantfile Generator. The applic
 - **Container Runtime**: Podman (recommended) or Docker installed
 - **Compose Tool**: `podman-compose` (`pip install podman-compose`) or `docker-compose`
 - **Make** (wrapper around podman/docker)
-Note that development version of frontend uses `Dockerfile-dev` and also `docker-compose-dev.yml`. Makefile wraps this up, for convenience.
+Note that development version of frontend uses `Dockerfile-dev` and also `compose-dev.yml`. Makefile wraps this up, for convenience.
 - **Git** for version control
 
 ### System Requirements
@@ -45,13 +45,13 @@ make clean
 
 ```bash
 # Build and start all services
-podman-compose -f docker-compose-dev.yml up --build -d
+podman-compose -f compose-dev.yml up --build -d
 
 # View logs
-podman-compose -f docker-compose-dev.yml logs -f
+podman-compose -f compose-dev.yml logs -f
 
 # Stop services
-podman-compose -f docker-compose-dev.yml down
+podman-compose -f compose-dev.yml down
 ```
 
 ## Services Overview

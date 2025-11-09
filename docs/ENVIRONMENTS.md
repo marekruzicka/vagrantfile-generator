@@ -4,7 +4,7 @@ This document explains the three common ways to deploy Vagrantfile Generator:
 
 - **DEV** (fast local development using source mounts and auto-reload)
 - **PROD (build)** — build images locally and run a production-like stack
-- **PROD (prebuilt)** — run using prebuilt images via `docker-compose.yml` (useful for distribution)
+- **PROD (prebuilt)** — run using prebuilt images via `compose.yml` (useful for distribution)
 
 ### DEV (recommended for iterative development)
 
@@ -13,7 +13,7 @@ This document explains the three common ways to deploy Vagrantfile Generator:
   - Runs the backend with `uvicorn --reload` so code changes apply immediately.
   - Runs the frontend using the development Dockerfile (Vite dev server) with hot reload.
 
-- **Key file:** `docker-compose-dev.yml`
+- **Key file:** `compose-dev.yml`
 
 - Important environment variables (examples in the compose file):
   - `CORS_ORIGINS=http://localhost:5173` (backend) — allow the Vite dev frontend
@@ -21,7 +21,7 @@ This document explains the three common ways to deploy Vagrantfile Generator:
 
 - **Quick start:**
 ```bash
-podman-compose -f docker-compose-dev.yml up -d --build
+podman-compose -f compose-dev.yml up -d --build
 # open http://localhost:5173 in your browser
 ```
 
@@ -39,7 +39,7 @@ podman-compose -f docker-compose-dev.yml up -d --build
   - Frontend is served by Nginx and proxies `/api` to the backend.
   - `FE_LISTEN_URL` is used to configure Nginx `server_name` and backend CORS origins.
 
-- **Key file:** `docker-compose-prod.yml`
+- **Key file:** `compose-prod.yml`
 
 - Important environment variables (set in the compose or overridden in your environment):
   - `FE_LISTEN_URL` — the browser-facing URL for the frontend (e.g., `http://notas.lan:8080`).
@@ -47,7 +47,7 @@ podman-compose -f docker-compose-dev.yml up -d --build
 
 - **Quick start (build & run):**
 ```bash
-podman-compose -f docker-compose-prod.yml up -d --build
+podman-compose -f compose-prod.yml up -d --build
 # visit the FE_LISTEN_URL (e.g. http://notas.lan:8080). Ensure your hosts file points notas.lan to the host running the containers.
 ```
 
@@ -60,14 +60,14 @@ podman-compose -f docker-compose-prod.yml up -d --build
 ### PROD (prebuilt images / distribution)
 
 - **What it does:**
-  - Uses prebuilt images (image tags configured in `docker-compose.yml`) and does not require a local build.
+  - Uses prebuilt images (image tags configured in `compose.yml`) and does not require a local build.
   - Useful for packaging and distributing a runnable stack; you only need to set `FE_LISTEN_URL` appropriately.
 
-- **Key file:** `docker-compose.yml`
+- **Key file:** `compose.yml`
 
 - **Quick start (using prebuilt images):**
 ```bash
-# Edit docker-compose.yml to set FE_LISTEN_URL if needed, then:
+# Edit compose.yml to set FE_LISTEN_URL if needed, then:
 podman-compose up -d
 # browse to the FE_LISTEN_URL (e.g. http://localhost:8080)
 ```
