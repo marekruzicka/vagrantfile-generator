@@ -1,6 +1,9 @@
 # Changelog
 ## Version 1.12.2
-**Date:** October 5, 2025
+**Date:** November 12, 2025
+
+### 🐛 Bug Fixes
+- **Fixed copy-to-clipboard button**: Added the missing javascript to actually copy to content of the generated Vagrantfile to clipboard. 
 
 ### 🔧 Run app as non-root user
 - **Update Dockerfiles to run as appuser**: Updated "prod" version of apps (both frontend, and backend) to run as non-root.
