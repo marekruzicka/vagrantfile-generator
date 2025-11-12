@@ -125,6 +125,7 @@ Thumbs.db
 
 # Project specific
 refactor.md
+multiuser.md
 
 # User data (runtime storage - not committed)
 backend/data/

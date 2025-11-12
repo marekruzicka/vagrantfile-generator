@@ -28,12 +28,11 @@ Available port 8080 (and possibly 8000 if you want to expose backend) on your ma
 ## Quick Start
 
 ```bash
-# Download latest docker-compose.yml
-curl -fsSL "https://raw.githubusercontent.com/marekruzicka/vagrantfile-generator/refs/heads/master/docker-compose.yml" -o /tmp/docker-compose.yml
+# Download latest compose.yml
+curl -fsSLO "https://raw.githubusercontent.com/marekruzicka/vagrantfile-generator/refs/heads/master/compose.yml"
 
 # Start the application
-cd /tmp
-podman-compose up -d  # docker compose up -d
+podman-compose -f compose.yml up -d  # docker compose up -d
 
 # Open your browser: http://localhost:8080
 ```
