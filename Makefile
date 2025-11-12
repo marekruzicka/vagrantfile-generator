@@ -28,36 +28,36 @@ help:
 
 # Build and run all containers
 dev:
-	podman-compose -f docker-compose-dev.yml up -d --build
+	podman-compose -f compose-dev.yml up -d --build
 
 # Build all containers
 build:
-	podman-compose -f docker-compose-dev.yml build
+	podman-compose -f compose-dev.yml build
 
 # Start all services
 up:
-	podman-compose -f docker-compose-dev.yml up -d
+	podman-compose -f compose-dev.yml up -d
 
 # Stop all services
 down:
-	podman-compose -f docker-compose-dev.yml down
+	podman-compose -f compose-dev.yml down
 
 # Restart services
 restart: down up
 
 # Show logs from all services
 logs:
-	podman-compose -f docker-compose-dev.yml logs
+	podman-compose -f compose-dev.yml logs
 
 # Show backend logs
 backend-logs:
-	podman-compose -f docker-compose-dev.yml logs backend
+	podman-compose -f compose-dev.yml logs backend
 
 # Show frontend logs
 frontend-logs:
-	podman-compose -f docker-compose-dev.yml logs frontend
+	podman-compose -f compose-dev.yml logs frontend
 
 # Clean up containers and volumes
 clean:
-	podman-compose -f docker-compose-dev.yml down -v
+	podman-compose -f compose-dev.yml down -v
 	podman system prune -f
