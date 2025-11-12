@@ -1338,6 +1338,30 @@ function vagrantApp() {
             }
         },
 
+        async copyVagrantfile() {
+            if (!this.vagrantfileContent) return;
+            
+            try {
+                await navigator.clipboard.writeText(this.vagrantfileContent);
+                this.setSuccess('Vagrantfile copied to clipboard!');
+            } catch (error) {
+                // Fallback for older browsers
+                const textArea = document.createElement('textarea');
+                textArea.value = this.vagrantfileContent;
+                textArea.style.position = 'fixed';
+                textArea.style.left = '-999999px';
+                document.body.appendChild(textArea);
+                textArea.select();
+                try {
+                    document.execCommand('copy');
+                    this.setSuccess('Vagrantfile copied to clipboard!');
+                } catch (err) {
+                    this.setError('Failed to copy to clipboard: ' + error.message);
+                }
+                document.body.removeChild(textArea);
+            }
+        },
+
         // Integration methods - delegate to helper modules
         validateProjectForm() {
             return VagrantUIHelpers.validateProjectForm(this);
