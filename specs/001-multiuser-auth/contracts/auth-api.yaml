@@ -1,0 +1,342 @@
+openapi: 3.0.3
+info:
+  title: Vagrantfile Generator - Multi-User Authentication API
+  description: REST API for email OTP and OIDC authentication with multi-user support
+  version: 1.0.0
+  contact:
+    name: Vagrantfile Generator
+    url: https://github.com/marekruzicka/vagrantfile-generator
+
+servers:
+  - url: http://localhost:8000
+    description: Development server
+  - url: https://api.vagrantfile-generator.com
+    description: Production server
+
+tags:
+  - name: auth
+    description: Authentication endpoints
+  - name: session
+    description: Session management
+
+paths:
+  /api/auth/otp/request:
+    post:
+      summary: Request OTP code via email
+      description: Generates and sends a 6-digit OTP code to the provided email address. Rate limited to 5 requests per hour per email.
+      tags: [auth]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+              properties:
+                email:
+                  type: string
+                  format: email
+                  example: user@example.com
+                  description: Email address to send OTP code to
+      responses:
+        '200':
+          description: OTP code sent successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Verification code sent to user@example.com"
+                  expires_in:
+                    type: integer
+                    example: 900
+                    description: OTP expiration time in seconds (15 minutes)
+        '429':
+          description: Rate limit exceeded
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: "Rate limit exceeded"
+                detail: "Maximum 5 OTP requests per hour. Try again later."
+        '500':
+          description: Email delivery failed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: "Email delivery failed"
+                detail: "Could not send verification code. Please try again."
+
+  /api/auth/otp/verify:
+    post:
+      summary: Verify OTP code and create session
+      description: Validates the OTP code and issues a JWT session token upon success. Creates user profile on first authentication.
+      tags: [auth]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+                - code
+              properties:
+                email:
+                  type: string
+                  format: email
+                  example: user@example.com
+                code:
+                  type: string
+                  pattern: '^\d{6}$'
+                  example: "123456"
+                  description: 6-digit OTP code from email
+      responses:
+        '200':
+          description: OTP verified, session created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  token:
+                    type: string
+                    example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+                    description: JWT session token (valid for 24 hours)
+                  user:
+                    $ref: '#/components/schemas/UserProfile'
+                  expires_at:
+                    type: string
+                    format: date-time
+                    example: "2025-11-14T14:30:00Z"
+                    description: Token expiration timestamp
+        '400':
+          description: Invalid or expired code
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              examples:
+                invalid_code:
+                  value:
+                    error: "Invalid code"
+                    detail: "The verification code is incorrect."
+                expired_code:
+                  value:
+                    error: "Code expired"
+                    detail: "This verification code has expired. Request a new one."
+                too_many_attempts:
+                  value:
+                    error: "Too many attempts"
+                    detail: "Maximum verification attempts exceeded. Request a new code."
+        '404':
+          description: No OTP request found for email
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: "No verification code found"
+                detail: "Request a verification code first."
+
+  /api/auth/oidc/{provider}:
+    get:
+      summary: Initiate OIDC authentication flow
+      description: Redirects to the OIDC provider's authorization page. Supported providers - google, github, gitlab.
+      tags: [auth]
+      parameters:
+        - name: provider
+          in: path
+          required: true
+          schema:
+            type: string
+            enum: [google, github, gitlab]
+          description: OIDC provider name
+      responses:
+        '302':
+          description: Redirect to provider authorization page
+          headers:
+            Location:
+              schema:
+                type: string
+                example: "https://accounts.google.com/o/oauth2/v2/auth?..."
+        '400':
+          description: Unsupported provider
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: "Unsupported provider"
+                detail: "Provider must be one of: google, github, gitlab"
+        '503':
+          description: OIDC not configured
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: "OIDC not configured"
+                detail: "Google authentication is not available."
+
+  /api/auth/callback/{provider}:
+    get:
+      summary: OIDC callback handler
+      description: Handles the redirect from OIDC provider after user authorization. Exchanges code for tokens and creates session.
+      tags: [auth]
+      parameters:
+        - name: provider
+          in: path
+          required: true
+          schema:
+            type: string
+            enum: [google, github, gitlab]
+        - name: code
+          in: query
+          required: true
+          schema:
+            type: string
+          description: Authorization code from provider
+        - name: state
+          in: query
+          required: false
+          schema:
+            type: string
+          description: CSRF protection state parameter
+      responses:
+        '302':
+          description: Redirect to application with session token
+          headers:
+            Location:
+              schema:
+                type: string
+                example: "/?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+        '400':
+          description: Invalid authorization code or state mismatch
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Token exchange failed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /api/auth/me:
+    get:
+      summary: Get current authenticated user
+      description: Returns the authenticated user's profile information from JWT token.
+      tags: [session]
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: User profile retrieved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserProfile'
+        '401':
+          description: Not authenticated or token expired
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              examples:
+                no_token:
+                  value:
+                    error: "Authentication required"
+                    detail: "Please log in to access this resource."
+                expired_token:
+                  value:
+                    error: "Token expired"
+                    detail: "Your session has expired. Please log in again."
+
+  /api/auth/logout:
+    post:
+      summary: Log out (client-side token removal)
+      description: Instructs client to remove session token. Server-side is stateless (no session invalidation needed).
+      tags: [session]
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Logout successful
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Logged out successfully"
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: JWT token obtained from OTP or OIDC authentication
+
+  schemas:
+    UserProfile:
+      type: object
+      required:
+        - user_id
+        - email
+        - auth_provider
+        - created_at
+        - last_login
+      properties:
+        user_id:
+          type: string
+          format: uuid
+          example: "550e8400-e29b-41d4-a716-446655440000"
+          description: Unique user identifier (UUID v4)
+        email:
+          type: string
+          format: email
+          example: "user@example.com"
+          description: User's email address
+        name:
+          type: string
+          example: "John Doe"
+          description: Display name (optional)
+        auth_provider:
+          type: string
+          enum: [email, google, github, gitlab]
+          example: "email"
+          description: Authentication method used
+        created_at:
+          type: string
+          format: date-time
+          example: "2025-11-13T14:30:00Z"
+          description: When user first authenticated
+        last_login:
+          type: string
+          format: date-time
+          example: "2025-11-13T15:45:00Z"
+          description: Most recent login timestamp
+
+    Error:
+      type: object
+      required:
+        - error
+      properties:
+        error:
+          type: string
+          example: "Invalid request"
+          description: Error type/category
+        detail:
+          type: string
+          example: "Additional context about the error"
+          description: Human-readable error details

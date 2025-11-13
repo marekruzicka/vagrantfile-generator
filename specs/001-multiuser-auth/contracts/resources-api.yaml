@@ -1,0 +1,490 @@
+openapi: 3.0.3
+info:
+  title: Vagrantfile Generator - Resources API (Multi-User Extensions)
+  description: Updated resource endpoints with authentication middleware and user data isolation
+  version: 2.0.0
+  contact:
+    name: Vagrantfile Generator
+    url: https://github.com/marekruzicka/vagrantfile-generator
+
+servers:
+  - url: http://localhost:8000
+    description: Development server
+  - url: https://api.vagrantfile-generator.com
+    description: Production server
+
+tags:
+  - name: projects
+    description: Project management endpoints
+  - name: plugins
+    description: Plugin configuration endpoints
+  - name: provisioners
+    description: Provisioner configuration endpoints
+  - name: boxes
+    description: Vagrant box management
+
+x-deployment-modes:
+  self-hosted:
+    description: No authentication required. All users have full access to shared resources.
+    authentication: None
+    data_location: /data/shared/
+    permissions: Read-write for all resources
+  
+  public:
+    description: Authentication required. Users have isolated personal data plus read-only shared resources.
+    authentication: Required (JWT Bearer token)
+    data_locations:
+      - /data/shared/ (read-only system resources)
+      - /data/users/{user_id}/ (read-write personal resources)
+    permissions:
+      - Shared resources: Read-only
+      - User resources: Full CRUD
+
+paths:
+  /api/projects:
+    get:
+      summary: List all accessible projects
+      description: |
+        **Self-hosted mode**: Returns all projects from /data/shared/projects/
+        
+        **Public mode**: Returns merged list of shared projects (read-only) and user's personal projects (editable).
+        Each project includes `is_shared` flag and `owner_id` for permission checks.
+      tags: [projects]
+      security:
+        - BearerAuth: []
+        - {} # Optional in self-hosted mode
+      responses:
+        '200':
+          description: List of projects
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Project'
+        '401':
+          description: Authentication required (public mode only)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    
+    post:
+      summary: Create new project
+      description: |
+        **Self-hosted mode**: Creates project in /data/shared/projects/
+        
+        **Public mode**: Creates project in /data/users/{user_id}/projects/ with `owner_id` set to authenticated user.
+      tags: [projects]
+      security:
+        - BearerAuth: []
+        - {} # Optional in self-hosted mode
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProjectInput'
+      responses:
+        '201':
+          description: Project created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Project'
+        '401':
+          description: Authentication required (public mode only)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /api/projects/{project_id}:
+    get:
+      summary: Get project by ID
+      description: |
+        **Self-hosted mode**: Returns project from /data/shared/projects/
+        
+        **Public mode**: Returns project if it's shared or owned by authenticated user. Returns 404 for other users' projects.
+      tags: [projects]
+      security:
+        - BearerAuth: []
+        - {} # Optional in self-hosted mode
+      parameters:
+        - $ref: '#/components/parameters/ProjectId'
+      responses:
+        '200':
+          description: Project details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Project'
+        '401':
+          description: Authentication required (public mode only)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Project not found or access denied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    
+    put:
+      summary: Update project
+      description: |
+        **Self-hosted mode**: Updates any project in /data/shared/projects/
+        
+        **Public mode**: Updates project only if owned by authenticated user. Shared projects return 403 Forbidden.
+      tags: [projects]
+      security:
+        - BearerAuth: []
+        - {} # Optional in self-hosted mode
+      parameters:
+        - $ref: '#/components/parameters/ProjectId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProjectInput'
+      responses:
+        '200':
+          description: Project updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Project'
+        '401':
+          description: Authentication required (public mode only)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Cannot modify shared resource (public mode only)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: "Permission denied"
+                detail: "Shared resources are read-only"
+        '404':
+          description: Project not found or access denied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    
+    delete:
+      summary: Delete project
+      description: |
+        **Self-hosted mode**: Deletes any project from /data/shared/projects/
+        
+        **Public mode**: Deletes project only if owned by authenticated user. Shared projects return 403 Forbidden.
+      tags: [projects]
+      security:
+        - BearerAuth: []
+        - {} # Optional in self-hosted mode
+      parameters:
+        - $ref: '#/components/parameters/ProjectId'
+      responses:
+        '204':
+          description: Project deleted
+        '401':
+          description: Authentication required (public mode only)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Cannot delete shared resource (public mode only)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: "Permission denied"
+                detail: "Shared resources cannot be deleted"
+        '404':
+          description: Project not found or access denied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /api/plugins:
+    get:
+      summary: List all accessible plugins
+      description: |
+        **Self-hosted mode**: Returns all plugins from /data/shared/plugins/
+        
+        **Public mode**: Returns merged list of shared plugins (read-only) and user's personal plugins (editable).
+      tags: [plugins]
+      security:
+        - BearerAuth: []
+        - {} # Optional in self-hosted mode
+      responses:
+        '200':
+          description: List of plugins
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Plugin'
+        '401':
+          description: Authentication required (public mode only)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /api/provisioners:
+    get:
+      summary: List all accessible provisioners
+      description: |
+        **Self-hosted mode**: Returns all provisioners from /data/shared/provisioners/
+        
+        **Public mode**: Returns merged list of shared provisioners (read-only) and user's personal provisioners (editable).
+      tags: [provisioners]
+      security:
+        - BearerAuth: []
+        - {} # Optional in self-hosted mode
+      responses:
+        '200':
+          description: List of provisioners
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Provisioner'
+        '401':
+          description: Authentication required (public mode only)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /api/boxes:
+    get:
+      summary: List all Vagrant boxes
+      description: Returns list of available Vagrant boxes from boxes.json (shared system resource)
+      tags: [boxes]
+      security:
+        - BearerAuth: []
+        - {} # Optional in self-hosted mode
+      responses:
+        '200':
+          description: List of Vagrant boxes
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Box'
+        '401':
+          description: Authentication required (public mode only)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: |
+        JWT token obtained from /api/auth/otp/verify or /api/auth/callback/{provider}.
+        Required in public mode, optional in self-hosted mode.
+
+  parameters:
+    ProjectId:
+      name: project_id
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+      description: Project UUID
+
+  schemas:
+    Project:
+      type: object
+      required:
+        - project_id
+        - name
+        - is_shared
+      properties:
+        project_id:
+          type: string
+          format: uuid
+          example: "d856afb8-ea43-4d08-b0f2-1fbd311756ef"
+        name:
+          type: string
+          example: "Development Environment"
+        description:
+          type: string
+          example: "Multi-VM development setup"
+        is_shared:
+          type: boolean
+          example: false
+          description: |
+            **Public mode**: `true` for shared system resources (read-only), `false` for user resources (editable).
+            **Self-hosted mode**: Always `false` (all resources are editable).
+        owner_id:
+          type: string
+          format: uuid
+          example: "550e8400-e29b-41d4-a716-446655440000"
+          description: |
+            **Public mode**: User ID of resource owner. `null` for shared resources.
+            **Self-hosted mode**: Always `null`.
+        vms:
+          type: array
+          items:
+            $ref: '#/components/schemas/VirtualMachine'
+          description: Virtual machines configured in this project
+        created_at:
+          type: string
+          format: date-time
+          example: "2025-11-13T14:30:00Z"
+        updated_at:
+          type: string
+          format: date-time
+          example: "2025-11-13T15:45:00Z"
+
+    ProjectInput:
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          type: string
+          example: "Development Environment"
+        description:
+          type: string
+          example: "Multi-VM development setup"
+        vms:
+          type: array
+          items:
+            $ref: '#/components/schemas/VirtualMachineInput'
+
+    VirtualMachine:
+      type: object
+      properties:
+        vm_id:
+          type: string
+          format: uuid
+        name:
+          type: string
+          example: "web-server"
+        box:
+          type: string
+          example: "ubuntu/jammy64"
+        memory:
+          type: integer
+          example: 2048
+        cpus:
+          type: integer
+          example: 2
+        network_interfaces:
+          type: array
+          items:
+            type: object
+        synced_folders:
+          type: array
+          items:
+            type: object
+
+    VirtualMachineInput:
+      type: object
+      required:
+        - name
+        - box
+      properties:
+        name:
+          type: string
+        box:
+          type: string
+        memory:
+          type: integer
+        cpus:
+          type: integer
+
+    Plugin:
+      type: object
+      properties:
+        plugin_id:
+          type: string
+          format: uuid
+        name:
+          type: string
+          example: "vagrant-vbguest"
+        version:
+          type: string
+          example: "0.31.0"
+        is_shared:
+          type: boolean
+          description: Read-only shared resource flag (public mode)
+        owner_id:
+          type: string
+          format: uuid
+          description: Owner user ID (public mode)
+
+    Provisioner:
+      type: object
+      properties:
+        provisioner_id:
+          type: string
+          format: uuid
+        type:
+          type: string
+          enum: [shell, ansible, docker, file]
+          example: "shell"
+        name:
+          type: string
+          example: "Install Dependencies"
+        config:
+          type: object
+          description: Provisioner-specific configuration
+        is_shared:
+          type: boolean
+          description: Read-only shared resource flag (public mode)
+        owner_id:
+          type: string
+          format: uuid
+          description: Owner user ID (public mode)
+
+    Box:
+      type: object
+      properties:
+        box_id:
+          type: string
+        name:
+          type: string
+          example: "ubuntu/jammy64"
+        description:
+          type: string
+        version:
+          type: string
+        provider:
+          type: string
+          example: "virtualbox"
+
+    Error:
+      type: object
+      required:
+        - error
+      properties:
+        error:
+          type: string
+          example: "Invalid request"
+        detail:
+          type: string
+          example: "Additional context about the error"
