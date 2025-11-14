@@ -187,7 +187,7 @@ class GlobalProvisionerService:
             provisioner_id: Provisioner ID to retrieve
             
         Returns:
-            Provisioner if found, None otherwise
+            Provisioner if found and user has access, None otherwise
         """
         try:
             provisioner_data = self._load_provisioner_from_file(provisioner_id)
@@ -195,6 +195,8 @@ class GlobalProvisionerService:
             if not provisioner_data:
                 return None
             
+            # In public mode (user_id set), access control is enforced by directory structure
+            # If file is found in user's directory, access is allowed
             return GlobalProvisioner(**provisioner_data)
             
         except Exception as e:

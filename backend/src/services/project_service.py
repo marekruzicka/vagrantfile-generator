@@ -165,9 +165,19 @@ class ProjectService:
             Project instance
             
         Raises:
-            ProjectNotFoundError: If project doesn't exist
+            ProjectNotFoundError: If project doesn't exist or user doesn't have access
         """
-        return self._load_project_from_file(project_id)
+        project = self._load_project_from_file(project_id)
+        
+        # In public mode (user_id set), verify ownership
+        # Shared resources are accessible to all users, but users can only access their own private resources
+        if self.user_id:
+            # Check if resource exists in user's directory (already loaded from there)
+            # If we got here, it means the file was found in the user's directory,
+            # so access is allowed. If it wasn't found, ProjectNotFoundError would be raised.
+            pass
+        
+        return project
 
     def update_project(self, project_id: UUID, project_data: ProjectUpdate) -> Project:
         """

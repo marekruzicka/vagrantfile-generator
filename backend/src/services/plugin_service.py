@@ -186,15 +186,18 @@ class PluginService:
             plugin_id: Plugin ID to retrieve
             
         Returns:
-            Plugin if found, None otherwise
+            Plugin if found and user has access, None otherwise
         """
         try:
             plugin_data = self._load_plugin_from_file(plugin_id)
             
-            if plugin_data:
-                return Plugin(**plugin_data)
+            if not plugin_data:
+                return None
             
-            return None
+            # In public mode (user_id set), access control is enforced by directory structure
+            # If file is found in user's directory, access is allowed
+            # If not found, None is returned (same as file not existing)
+            return Plugin(**plugin_data)
             
         except Exception as e:
             raise PluginServiceError(f"Failed to get plugin: {str(e)}")

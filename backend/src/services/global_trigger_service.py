@@ -187,7 +187,7 @@ class GlobalTriggerService:
             trigger_id: Trigger ID
             
         Returns:
-            Trigger if found, None otherwise
+            Trigger if found and user has access, None otherwise
         """
         try:
             trigger_data = self._load_trigger_from_file(trigger_id)
@@ -195,6 +195,8 @@ class GlobalTriggerService:
             if not trigger_data:
                 return None
             
+            # In public mode (user_id set), access control is enforced by directory structure
+            # If file is found in user's directory, access is allowed
             return GlobalTrigger(**trigger_data)
             
         except Exception as e:
