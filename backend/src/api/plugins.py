@@ -14,7 +14,7 @@ plugin_service = PluginService()
 
 
 @router.get("/plugins", response_model=List[PluginSummary])
-async def list_plugins():
+async def list_plugins(current_user: Optional[UserProfile] = Depends(get_optional_user)):
     """Get list of all plugins."""
     try:
         plugins = plugin_service.list_plugins()
@@ -27,7 +27,7 @@ async def list_plugins():
 
 
 @router.get("/plugins/{plugin_id}", response_model=Plugin)
-async def get_plugin(plugin_id: str):
+async def get_plugin(plugin_id: str, current_user: Optional[UserProfile] = Depends(get_optional_user)):
     """Get a specific plugin by ID."""
     try:
         plugin = plugin_service.get_plugin(plugin_id)
@@ -45,7 +45,7 @@ async def get_plugin(plugin_id: str):
 
 
 @router.post("/plugins", response_model=Plugin, status_code=status.HTTP_201_CREATED)
-async def create_plugin(plugin_data: PluginCreate):
+async def create_plugin(plugin_data: PluginCreate, current_user: Optional[UserProfile] = Depends(get_optional_user)):
     """Create a new plugin."""
     try:
         plugin = plugin_service.create_plugin(plugin_data)
@@ -63,7 +63,11 @@ async def create_plugin(plugin_data: PluginCreate):
 
 
 @router.put("/plugins/{plugin_id}", response_model=Plugin)
-async def update_plugin(plugin_id: str, plugin_data: PluginUpdate):
+async def update_plugin(
+    plugin_id: str,
+    plugin_data: PluginUpdate,
+    current_user: Optional[UserProfile] = Depends(get_optional_user)
+):
     """Update an existing plugin."""
     try:
         plugin = plugin_service.update_plugin(plugin_id, plugin_data)
@@ -86,7 +90,10 @@ async def update_plugin(plugin_id: str, plugin_data: PluginUpdate):
 
 
 @router.delete("/plugins/{plugin_id}")
-async def delete_plugin(plugin_id: str):
+async def delete_plugin(
+    plugin_id: str,
+    current_user: Optional[UserProfile] = Depends(get_optional_user)
+):
     """Delete a plugin."""
     try:
         deleted = plugin_service.delete_plugin(plugin_id)

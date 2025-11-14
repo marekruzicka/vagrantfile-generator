@@ -4,8 +4,11 @@ Global Trigger API endpoints for Vagrantfile Generator.
 This module provides REST API endpoints for managing global triggers.
 """
 
-from typing import List
-from fastapi import APIRouter, HTTPException, status
+from typing import List, Optional
+from fastapi import APIRouter, HTTPException, status, Depends
+
+from ..models.user_profile import UserProfile
+from ..middleware.auth_middleware import get_optional_user
 
 from ..models.global_trigger import (
     GlobalTrigger,
@@ -21,7 +24,10 @@ trigger_service = GlobalTriggerService()
 
 
 @router.post("/triggers", response_model=GlobalTrigger, status_code=status.HTTP_201_CREATED)
-async def create_trigger(trigger_data: GlobalTriggerCreate):
+async def create_trigger(
+    trigger_data: GlobalTriggerCreate,
+    current_user: Optional[UserProfile] = Depends(get_optional_user)
+):
     """
     Create a new global trigger.
     
@@ -50,7 +56,7 @@ async def create_trigger(trigger_data: GlobalTriggerCreate):
 
 
 @router.get("/triggers", response_model=List[GlobalTriggerSummary])
-async def list_triggers():
+async def list_triggers(current_user: Optional[UserProfile] = Depends(get_optional_user)):
     """
     List all global triggers.
     
@@ -68,7 +74,10 @@ async def list_triggers():
 
 
 @router.get("/triggers/{trigger_id}", response_model=GlobalTrigger)
-async def get_trigger(trigger_id: str):
+async def get_trigger(
+    trigger_id: str,
+    current_user: Optional[UserProfile] = Depends(get_optional_user)
+):
     """
     Get a specific trigger by ID.
     
@@ -101,7 +110,11 @@ async def get_trigger(trigger_id: str):
 
 
 @router.put("/triggers/{trigger_id}", response_model=GlobalTrigger)
-async def update_trigger(trigger_id: str, trigger_data: GlobalTriggerUpdate):
+async def update_trigger(
+    trigger_id: str,
+    trigger_data: GlobalTriggerUpdate,
+    current_user: Optional[UserProfile] = Depends(get_optional_user)
+):
     """
     Update an existing trigger.
     
@@ -137,7 +150,10 @@ async def update_trigger(trigger_id: str, trigger_data: GlobalTriggerUpdate):
 
 
 @router.delete("/triggers/{trigger_id}", status_code=status.HTTP_204_NO_CONTENT)
-async def delete_trigger(trigger_id: str):
+async def delete_trigger(
+    trigger_id: str,
+    current_user: Optional[UserProfile] = Depends(get_optional_user)
+):
     """
     Delete a trigger.
     

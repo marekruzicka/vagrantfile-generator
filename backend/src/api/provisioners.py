@@ -4,8 +4,11 @@ Global Provisioner API endpoints for Vagrantfile Generator.
 This module provides REST API endpoints for managing global provisioners.
 """
 
-from typing import List
-from fastapi import APIRouter, HTTPException, status
+from typing import List, Optional
+from fastapi import APIRouter, HTTPException, status, Depends
+
+from ..models.user_profile import UserProfile
+from ..middleware.auth_middleware import get_optional_user
 
 from ..models.global_provisioner import (
     GlobalProvisioner,
@@ -21,7 +24,10 @@ provisioner_service = GlobalProvisionerService()
 
 
 @router.post("/provisioners", response_model=GlobalProvisioner, status_code=status.HTTP_201_CREATED)
-async def create_provisioner(provisioner_data: GlobalProvisionerCreate):
+async def create_provisioner(
+    provisioner_data: GlobalProvisionerCreate,
+    current_user: Optional[UserProfile] = Depends(get_optional_user)
+):
     """
     Create a new global provisioner.
     
@@ -50,7 +56,7 @@ async def create_provisioner(provisioner_data: GlobalProvisionerCreate):
 
 
 @router.get("/provisioners", response_model=List[GlobalProvisionerSummary])
-async def list_provisioners():
+async def list_provisioners(current_user: Optional[UserProfile] = Depends(get_optional_user)):
     """
     List all global provisioners.
     
@@ -68,7 +74,10 @@ async def list_provisioners():
 
 
 @router.get("/provisioners/{provisioner_id}", response_model=GlobalProvisioner)
-async def get_provisioner(provisioner_id: str):
+async def get_provisioner(
+    provisioner_id: str,
+    current_user: Optional[UserProfile] = Depends(get_optional_user)
+):
     """
     Get a specific provisioner by ID.
     
@@ -101,7 +110,11 @@ async def get_provisioner(provisioner_id: str):
 
 
 @router.put("/provisioners/{provisioner_id}", response_model=GlobalProvisioner)
-async def update_provisioner(provisioner_id: str, provisioner_data: GlobalProvisionerUpdate):
+async def update_provisioner(
+    provisioner_id: str,
+    provisioner_data: GlobalProvisionerUpdate,
+    current_user: Optional[UserProfile] = Depends(get_optional_user)
+):
     """
     Update an existing provisioner.
     
@@ -140,7 +153,10 @@ async def update_provisioner(provisioner_id: str, provisioner_data: GlobalProvis
 
 
 @router.delete("/provisioners/{provisioner_id}", status_code=status.HTTP_204_NO_CONTENT)
-async def delete_provisioner(provisioner_id: str):
+async def delete_provisioner(
+    provisioner_id: str,
+    current_user: Optional[UserProfile] = Depends(get_optional_user)
+):
     """
     Delete a provisioner.
     

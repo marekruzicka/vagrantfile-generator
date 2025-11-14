@@ -88,11 +88,11 @@
 
 - [X] T027 [US1] Update backend/src/middleware/auth_middleware.py to skip authentication when DEPLOYMENT_MODE=self-hosted
 - [X] T028 [US1] Update backend/src/api/projects.py to use optional auth dependency (Depends(get_current_user) → Optional)
-- [ ] T029 [US1] Update backend/src/api/boxes.py to use optional auth dependency
-- [ ] T030 [P] [US1] Update backend/src/api/plugins.py to use optional auth dependency
-- [ ] T031 [P] [US1] Update backend/src/api/provisioners.py to use optional auth dependency
-- [ ] T032 [P] [US1] Update backend/src/api/triggers.py to use optional auth dependency
-- [ ] T033 [P] [US1] Update backend/src/api/vms.py to use optional auth dependency
+- [X] T029 [US1] Update backend/src/api/boxes.py to use optional auth dependency
+- [X] T030 [P] [US1] Update backend/src/api/plugins.py to use optional auth dependency
+- [X] T031 [P] [US1] Update backend/src/api/provisioners.py to use optional auth dependency
+- [X] T032 [P] [US1] Update backend/src/api/triggers.py to use optional auth dependency
+- [X] T033 [P] [US1] Update backend/src/api/vms.py to use optional auth dependency
 - [ ] T034 [US1] Update backend/src/services/project_service.py to use shared path when user_id is None
 - [ ] T035 [P] [US1] Update backend/src/services/plugin_service.py to use shared path when user_id is None
 - [ ] T036 [P] [US1] Update backend/src/services/global_provisioner_service.py to use shared path when user_id is None
@@ -101,7 +101,7 @@
 ### Frontend Updates
 
 - [ ] T038 [US1] Update frontend/src/index.html to skip login redirect when deployment mode is self-hosted (check via API endpoint)
-- [ ] T039 [US1] Create frontend/src/js/deployment.js to fetch and cache deployment mode from backend
+- [X] T039 [US1] Create frontend/src/js/deployment.js to fetch and cache deployment mode from backend
 
 **Story 1 Complete**: ✅ Self-hosted mode working - no auth, full CRUD on shared resources
 

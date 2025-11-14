@@ -14,7 +14,7 @@ box_service = BoxService()
 
 
 @router.get("/boxes", response_model=List[BoxSummary])
-async def list_boxes():
+async def list_boxes(current_user: Optional[UserProfile] = Depends(get_optional_user)):
     """Get list of all boxes."""
     try:
         boxes = box_service.list_boxes()
@@ -27,7 +27,7 @@ async def list_boxes():
 
 
 @router.get("/boxes/{box_id}", response_model=Box)
-async def get_box(box_id: str):
+async def get_box(box_id: str, current_user: Optional[UserProfile] = Depends(get_optional_user)):
     """Get a specific box by ID."""
     try:
         box = box_service.get_box(box_id)
@@ -45,7 +45,7 @@ async def get_box(box_id: str):
 
 
 @router.post("/boxes", response_model=Box, status_code=status.HTTP_201_CREATED)
-async def create_box(box_data: BoxCreate):
+async def create_box(box_data: BoxCreate, current_user: Optional[UserProfile] = Depends(get_optional_user)):
     """Create a new box."""
     try:
         box = box_service.create_box(box_data)
@@ -63,7 +63,11 @@ async def create_box(box_data: BoxCreate):
 
 
 @router.put("/boxes/{box_id}", response_model=Box)
-async def update_box(box_id: str, box_data: BoxUpdate):
+async def update_box(
+    box_id: str,
+    box_data: BoxUpdate,
+    current_user: Optional[UserProfile] = Depends(get_optional_user)
+):
     """Update an existing box."""
     try:
         box = box_service.update_box(box_id, box_data)
@@ -86,7 +90,10 @@ async def update_box(box_id: str, box_data: BoxUpdate):
 
 
 @router.delete("/boxes/{box_id}")
-async def delete_box(box_id: str):
+async def delete_box(
+    box_id: str,
+    current_user: Optional[UserProfile] = Depends(get_optional_user)
+):
     """Delete a box."""
     try:
         deleted = box_service.delete_box(box_id)
