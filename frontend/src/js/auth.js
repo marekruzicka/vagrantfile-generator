@@ -11,6 +11,42 @@ class AuthManager {
     }
 
     /**
+     * Decode JWT token (without verification - for client-side checks only).
+     * @param {string} token - JWT token
+     * @returns {Object|null} Decoded payload or null if invalid
+     */
+    decodeToken(token) {
+        try {
+            const parts = token.split('.');
+            if (parts.length !== 3) {
+                return null;
+            }
+            
+            const payload = parts[1];
+            const decoded = JSON.parse(atob(payload.replace(/-/g, '+').replace(/_/g, '/')));
+            return decoded;
+        } catch (error) {
+            console.error('Error decoding token:', error);
+            return null;
+        }
+    }
+
+    /**
+     * Check if token is expired.
+     * @param {string} token - JWT token
+     * @returns {boolean} True if expired, false otherwise
+     */
+    isTokenExpired(token) {
+        const decoded = this.decodeToken(token);
+        if (!decoded || !decoded.exp) {
+            return true;
+        }
+        
+        const now = Math.floor(Date.now() / 1000);
+        return decoded.exp < now;
+    }
+
+    /**
      * Check if user is authenticated.
      * @returns {Promise<Object|null>} User profile if authenticated, null otherwise
      */
@@ -19,6 +55,13 @@ class AuthManager {
         this.token = localStorage.getItem('auth_token');
         
         if (!this.token) {
+            return null;
+        }
+
+        // Check if token is expired (client-side check)
+        if (this.isTokenExpired(this.token)) {
+            console.log('Token expired - clearing auth');
+            this.clearAuth();
             return null;
         }
 
