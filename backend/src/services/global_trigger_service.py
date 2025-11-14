@@ -28,13 +28,14 @@ class GlobalTriggerServiceError(Exception):
 class GlobalTriggerService:
     """Service for handling global trigger operations."""
     
-    def __init__(self, base_directory: str = "data", user_id: Optional[str] = None):
+    def __init__(self, base_directory: str = "data", user_id: Optional[str] = None, show_shared: Optional[bool] = None):
         """
         Initialize the global trigger service.
         
         Args:
             base_directory: Base directory for storing trigger files (deprecated, use user_id)
             user_id: User ID for user-specific storage. If None, uses shared directory.
+            show_shared: Override for show_shared_resources preference (for testing)
         """
         # Support user-specific directories
         if user_id:
@@ -52,9 +53,26 @@ class GlobalTriggerService:
                 self.triggers_directory = self.base_directory / "triggers"
         
         self.user_id = user_id
+        self.file_service = FileService()
+        self.data_dir = self.triggers_directory  # Alias for backwards compatibility
+        
+        # Load show_shared preference
+        if show_shared is not None:
+            self.show_shared = show_shared
+        else:
+            self.show_shared = self._load_show_shared_preference()
         
         # Create directories if they don't exist
         self._ensure_directories()
+    
+    def _load_show_shared_preference(self) -> bool:
+        """Load user's preference for showing shared resources."""
+        if not self.user_id:
+            return True  # Self-hosted mode: always show shared
+        
+        from .preference_service import PreferenceService
+        pref_service = PreferenceService(self.user_id)
+        return pref_service.get_show_shared_resources()
     
     def _ensure_directories(self):
         """Ensure all required directories exist."""
@@ -68,6 +86,13 @@ class GlobalTriggerService:
         """Load a trigger from its JSON file."""
         try:
             file_path = self._get_trigger_file_path(trigger_id)
+            
+            # Try user directory first, then shared directory
+            if not file_path.exists() and self.user_id:
+                file_service = FileService()
+                shared_path = file_service.get_shared_data_path("triggers") / f"{trigger_id}.json"
+                if shared_path.exists():
+                    file_path = shared_path
             
             if not file_path.exists():
                 return None
@@ -205,6 +230,7 @@ class GlobalTriggerService:
     def list_triggers(self) -> List[GlobalTrigger]:
         """
         List all triggers (merged shared + user-specific).
+        Filters based on show_shared_resources preference.
         
         Returns:
             List of GlobalTrigger instances with is_shared and owner_id fields
@@ -225,8 +251,22 @@ class GlobalTriggerService:
             )
             
             triggers = []
+            
+            # Load favorites if user is authenticated
+            favorite_ids = []
+            if self.user_id:
+                from .preference_service import PreferenceService
+                pref_service = PreferenceService(self.user_id)
+                favorite_ids = pref_service.get_favorites('triggers')
+            
             for trigger_data in merged_data:
                 trigger = GlobalTrigger(**trigger_data)
+                
+                # Filter based on preferences
+                # Show resource if: not shared, OR show_shared=True, OR is a favorite
+                if trigger.is_shared and not self.show_shared and trigger.id not in favorite_ids:
+                    continue
+                
                 triggers.append(trigger)
             
             # Sort by name
@@ -262,6 +302,62 @@ class GlobalTriggerService:
         except Exception as e:
             raise GlobalTriggerServiceError(f"Failed to list trigger summaries: {str(e)}")
     
+    def copy_shared_trigger(self, trigger_id: str) -> GlobalTrigger:
+        """
+        Create a copy of a shared trigger in user's directory.
+        User can then edit/customize their copy.
+        
+        Args:
+            trigger_id: ID of the shared trigger to copy
+            
+        Returns:
+            Copied trigger with new ID
+            
+        Raises:
+            GlobalTriggerServiceError: If trigger not found, not shared, or user_id not set
+        """
+        if not self.user_id:
+            raise GlobalTriggerServiceError("Cannot copy triggers in self-hosted mode")
+        
+        try:
+            # Load shared trigger
+            shared_file = self.file_service.get_shared_data_path("triggers") / f"{trigger_id}.json"
+            
+            if not shared_file.exists():
+                raise GlobalTriggerServiceError(f"Shared trigger {trigger_id} not found")
+            
+            with open(shared_file, 'r', encoding='utf-8') as f:
+                trigger_data = json.load(f)
+            
+            # Verify it's a shared resource
+            if not trigger_data.get("is_shared", False):
+                raise GlobalTriggerServiceError("Can only copy shared resources")
+            
+            # Generate new ID for the copy
+            new_id = str(uuid.uuid4())
+            now = datetime.now().isoformat()
+            
+            # Create copy with new metadata
+            trigger_copy = {
+                **trigger_data,
+                "id": new_id,
+                "name": f"{trigger_data['name']} (Copy)",
+                "is_shared": False,
+                "owner_id": self.user_id,
+                "created_at": now,
+                "updated_at": now
+            }
+            
+            # Save to user directory
+            user_file = self.file_service.get_user_data_path(self.user_id, "triggers") / f"{new_id}.json"
+            with open(user_file, 'w', encoding='utf-8') as f:
+                json.dump(trigger_copy, f, indent=2, ensure_ascii=False)
+            
+            return GlobalTrigger(**trigger_copy)
+            
+        except Exception as e:
+            raise GlobalTriggerServiceError(f"Failed to copy trigger: {str(e)}")
+    
     def update_trigger(self, trigger_id: str, update_data: GlobalTriggerUpdate) -> GlobalTrigger:
         """
         Update an existing trigger.
@@ -274,13 +370,19 @@ class GlobalTriggerService:
             Updated trigger
             
         Raises:
-            GlobalTriggerServiceError: If trigger not found or name conflict
+            GlobalTriggerServiceError: If trigger not found, name conflict, or trying to edit shared resource
         """
         try:
             # Load existing trigger
             existing_data = self._load_trigger_from_file(trigger_id)
             if not existing_data:
                 raise GlobalTriggerServiceError(f"Trigger with ID {trigger_id} not found")
+            
+            # Check if trying to edit a shared resource in public mode
+            if self.user_id:
+                user_file = self.data_dir / f"{trigger_id}.json"
+                if not user_file.exists():
+                    raise GlobalTriggerServiceError("Cannot edit shared resources")
             
             # Check name conflict (excluding current trigger)
             if self._check_name_conflict(update_data.name, exclude_id=trigger_id):
@@ -318,8 +420,17 @@ class GlobalTriggerService:
             
         Returns:
             True if deleted, False if not found
+            
+        Raises:
+            GlobalTriggerServiceError: If trying to delete shared resource
         """
         try:
+            # Check if trying to delete a shared resource in public mode
+            if self.user_id:
+                user_file = self.data_dir / f"{trigger_id}.json"
+                if not user_file.exists():
+                    raise GlobalTriggerServiceError("Cannot delete shared resources")
+            
             file_path = self._get_trigger_file_path(trigger_id)
             
             if not file_path.exists():
@@ -330,3 +441,59 @@ class GlobalTriggerService:
             
         except Exception as e:
             raise GlobalTriggerServiceError(f"Failed to delete trigger: {str(e)}")
+    
+    def copy_shared_trigger(self, trigger_id: str) -> GlobalTrigger:
+        """
+        Create a copy of a shared trigger in user's directory.
+        User can then edit/customize their copy.
+        
+        Args:
+            trigger_id: ID of the shared trigger to copy
+            
+        Returns:
+            Copied trigger with new ID
+            
+        Raises:
+            GlobalTriggerServiceError: If trigger not found, not shared, or user_id not set
+        """
+        if not self.user_id:
+            raise GlobalTriggerServiceError("Cannot copy triggers in self-hosted mode")
+        
+        try:
+            # Load shared trigger
+            shared_file = self.file_service.get_shared_data_path("triggers") / f"{trigger_id}.json"
+            
+            if not shared_file.exists():
+                raise GlobalTriggerServiceError(f"Shared trigger {trigger_id} not found")
+            
+            with open(shared_file, 'r', encoding='utf-8') as f:
+                trigger_data = json.load(f)
+            
+            # Verify it's a shared resource
+            if not trigger_data.get("is_shared", False):
+                raise GlobalTriggerServiceError("Can only copy shared resources")
+            
+            # Generate new ID for the copy
+            new_id = str(uuid.uuid4())
+            now = datetime.now().isoformat()
+            
+            # Create copy with new metadata
+            trigger_copy = {
+                **trigger_data,
+                "id": new_id,
+                "name": f"{trigger_data['name']} (Copy)",
+                "is_shared": False,
+                "owner_id": self.user_id,
+                "created_at": now,
+                "updated_at": now
+            }
+            
+            # Save to user directory
+            user_file = self.file_service.get_user_data_path(self.user_id, "triggers") / f"{new_id}.json"
+            with open(user_file, 'w', encoding='utf-8') as f:
+                json.dump(trigger_copy, f, indent=2, ensure_ascii=False)
+            
+            return GlobalTrigger(**trigger_copy)
+            
+        except Exception as e:
+            raise GlobalTriggerServiceError(f"Failed to copy trigger: {str(e)}")

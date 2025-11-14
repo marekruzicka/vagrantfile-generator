@@ -190,3 +190,5 @@ class GlobalProvisionerSummary(BaseModel):
     description: Optional[str] = None
     type: Literal["shell"] = "shell"
     scope: Literal["global"] = "global"
+    is_shared: Optional[bool] = False
+    owner_id: Optional[str] = None

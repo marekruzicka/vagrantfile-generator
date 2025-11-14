@@ -147,3 +147,27 @@ async def delete_plugin(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=str(e)
         )
+
+
+@router.post("/plugins/{plugin_id}/copy", response_model=Plugin)
+async def copy_shared_plugin(
+    plugin_id: str,
+    plugin_service: PluginService = Depends(get_plugin_service)
+):
+    """
+    Copy a shared plugin to user's directory.
+    User can then edit/customize their copy.
+    """
+    try:
+        copied_plugin = plugin_service.copy_shared_plugin(plugin_id)
+        return copied_plugin
+    except PluginServiceError as e:
+        if "not found" in str(e):
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=str(e)
+            )
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(e)
+        )

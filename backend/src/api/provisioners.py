@@ -220,3 +220,27 @@ async def delete_provisioner(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Failed to delete provisioner: {str(e)}"
         )
+
+
+@router.post("/provisioners/{provisioner_id}/copy", response_model=GlobalProvisioner)
+async def copy_shared_provisioner(
+    provisioner_id: str,
+    provisioner_service: GlobalProvisionerService = Depends(get_provisioner_service)
+):
+    """
+    Copy a shared provisioner to user's directory.
+    User can then edit/customize their copy.
+    """
+    try:
+        copied_provisioner = provisioner_service.copy_shared_provisioner(provisioner_id)
+        return copied_provisioner
+    except GlobalProvisionerServiceError as e:
+        if "not found" in str(e):
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=str(e)
+            )
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(e)
+        )

@@ -4,26 +4,34 @@ Project Trigger API endpoints for Vagrantfile Generator.
 This module provides REST API endpoints for managing triggers on projects.
 """
 
-from typing import List
+from typing import List, Optional
 from uuid import UUID
 from fastapi import APIRouter, HTTPException, Depends, status
 
 from ..models.global_trigger import GlobalTriggerSummary
+from ..models.user_profile import UserProfile
 from ..services.project_service import ProjectService, ProjectNotFoundError
 from ..services.global_trigger_service import GlobalTriggerService, GlobalTriggerServiceError
+from ..middleware.auth_middleware import get_optional_user
 
 
 router = APIRouter()
 
 
-def get_project_service() -> ProjectService:
-    """Dependency to get project service instance."""
-    return ProjectService()
+def get_project_service(
+    current_user: Optional[UserProfile] = Depends(get_optional_user)
+) -> ProjectService:
+    """Dependency to get project service instance with user context."""
+    user_id = current_user.user_id if current_user else None
+    return ProjectService(user_id=user_id)
 
 
-def get_trigger_service() -> GlobalTriggerService:
-    """Dependency to get trigger service instance."""
-    return GlobalTriggerService()
+def get_trigger_service(
+    current_user: Optional[UserProfile] = Depends(get_optional_user)
+) -> GlobalTriggerService:
+    """Dependency to get trigger service instance with user context."""
+    user_id = current_user.user_id if current_user else None
+    return GlobalTriggerService(user_id=user_id)
 
 
 @router.get("/projects/{project_id}/triggers", response_model=List[GlobalTriggerSummary])

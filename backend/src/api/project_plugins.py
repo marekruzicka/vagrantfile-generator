@@ -5,25 +5,33 @@ This module contains API endpoints for managing plugins within projects.
 """
 
 from uuid import UUID
-from typing import List
+from typing import List, Optional
 
 from fastapi import APIRouter, HTTPException, Depends
 
 from ..models import PluginConfiguration, DeploymentStatus
+from ..models.user_profile import UserProfile
 from ..services import ProjectService, ProjectNotFoundError
 from ..services.plugin_service import PluginService
+from ..middleware.auth_middleware import get_optional_user
 
 router = APIRouter()
 
 # Dependency to get ProjectService instance
-def get_project_service() -> ProjectService:
-    """Get ProjectService instance."""
-    return ProjectService()
+def get_project_service(
+    current_user: Optional[UserProfile] = Depends(get_optional_user)
+) -> ProjectService:
+    """Get ProjectService instance with user context."""
+    user_id = current_user.user_id if current_user else None
+    return ProjectService(user_id=user_id)
 
 # Dependency to get PluginService instance
-def get_plugin_service() -> PluginService:
-    """Get PluginService instance."""
-    return PluginService()
+def get_plugin_service(
+    current_user: Optional[UserProfile] = Depends(get_optional_user)
+) -> PluginService:
+    """Get PluginService instance with user context."""
+    user_id = current_user.user_id if current_user else None
+    return PluginService(user_id=user_id)
 
 @router.post("/projects/{project_id}/plugins", response_model=PluginConfiguration, status_code=201)
 async def add_plugin_to_project(

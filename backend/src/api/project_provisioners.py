@@ -5,25 +5,33 @@ This module contains API endpoints for managing provisioners within projects.
 """
 
 from uuid import UUID
-from typing import List
+from typing import List, Optional
 
 from fastapi import APIRouter, HTTPException, Depends, status
 
 from ..services import ProjectService, ProjectNotFoundError
 from ..services.global_provisioner_service import GlobalProvisionerService, GlobalProvisionerServiceError
 from ..models.global_provisioner import GlobalProvisionerSummary
+from ..models.user_profile import UserProfile
+from ..middleware.auth_middleware import get_optional_user
 
 router = APIRouter()
 
 # Dependency to get ProjectService instance
-def get_project_service() -> ProjectService:
-    """Get ProjectService instance."""
-    return ProjectService()
+def get_project_service(
+    current_user: Optional[UserProfile] = Depends(get_optional_user)
+) -> ProjectService:
+    """Get ProjectService instance with user context."""
+    user_id = current_user.user_id if current_user else None
+    return ProjectService(user_id=user_id)
 
 # Dependency to get GlobalProvisionerService instance
-def get_provisioner_service() -> GlobalProvisionerService:
-    """Get GlobalProvisionerService instance."""
-    return GlobalProvisionerService()
+def get_provisioner_service(
+    current_user: Optional[UserProfile] = Depends(get_optional_user)
+) -> GlobalProvisionerService:
+    """Get GlobalProvisionerService instance with user context."""
+    user_id = current_user.user_id if current_user else None
+    return GlobalProvisionerService(user_id=user_id)
 
 
 @router.get("/projects/{project_id}/provisioners", response_model=List[GlobalProvisionerSummary])

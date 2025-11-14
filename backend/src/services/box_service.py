@@ -23,136 +23,48 @@ class BoxServiceError(Exception):
 class BoxService:
     """Service for handling box operations."""
     
-    def __init__(self, base_directory: str = "data", user_id: Optional[str] = None):
+    def __init__(self, base_directory: str = "data", user_id: Optional[str] = None, show_shared: Optional[bool] = None):
         """
         Initialize the box service.
         
         Args:
             base_directory: Base directory for storing box files (deprecated, use user_id)
             user_id: User ID for user-specific storage. If None, uses shared directory.
+            show_shared: Override for show_shared_resources preference (for testing)
         """
+        self.file_service = FileService()
+        self.user_id = user_id
+        
         # Support user-specific directories
         if user_id:
-            file_service = FileService()
-            self.boxes_directory = file_service.get_user_data_path(user_id, "boxes")
+            self.boxes_directory = self.file_service.get_user_data_path(user_id, "boxes")
         else:
             # For backward compatibility and self-hosted mode
             if base_directory == "data":
                 # Use shared directory in new multi-user setup
-                file_service = FileService()
-                self.boxes_directory = file_service.get_shared_data_path("boxes")
+                self.boxes_directory = self.file_service.get_shared_data_path("boxes")
             else:
                 # Legacy direct path specification
                 self.base_directory = Path(base_directory)
                 self.boxes_directory = self.base_directory / "boxes"
         
-        self.boxes_file = self.boxes_directory / "boxes.json"
-        self.user_id = user_id
+        # Load show_shared preference
+        if show_shared is not None:
+            self.show_shared = show_shared
+        else:
+            self.show_shared = self._load_show_shared_preference()
         
         # Create directories if they don't exist
-        self._ensure_directories()
-        
-        # Initialize with default boxes if file doesn't exist
-        self._initialize_default_boxes()
-    
-    def _ensure_directories(self):
-        """Ensure all required directories exist."""
         self.boxes_directory.mkdir(parents=True, exist_ok=True)
     
-    def _initialize_default_boxes(self):
-        """Initialize with default boxes if no boxes file exists."""
-        if not self.boxes_file.exists():
-            default_boxes = [
-                {
-                    "id": str(uuid.uuid4()),
-                    "name": "generic/ubuntu2204",
-                    "description": "Ubuntu 22.04 LTS (Jammy Jellyfish)",
-                    "provider": "libvirt",
-                    "version": None,
-                    "url": None,
-                    "created_at": datetime.now().isoformat(),
-                    "updated_at": datetime.now().isoformat()
-                },
-                {
-                    "id": str(uuid.uuid4()),
-                    "name": "generic/ubuntu2004",
-                    "description": "Ubuntu 20.04 LTS (Focal Fossa)",
-                    "provider": "libvirt",
-                    "version": None,
-                    "url": None,
-                    "created_at": datetime.now().isoformat(),
-                    "updated_at": datetime.now().isoformat()
-                },
-                {
-                    "id": str(uuid.uuid4()),
-                    "name": "generic/centos7",
-                    "description": "CentOS 7",
-                    "provider": "libvirt",
-                    "version": None,
-                    "url": None,
-                    "created_at": datetime.now().isoformat(),
-                    "updated_at": datetime.now().isoformat()
-                },
-                {
-                    "id": str(uuid.uuid4()),
-                    "name": "generic/debian12",
-                    "description": "Debian 12 (Bookworm)",
-                    "provider": "libvirt",
-                    "version": None,
-                    "url": None,
-                    "created_at": datetime.now().isoformat(),
-                    "updated_at": datetime.now().isoformat()
-                },
-                {
-                    "id": str(uuid.uuid4()),
-                    "name": "generic/alpine318",
-                    "description": "Alpine Linux 3.18",
-                    "provider": "libvirt",
-                    "version": None,
-                    "url": None,
-                    "created_at": datetime.now().isoformat(),
-                    "updated_at": datetime.now().isoformat()
-                },
-                {
-                    "id": str(uuid.uuid4()),
-                    "name": "generic/fedora38",
-                    "description": "Fedora 38",
-                    "provider": "libvirt",
-                    "version": None,
-                    "url": None,
-                    "created_at": datetime.now().isoformat(),
-                    "updated_at": datetime.now().isoformat()
-                }
-            ]
-            
-            self._save_boxes(default_boxes)
-    
-    def _load_boxes(self) -> List[Dict]:
-        """Load boxes from the JSON file."""
-        try:
-            if not self.boxes_file.exists():
-                return []
-            
-            with open(self.boxes_file, 'r', encoding='utf-8') as f:
-                data = json.load(f)
-                return data.get('boxes', [])
-                
-        except Exception as e:
-            raise BoxServiceError(f"Failed to load boxes: {str(e)}")
-    
-    def _save_boxes(self, boxes: List[Dict]):
-        """Save boxes to the JSON file."""
-        try:
-            data = {
-                "boxes": boxes,
-                "last_updated": datetime.now().isoformat()
-            }
-            
-            with open(self.boxes_file, 'w', encoding='utf-8') as f:
-                json.dump(data, f, indent=2, ensure_ascii=False)
-                
-        except Exception as e:
-            raise BoxServiceError(f"Failed to save boxes: {str(e)}")
+    def _load_show_shared_preference(self) -> bool:
+        """Load user's preference for showing shared resources."""
+        if not self.user_id:
+            return True  # Self-hosted mode: always show shared
+        
+        from .preference_service import PreferenceService
+        pref_service = PreferenceService(self.user_id)
+        return pref_service.get_show_shared_resources()
     
     def create_box(self, box_data: BoxCreate) -> Box:
         """
@@ -168,10 +80,9 @@ class BoxService:
             BoxServiceError: If creation fails
         """
         try:
-            boxes = self._load_boxes()
-            
             # Check if box name already exists
-            if any(box['name'] == box_data.name for box in boxes):
+            existing_boxes = self.list_boxes()
+            if any(box.name == box_data.name for box in existing_boxes):
                 raise BoxServiceError(f"Box with name '{box_data.name}' already exists")
             
             # Create new box
@@ -189,8 +100,14 @@ class BoxService:
                 "updated_at": now
             }
             
-            boxes.append(box_dict)
-            self._save_boxes(boxes)
+            # Save to user directory if in public mode
+            if self.user_id:
+                file_path = self.file_service.get_user_data_path(self.user_id, "boxes") / f"{box_id}.json"
+            else:
+                file_path = self.file_service.get_shared_data_path("boxes") / f"{box_id}.json"
+            
+            with open(file_path, 'w', encoding='utf-8') as f:
+                json.dump(box_dict, f, indent=2, ensure_ascii=False)
             
             return Box(**box_dict)
             
@@ -210,11 +127,18 @@ class BoxService:
             Box if found, None otherwise
         """
         try:
-            boxes = self._load_boxes()
+            # Try user directory first
+            if self.user_id:
+                user_file = self.file_service.get_user_data_path(self.user_id, "boxes") / f"{box_id}.json"
+                if user_file.exists():
+                    with open(user_file, 'r', encoding='utf-8') as f:
+                        return Box(**json.load(f))
             
-            for box_dict in boxes:
-                if box_dict['id'] == box_id:
-                    return Box(**box_dict)
+            # Try shared directory
+            shared_file = self.file_service.get_shared_data_path("boxes") / f"{box_id}.json"
+            if shared_file.exists():
+                with open(shared_file, 'r', encoding='utf-8') as f:
+                    return Box(**json.load(f))
             
             return None
             
@@ -233,42 +157,53 @@ class BoxService:
             Updated box if found, None otherwise
             
         Raises:
-            BoxServiceError: If update fails
+            BoxServiceError: If update fails or trying to edit shared resource
         """
         try:
-            boxes = self._load_boxes()
+            # Prevent editing shared resources in public mode
+            if self.user_id:
+                user_file = self.file_service.get_user_data_path(self.user_id, "boxes") / f"{box_id}.json"
+                if not user_file.exists():
+                    raise BoxServiceError("Cannot edit shared resources")
+                file_path = user_file
+            else:
+                file_path = self.file_service.get_shared_data_path("boxes") / f"{box_id}.json"
             
-            for i, box_dict in enumerate(boxes):
-                if box_dict['id'] == box_id:
-                    # Check if name is being changed and doesn't conflict
-                    if (box_data.name and box_data.name != box_dict['name'] and 
-                        any(box['name'] == box_data.name for box in boxes)):
-                        raise BoxServiceError(f"Box with name '{box_data.name}' already exists")
-                    
-                    # Update fields - handle optional fields specially
-                    if box_data.name is not None:
-                        box_dict['name'] = box_data.name
-                    if box_data.description is not None:
-                        box_dict['description'] = box_data.description
-                    if box_data.provider is not None:
-                        box_dict['provider'] = box_data.provider
-                    
-                    # For optional fields, update if explicitly provided (including None)
-                    # Check if field was explicitly set in the request
-                    update_data = box_data.dict(exclude_unset=True)
-                    if 'version' in update_data:
-                        box_dict['version'] = box_data.version
-                    if 'url' in update_data:
-                        box_dict['url'] = box_data.url
-                    
-                    box_dict['updated_at'] = datetime.now().isoformat()
-                    
-                    boxes[i] = box_dict
-                    self._save_boxes(boxes)
-                    
-                    return Box(**box_dict)
+            if not file_path.exists():
+                return None
             
-            return None
+            # Load existing box
+            with open(file_path, 'r', encoding='utf-8') as f:
+                box_dict = json.load(f)
+            
+            # Check if name is being changed and doesn't conflict
+            if box_data.name and box_data.name != box_dict['name']:
+                existing_boxes = self.list_boxes()
+                if any(box.name == box_data.name and box.id != box_id for box in existing_boxes):
+                    raise BoxServiceError(f"Box with name '{box_data.name}' already exists")
+            
+            # Update fields - handle optional fields specially
+            if box_data.name is not None:
+                box_dict['name'] = box_data.name
+            if box_data.description is not None:
+                box_dict['description'] = box_data.description
+            if box_data.provider is not None:
+                box_dict['provider'] = box_data.provider
+            
+            # For optional fields, update if explicitly provided (including None)
+            update_data = box_data.dict(exclude_unset=True)
+            if 'version' in update_data:
+                box_dict['version'] = box_data.version
+            if 'url' in update_data:
+                box_dict['url'] = box_data.url
+            
+            box_dict['updated_at'] = datetime.now().isoformat()
+            
+            # Save
+            with open(file_path, 'w', encoding='utf-8') as f:
+                json.dump(box_dict, f, indent=2, ensure_ascii=False)
+            
+            return Box(**box_dict)
             
         except BoxServiceError:
             raise
@@ -286,70 +221,67 @@ class BoxService:
             True if deleted, False if not found
             
         Raises:
-            BoxServiceError: If deletion fails
+            BoxServiceError: If deletion fails or trying to delete shared resource
         """
         try:
-            boxes = self._load_boxes()
+            # Prevent deleting shared resources in public mode
+            if self.user_id:
+                user_file = self.file_service.get_user_data_path(self.user_id, "boxes") / f"{box_id}.json"
+                if not user_file.exists():
+                    raise BoxServiceError("Cannot delete shared resources")
+                user_file.unlink()
+                return True
+            else:
+                file_path = self.file_service.get_shared_data_path("boxes") / f"{box_id}.json"
+                if not file_path.exists():
+                    return False
+                file_path.unlink()
+                return True
             
-            for i, box_dict in enumerate(boxes):
-                if box_dict['id'] == box_id:
-                    del boxes[i]
-                    self._save_boxes(boxes)
-                    return True
-            
-            return False
-            
+        except BoxServiceError:
+            raise
         except Exception as e:
             raise BoxServiceError(f"Failed to delete box {box_id}: {str(e)}")
     
     def list_boxes(self) -> List[BoxSummary]:
         """
         List all boxes (merged shared + user-specific).
+        Filters based on show_shared_resources preference.
         
         Returns:
             List of box summaries with is_shared and owner_id fields
         """
         try:
-            # Load from current location (already set to user or shared dir)
-            boxes_data = self._load_boxes()
+            # Use merge_resources helper (same as plugins/provisioners/triggers)
+            def load_box_summary(file_path: Path) -> dict:
+                with open(file_path, 'r', encoding='utf-8') as f:
+                    return json.load(f)
+            
+            merged_data = self.file_service.merge_resources(
+                user_id=self.user_id,
+                resource_type="boxes",
+                loader_func=load_box_summary
+            )
+            
+            # Convert to BoxSummary instances
             boxes = []
             
-            for box_data in boxes_data:
-                box_summary = BoxSummary(
-                    id=box_data['id'],
-                    name=box_data['name'],
-                    description=box_data['description'],
-                    provider=box_data['provider']
-                )
-                # Add multi-user fields
-                box_summary.is_shared = (self.user_id is None)
-                box_summary.owner_id = self.user_id
-                boxes.append(box_summary)
-            
-            # If user_id is set, also load shared boxes
+            # Load favorites if user is authenticated
+            favorite_ids = []
             if self.user_id:
-                file_service = FileService()
-                shared_boxes_dir = file_service.get_shared_data_path("boxes")
-                shared_boxes_file = shared_boxes_dir / "boxes.json"
+                from .preference_service import PreferenceService
+                pref_service = PreferenceService(self.user_id)
+                favorite_ids = pref_service.get_favorites('boxes')
+            
+            for data in merged_data:
+                box = BoxSummary(**data)
                 
-                if shared_boxes_file.exists():
-                    try:
-                        with open(shared_boxes_file, 'r', encoding='utf-8') as f:
-                            shared_boxes_data = json.load(f)
-                        
-                        for box_data in shared_boxes_data:
-                            box_summary = BoxSummary(
-                                id=box_data['id'],
-                                name=box_data['name'],
-                                description=box_data['description'],
-                                provider=box_data['provider']
-                            )
-                            box_summary.is_shared = True
-                            box_summary.owner_id = None
-                            boxes.append(box_summary)
-                    except Exception as e:
-                        import logging
-                        logging.warning(f"Failed to load shared boxes: {str(e)}")
+                # Filter based on preferences
+                # Show resource if: not shared, OR show_shared=True, OR is a favorite
+                if box.is_shared and not self.show_shared and box.id not in favorite_ids:
+                    continue
+                
+                boxes.append(box)
             
             return boxes
             
@@ -364,16 +296,72 @@ class BoxService:
             List of boxes in API format
         """
         try:
-            boxes = self._load_boxes()
+            boxes = self.list_boxes()
             
             return [
                 {
-                    "name": box['name'],
-                    "description": box['description'],
-                    "provider": box['provider']
+                    "name": box.name,
+                    "description": box.description,
+                    "provider": box.provider
                 }
                 for box in boxes
             ]
             
         except Exception as e:
             raise BoxServiceError(f"Failed to get boxes for API: {str(e)}")
+    
+    def copy_shared_box(self, box_id: str) -> Box:
+        """
+        Create a copy of a shared box in user's directory.
+        User can then edit/customize their copy.
+        
+        Args:
+            box_id: ID of the shared box to copy
+            
+        Returns:
+            Copied box with new ID
+            
+        Raises:
+            BoxServiceError: If box not found, not shared, or user_id not set
+        """
+        if not self.user_id:
+            raise BoxServiceError("Cannot copy boxes in self-hosted mode")
+        
+        try:
+            # Load shared box
+            shared_file = self.file_service.get_shared_data_path("boxes") / f"{box_id}.json"
+            
+            if not shared_file.exists():
+                raise BoxServiceError(f"Shared box {box_id} not found")
+            
+            with open(shared_file, 'r', encoding='utf-8') as f:
+                box_data = json.load(f)
+            
+            # Verify it's a shared resource
+            if not box_data.get("is_shared", False):
+                raise BoxServiceError("Can only copy shared resources")
+            
+            # Generate new ID for the copy
+            new_id = str(uuid.uuid4())
+            now = datetime.now().isoformat()
+            
+            # Create copy with new metadata
+            box_copy = {
+                **box_data,
+                "id": new_id,
+                "name": f"{box_data['name']} (Copy)",
+                "is_shared": False,
+                "owner_id": self.user_id,
+                "created_at": now,
+                "updated_at": now
+            }
+            
+            # Save to user directory
+            user_file = self.file_service.get_user_data_path(self.user_id, "boxes") / f"{new_id}.json"
+            with open(user_file, 'w', encoding='utf-8') as f:
+                json.dump(box_copy, f, indent=2, ensure_ascii=False)
+            
+            return Box(**box_copy)
+            
+        except Exception as e:
+            raise BoxServiceError(f"Failed to copy box: {str(e)}")

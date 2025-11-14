@@ -130,17 +130,12 @@ async def delete_box(
         if box_service.user_id is not None:
             from ..services.file_service import FileService
             file_service = FileService()
-            shared_boxes_file = file_service.get_shared_data_path("boxes") / "boxes.json"
-            if shared_boxes_file.exists():
-                # Check if this box_id exists in shared boxes
-                import json
-                with open(shared_boxes_file, 'r') as f:
-                    shared_boxes = json.load(f)
-                if any(box.get('id') == box_id for box in shared_boxes):
-                    raise HTTPException(
-                        status_code=status.HTTP_403_FORBIDDEN,
-                        detail="Cannot delete shared resource - shared resources are read-only"
-                    )
+            shared_path = file_service.get_shared_data_path("boxes") / f"{box_id}.json"
+            if shared_path.exists():
+                raise HTTPException(
+                    status_code=status.HTTP_403_FORBIDDEN,
+                    detail="Cannot delete shared resource - shared resources are read-only"
+                )
         
         deleted = box_service.delete_box(box_id)
         if not deleted:
@@ -155,5 +150,29 @@ async def delete_box(
     except BoxServiceError as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=str(e)
+        )
+
+
+@router.post("/boxes/{box_id}/copy", response_model=Box)
+async def copy_shared_box(
+    box_id: str,
+    box_service: BoxService = Depends(get_box_service)
+):
+    """
+    Copy a shared box to user's directory.
+    User can then edit/customize their copy.
+    """
+    try:
+        copied_box = box_service.copy_shared_box(box_id)
+        return copied_box
+    except BoxServiceError as e:
+        if "not found" in str(e):
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=str(e)
+            )
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
             detail=str(e)
         )

@@ -223,3 +223,5 @@ class GlobalTriggerSummary(BaseModel):
     stage: str
     created_at: datetime
     updated_at: datetime
+    is_shared: Optional[bool] = False
+    owner_id: Optional[str] = None

@@ -3,9 +3,6 @@
 
 version: '3.9'
 
-x-common-variables: &common-variables
-  FE_LISTEN_URL: http://notas.lan:8080
-
 services:
   backend:
     build:
@@ -13,35 +10,12 @@ services:
       dockerfile: Dockerfile
     image: vagrantfile-backend:prod
     container_name: vagrantfile-be-prod
-    # ports:
-    #   - "8000:8000"
-    environment:
-      <<: *common-variables
-      CORS_ORIGINS: ${FE_LISTEN_URL}
-      DEPLOYMENT_MODE: ${DEPLOYMENT_MODE:-self-hosted}
-      JWT_SECRET_KEY: ${JWT_SECRET_KEY:?JWT_SECRET_KEY is required in production}
-      JWT_ALGORITHM: ${JWT_ALGORITHM:-HS256}
-      JWT_EXPIRATION_HOURS: ${JWT_EXPIRATION_HOURS:-24}
-      MAILGUN_API_KEY: ${MAILGUN_API_KEY:-}
-      MAILGUN_DOMAIN: ${MAILGUN_DOMAIN:-}
-      MAILGUN_FROM_EMAIL: ${MAILGUN_FROM_EMAIL:-}
-      OIDC_GOOGLE_CLIENT_ID: ${OIDC_GOOGLE_CLIENT_ID:-}
-      OIDC_GOOGLE_CLIENT_SECRET: ${OIDC_GOOGLE_CLIENT_SECRET:-}
-      OIDC_GITHUB_CLIENT_ID: ${OIDC_GITHUB_CLIENT_ID:-}
-      OIDC_GITHUB_CLIENT_SECRET: ${OIDC_GITHUB_CLIENT_SECRET:-}
-      OIDC_GITLAB_CLIENT_ID: ${OIDC_GITLAB_CLIENT_ID:-}
-      OIDC_GITLAB_CLIENT_SECRET: ${OIDC_GITLAB_CLIENT_SECRET:-}
-      OIDC_GITLAB_URL: ${OIDC_GITLAB_URL:-https://gitlab.com}
-      BASE_URL: ${BASE_URL:-http://localhost:8000}
-      FRONTEND_URL: ${FRONTEND_URL:-http://localhost:8080}
-      OTP_RATE_LIMIT_MAX_REQUESTS: ${OTP_RATE_LIMIT_MAX_REQUESTS:-5}
-      OTP_RATE_LIMIT_WINDOW_HOURS: ${OTP_RATE_LIMIT_WINDOW_HOURS:-1}
-      OTP_LENGTH: ${OTP_LENGTH:-6}
-      OTP_EXPIRATION_MINUTES: ${OTP_EXPIRATION_MINUTES:-15}
-      OTP_MAX_ATTEMPTS: ${OTP_MAX_ATTEMPTS:-3}
-      LOG_LEVEL: ${LOG_LEVEL:-INFO}
-    # volumes:
-    #   - backend-data:/app/data
+    env_file:
+      - .env
+    ports:
+      - "8000:8000"
+    volumes:
+      - backend-data:/app/data
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
       interval: 3s
@@ -56,9 +30,8 @@ services:
       dockerfile: Dockerfile
     image: vagrantfile-frontend:prod
     container_name: vagrantfile-fe-prod
-    environment:
-      <<: *common-variables
-      FRONTEND_API_URL: ${FRONTEND_API_URL:-/api}
+    env_file:
+      - .env
     ports:
       - "8080:8080"
     depends_on:
@@ -72,8 +45,8 @@ services:
       start_period: 5s
     restart: unless-stopped
 
-# volumes:
-#   backend-data:
+volumes:
+  backend-data:
 
 networks:
   default:

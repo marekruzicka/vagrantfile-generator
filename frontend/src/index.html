@@ -135,21 +135,30 @@
                 <!-- Boxes Grid -->
                 <div x-show="sectionsOpen.settingsBoxes && availableBoxes.length > 0" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                     <template x-for="box in availableBoxes" :key="box.id">
-                        <div class="border border-gray-200 rounded-lg p-4 hover:border-blue-300 transition-colors">
+                        <div class="border border-gray-200 rounded-lg p-4 hover:border-blue-300 transition-colors"
+                             :class="box.is_shared ? 'border-amber-200 bg-amber-50/20' : ''">
                             <div class="flex items-start justify-between mb-3">
-                                <div class="flex items-center space-x-3">
+                                <div class="flex items-center space-x-3 flex-1">
                                     <div class="w-10 h-10 bg-gradient-to-br from-purple-500 to-blue-600 rounded-lg flex items-center justify-center">
                                         <svg class="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
                                             <path fill-rule="evenodd" d="M2 5a2 2 0 012-2h8a2 2 0 012 2v10a2 2 0 002 2H4a2 2 0 01-2-2V5zm3 1h6v4H5V6zm6 6H5v2h6v-2z" clip-rule="evenodd"></path>
                                             <path d="M15 7h1a2 2 0 012 2v5.5a1.5 1.5 0 01-3 0V9a1 1 0 00-1-1h-1v1z"></path>
                                         </svg>
                                     </div>
-                                    <div>
-                                        <h4 class="text-lg font-semibold text-gray-900" x-text="box.name"></h4>
+                                    <div class="flex-1 min-w-0">
+                                        <div class="flex items-center gap-2 flex-wrap">
+                                            <h4 class="text-lg font-semibold text-gray-900" x-text="box.name"></h4>
+                                            <span x-show="box.is_shared" class="shared-resource-badge" title="This is a shared box. You can use it in your projects, but cannot edit or delete it.">
+                                                <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                                                    <path d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v3h8v-3zM6 8a2 2 0 11-4 0 2 2 0 014 0zM16 18v-3a5.972 5.972 0 00-.75-2.906A3.005 3.005 0 0119 15v3h-3zM4.75 12.094A5.973 5.973 0 004 15v3H1v-3a3 3 0 013.75-2.906z"></path>
+                                                </svg>
+                                                Shared
+                                            </span>
+                                        </div>
                                         <p class="text-sm text-gray-500" x-text="box.provider"></p>
                                     </div>
                                 </div>
-                                <div class="flex space-x-1">
+                                <div x-show="!box.is_shared" class="flex space-x-1">
                                     <button @click="openEditBoxModal(box)" 
                                             class="p-1 text-gray-400 hover:text-blue-600 transition-colors">
                                         <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">

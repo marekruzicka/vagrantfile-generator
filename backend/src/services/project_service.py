@@ -68,6 +68,8 @@ class ProjectService:
         """Load a project from its JSON file with minimal validation for backward compatibility."""
         file_path = self._get_project_file_path(project_id)
         
+        # In public mode, only load from user directory (no fallback to shared)
+        # In self-hosted mode, load from shared directory
         if not file_path.exists():
             raise ProjectNotFoundError(f"Project {project_id} not found")
         
@@ -277,7 +279,9 @@ class ProjectService:
 
     def list_projects(self) -> List[ProjectSummary]:
         """
-        List all projects (merged shared + user-specific).
+        List projects.
+        - Public mode (user_id set): Only user's own projects
+        - Self-hosted mode (user_id=None): Projects from shared directory
         
         Returns:
             List of ProjectSummary instances with is_shared and owner_id fields
@@ -285,7 +289,7 @@ class ProjectService:
         projects = []
         file_service = FileService()
         
-        # Loader function for merge_resources
+        # Loader function to extract project summary data
         def load_project_summary(file_path: Path) -> dict:
             with open(file_path, 'r', encoding='utf-8') as f:
                 data = json.load(f)
@@ -299,41 +303,74 @@ class ProjectService:
                 'deployment_status': data.get('deployment_status', 'draft')
             }
         
-        # Merge shared and user resources
-        merged_data = file_service.merge_resources(
-            user_id=self.user_id,
-            resource_type="projects",
-            loader_func=load_project_summary
-        )
-        
-        # Convert to ProjectSummary instances
-        for data in merged_data:
-            try:
-                # Parse datetime strings
-                created_at = datetime.fromisoformat(data['created_at'].replace('Z', '+00:00'))
-                updated_at = datetime.fromisoformat(data['updated_at'].replace('Z', '+00:00'))
-                
-                project_summary = ProjectSummary(
-                    id=data['id'],
-                    name=data['name'],
-                    description=data['description'],
-                    created_at=created_at,
-                    updated_at=updated_at,
-                    vm_count=data['vm_count'],
-                    deployment_status=DeploymentStatus(data['deployment_status'])
-                )
-                
-                # Add multi-user fields
-                project_summary.is_shared = data.get('is_shared', False)
-                project_summary.owner_id = data.get('owner_id')
-                
-                projects.append(project_summary)
-                
-            except (KeyError, ValueError) as e:
-                # Skip invalid entries
-                import logging
-                logging.warning(f"Skipping invalid project: {str(e)}")
-                continue
+        if self.user_id:
+            # PUBLIC MODE: Only load user's own projects
+            user_dir = file_service.get_user_data_path(self.user_id, "projects")
+            if user_dir.exists():
+                for file_path in user_dir.glob("*.json"):
+                    try:
+                        data = load_project_summary(file_path)
+                        data['is_shared'] = False
+                        data['owner_id'] = self.user_id
+                        
+                        # Parse datetime strings
+                        created_at = datetime.fromisoformat(data['created_at'].replace('Z', '+00:00'))
+                        updated_at = datetime.fromisoformat(data['updated_at'].replace('Z', '+00:00'))
+                        
+                        project_summary = ProjectSummary(
+                            id=data['id'],
+                            name=data['name'],
+                            description=data['description'],
+                            created_at=created_at,
+                            updated_at=updated_at,
+                            vm_count=data['vm_count'],
+                            deployment_status=DeploymentStatus(data['deployment_status'])
+                        )
+                        
+                        # Add multi-user fields
+                        project_summary.is_shared = False
+                        project_summary.owner_id = self.user_id
+                        
+                        projects.append(project_summary)
+                        
+                    except (KeyError, ValueError) as e:
+                        import logging
+                        logging.warning(f"Skipping invalid project {file_path}: {str(e)}")
+                        continue
+        else:
+            # SELF-HOSTED MODE: Load from shared directory
+            shared_dir = file_service.get_shared_data_path("projects")
+            if shared_dir.exists():
+                for file_path in shared_dir.glob("*.json"):
+                    try:
+                        data = load_project_summary(file_path)
+                        data['is_shared'] = False  # In self-hosted, no concept of shared
+                        data['owner_id'] = None
+                        
+                        # Parse datetime strings
+                        created_at = datetime.fromisoformat(data['created_at'].replace('Z', '+00:00'))
+                        updated_at = datetime.fromisoformat(data['updated_at'].replace('Z', '+00:00'))
+                        
+                        project_summary = ProjectSummary(
+                            id=data['id'],
+                            name=data['name'],
+                            description=data['description'],
+                            created_at=created_at,
+                            updated_at=updated_at,
+                            vm_count=data['vm_count'],
+                            deployment_status=DeploymentStatus(data['deployment_status'])
+                        )
+                        
+                        # Add multi-user fields
+                        project_summary.is_shared = False
+                        project_summary.owner_id = None
+                        
+                        projects.append(project_summary)
+                        
+                    except (KeyError, ValueError) as e:
+                        import logging
+                        logging.warning(f"Skipping invalid project {file_path}: {str(e)}")
+                        continue
         
         # Sort by creation date (newest first)
         projects.sort(key=lambda p: p.created_at, reverse=True)

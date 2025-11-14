@@ -24,13 +24,14 @@ class PluginServiceError(Exception):
 class PluginService:
     """Service for handling plugin operations using file-based storage."""
     
-    def __init__(self, base_directory: str = "data", user_id: Optional[str] = None):
+    def __init__(self, base_directory: str = "data", user_id: Optional[str] = None, show_shared: Optional[bool] = None):
         """
         Initialize the plugin service.
         
         Args:
             base_directory: Base directory for storing plugin files (deprecated, use user_id)
             user_id: User ID for user-specific storage. If None, uses shared directory.
+            show_shared: Override for show_shared_resources preference (for testing)
         """
         # Support user-specific directories
         if user_id:
@@ -48,9 +49,25 @@ class PluginService:
                 self.plugins_directory = self.base_directory / "plugins"
         
         self.user_id = user_id
+        self.file_service = FileService()
+        
+        # Load show_shared preference
+        if show_shared is not None:
+            self.show_shared = show_shared
+        else:
+            self.show_shared = self._load_show_shared_preference()
         
         # Create directories if they don't exist
         self._ensure_directories()
+    
+    def _load_show_shared_preference(self) -> bool:
+        """Load user's preference for showing shared resources."""
+        if not self.user_id:
+            return True  # Self-hosted mode: always show shared
+        
+        from .preference_service import PreferenceService
+        pref_service = PreferenceService(self.user_id)
+        return pref_service.get_show_shared_resources()
     
     def _ensure_directories(self):
         """Ensure all required directories exist."""
@@ -64,6 +81,13 @@ class PluginService:
         """Load a plugin from its JSON file."""
         try:
             plugin_file = self._get_plugin_file_path(plugin_id)
+            
+            # Try user directory first, then shared directory
+            if not plugin_file.exists() and self.user_id:
+                file_service = FileService()
+                shared_path = file_service.get_shared_data_path("plugins") / f"{plugin_id}.json"
+                if shared_path.exists():
+                    plugin_file = shared_path
             
             if not plugin_file.exists():
                 return None
@@ -237,13 +261,20 @@ class PluginService:
             Updated plugin if found, None otherwise
             
         Raises:
-            PluginServiceError: If plugin name conflicts with another plugin
+            PluginServiceError: If plugin name conflicts with another plugin or if trying to edit shared resource
         """
         try:
             existing_plugin = self._load_plugin_from_file(plugin_id)
             
             if not existing_plugin:
                 return None
+            
+            # Check if trying to edit a shared resource in public mode
+            if self.user_id:
+                # In public mode, check if this plugin is in shared directory
+                user_file = self.data_dir / f"{plugin_id}.json"
+                if not user_file.exists():
+                    raise PluginServiceError("Cannot edit shared resources")
             
             # Check for name conflicts if name is being updated
             if plugin_data.name and plugin_data.name != existing_plugin.get("name"):
@@ -275,8 +306,17 @@ class PluginService:
             
         Returns:
             True if deleted, False if not found
+            
+        Raises:
+            PluginServiceError: If trying to delete shared resource
         """
         try:
+            # Check if trying to delete a shared resource in public mode
+            if self.user_id:
+                user_file = self.data_dir / f"{plugin_id}.json"
+                if not user_file.exists():
+                    raise PluginServiceError("Cannot delete shared resources")
+            
             return self._delete_plugin_file(plugin_id)
             
         except Exception as e:
@@ -285,6 +325,7 @@ class PluginService:
     def list_plugins(self, include_deprecated: bool = True) -> List[Plugin]:
         """
         List all plugins (merged shared + user-specific).
+        Filters based on show_shared_resources preference.
         
         Args:
             include_deprecated: Whether to include deprecated plugins
@@ -308,8 +349,21 @@ class PluginService:
             )
             
             plugins = []
+            
+            # Load favorites if user is authenticated
+            favorite_ids = []
+            if self.user_id:
+                from .preference_service import PreferenceService
+                pref_service = PreferenceService(self.user_id)
+                favorite_ids = pref_service.get_favorites('plugins')
+            
             for plugin_data in merged_data:
                 plugin = Plugin(**plugin_data)
+                
+                # Filter based on preferences
+                # Show resource if: not shared, OR show_shared=True, OR is a favorite
+                if plugin.is_shared and not self.show_shared and plugin.id not in favorite_ids:
+                    continue
                 
                 if include_deprecated or not plugin.is_deprecated:
                     plugins.append(plugin)
@@ -348,3 +402,59 @@ class PluginService:
             
         except Exception as e:
             raise PluginServiceError(f"Failed to list plugin summaries: {str(e)}")
+    
+    def copy_shared_plugin(self, plugin_id: str) -> Plugin:
+        """
+        Create a copy of a shared plugin in user's directory.
+        User can then edit/customize their copy.
+        
+        Args:
+            plugin_id: ID of the shared plugin to copy
+            
+        Returns:
+            Copied plugin with new ID
+            
+        Raises:
+            PluginServiceError: If plugin not found, not shared, or user_id not set
+        """
+        if not self.user_id:
+            raise PluginServiceError("Cannot copy plugins in self-hosted mode")
+        
+        try:
+            # Load shared plugin
+            shared_file = self.file_service.get_shared_data_path("plugins") / f"{plugin_id}.json"
+            
+            if not shared_file.exists():
+                raise PluginServiceError(f"Shared plugin {plugin_id} not found")
+            
+            with open(shared_file, 'r', encoding='utf-8') as f:
+                plugin_data = json.load(f)
+            
+            # Verify it's a shared resource
+            if not plugin_data.get("is_shared", False):
+                raise PluginServiceError("Can only copy shared resources")
+            
+            # Generate new ID for the copy
+            new_id = str(uuid.uuid4())
+            now = datetime.now().isoformat()
+            
+            # Create copy with new metadata
+            plugin_copy = {
+                **plugin_data,
+                "id": new_id,
+                "name": f"{plugin_data['name']} (Copy)",
+                "is_shared": False,
+                "owner_id": self.user_id,
+                "created_at": now,
+                "updated_at": now
+            }
+            
+            # Save to user directory
+            user_file = self.file_service.get_user_data_path(self.user_id, "plugins") / f"{new_id}.json"
+            with open(user_file, 'w', encoding='utf-8') as f:
+                json.dump(plugin_copy, f, indent=2, ensure_ascii=False)
+            
+            return Plugin(**plugin_copy)
+            
+        except Exception as e:
+            raise PluginServiceError(f"Failed to copy plugin: {str(e)}")

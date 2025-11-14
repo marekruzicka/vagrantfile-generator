@@ -212,3 +212,27 @@ async def delete_trigger(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Failed to delete trigger: {str(e)}"
         )
+
+
+@router.post("/triggers/{trigger_id}/copy", response_model=GlobalTrigger)
+async def copy_shared_trigger(
+    trigger_id: str,
+    trigger_service: GlobalTriggerService = Depends(get_trigger_service)
+):
+    """
+    Copy a shared trigger to user's directory.
+    User can then edit/customize their copy.
+    """
+    try:
+        copied_trigger = trigger_service.copy_shared_trigger(trigger_id)
+        return copied_trigger
+    except GlobalTriggerServiceError as e:
+        if "not found" in str(e):
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=str(e)
+            )
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(e)
+        )

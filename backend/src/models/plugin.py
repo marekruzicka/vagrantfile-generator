@@ -73,6 +73,8 @@ class PluginSummary(BaseModel):
     description: Optional[str] = Field(default=None, description="Human-readable description")
     default_version: Optional[str] = Field(default=None, description="Default version constraint")
     is_deprecated: bool = Field(default=False, description="Whether the plugin is deprecated")
+    is_shared: Optional[bool] = Field(default=False, description="Whether this is a shared resource")
+    owner_id: Optional[str] = Field(default=None, description="User ID of the owner (None for shared)")
     
     class Config:
         """Pydantic configuration."""
