@@ -19,18 +19,23 @@ from ..middleware.auth_middleware import get_optional_user
 router = APIRouter()
 
 # Dependency to get ProjectService instance
-def get_project_service() -> ProjectService:
-    """Get ProjectService instance."""
-    return ProjectService()
+def get_project_service(
+    current_user: Optional[UserProfile] = Depends(get_optional_user)
+) -> ProjectService:
+    """Get ProjectService instance with user context."""
+    user_id = current_user.user_id if current_user else None
+    return ProjectService(user_id=user_id)
 
 # Dependency to get PluginService instance
-def get_plugin_service() -> PluginService:
-    """Get PluginService instance."""
-    return PluginService()
+def get_plugin_service(
+    current_user: Optional[UserProfile] = Depends(get_optional_user)
+) -> PluginService:
+    """Get PluginService instance with user context."""
+    user_id = current_user.user_id if current_user else None
+    return PluginService(user_id=user_id)
 
 @router.get("/projects/stats", response_model=dict)
 async def get_project_stats(
-    current_user: Optional[UserProfile] = Depends(get_optional_user),
     project_service: ProjectService = Depends(get_project_service)
 ):
     """Get project statistics including counts by deployment status."""
@@ -48,7 +53,6 @@ async def get_project_stats(
 @router.post("/projects", response_model=Project, status_code=201)
 async def create_project(
     project_data: ProjectCreate,
-    current_user: Optional[UserProfile] = Depends(get_optional_user),
     project_service: ProjectService = Depends(get_project_service)
 ):
     """Create a new project."""
@@ -61,7 +65,6 @@ async def create_project(
 @router.get("/projects/{project_id}", response_model=Project)
 async def get_project(
     project_id: UUID,
-    current_user: Optional[UserProfile] = Depends(get_optional_user),
     project_service: ProjectService = Depends(get_project_service),
     plugin_service: PluginService = Depends(get_plugin_service)
 ):
@@ -86,7 +89,6 @@ async def get_project(
 async def update_project(
     project_id: UUID,
     project_data: ProjectUpdate,
-    current_user: Optional[UserProfile] = Depends(get_optional_user),
     project_service: ProjectService = Depends(get_project_service)
 ):
     """Update an existing project."""
@@ -106,7 +108,6 @@ async def update_project(
 @router.delete("/projects/{project_id}", status_code=204)
 async def delete_project(
     project_id: UUID,
-    current_user: Optional[UserProfile] = Depends(get_optional_user),
     project_service: ProjectService = Depends(get_project_service)
 ):
     """Delete a project."""
@@ -120,7 +121,6 @@ async def delete_project(
 async def update_deployment_status(
     project_id: UUID,
     status: DeploymentStatus,
-    current_user: Optional[UserProfile] = Depends(get_optional_user),
     project_service: ProjectService = Depends(get_project_service)
 ):
     """Update project deployment status."""
@@ -135,7 +135,6 @@ async def update_deployment_status(
 @router.get("/projects", response_model=dict)
 async def list_projects(
     status: Optional[DeploymentStatus] = None,
-    current_user: Optional[UserProfile] = Depends(get_optional_user),
     project_service: ProjectService = Depends(get_project_service)
 ):
     """List all projects, optionally filtered by deployment status."""
@@ -148,7 +147,6 @@ async def list_projects(
 @router.post("/projects/{project_id}/validate", response_model=dict)
 async def validate_project(
     project_id: UUID,
-    current_user: Optional[UserProfile] = Depends(get_optional_user),
     project_service: ProjectService = Depends(get_project_service)
 ):
     """Validate a project configuration."""

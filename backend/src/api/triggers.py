@@ -20,13 +20,20 @@ from ..services.global_trigger_service import GlobalTriggerService, GlobalTrigge
 
 
 router = APIRouter()
-trigger_service = GlobalTriggerService()
+
+# Dependency to get GlobalTriggerService instance
+def get_trigger_service(
+    current_user: Optional[UserProfile] = Depends(get_optional_user)
+) -> GlobalTriggerService:
+    """Get GlobalTriggerService instance with user context."""
+    user_id = current_user.user_id if current_user else None
+    return GlobalTriggerService(user_id=user_id)
 
 
 @router.post("/triggers", response_model=GlobalTrigger, status_code=status.HTTP_201_CREATED)
 async def create_trigger(
     trigger_data: GlobalTriggerCreate,
-    current_user: Optional[UserProfile] = Depends(get_optional_user)
+    trigger_service: GlobalTriggerService = Depends(get_trigger_service)
 ):
     """
     Create a new global trigger.
@@ -56,7 +63,9 @@ async def create_trigger(
 
 
 @router.get("/triggers", response_model=List[GlobalTriggerSummary])
-async def list_triggers(current_user: Optional[UserProfile] = Depends(get_optional_user)):
+async def list_triggers(
+    trigger_service: GlobalTriggerService = Depends(get_trigger_service)
+):
     """
     List all global triggers.
     
@@ -76,7 +85,7 @@ async def list_triggers(current_user: Optional[UserProfile] = Depends(get_option
 @router.get("/triggers/{trigger_id}", response_model=GlobalTrigger)
 async def get_trigger(
     trigger_id: str,
-    current_user: Optional[UserProfile] = Depends(get_optional_user)
+    trigger_service: GlobalTriggerService = Depends(get_trigger_service)
 ):
     """
     Get a specific trigger by ID.
@@ -113,7 +122,7 @@ async def get_trigger(
 async def update_trigger(
     trigger_id: str,
     trigger_data: GlobalTriggerUpdate,
-    current_user: Optional[UserProfile] = Depends(get_optional_user)
+    trigger_service: GlobalTriggerService = Depends(get_trigger_service)
 ):
     """
     Update an existing trigger.
@@ -152,7 +161,7 @@ async def update_trigger(
 @router.delete("/triggers/{trigger_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_trigger(
     trigger_id: str,
-    current_user: Optional[UserProfile] = Depends(get_optional_user)
+    trigger_service: GlobalTriggerService = Depends(get_trigger_service)
 ):
     """
     Delete a trigger.

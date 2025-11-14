@@ -1,20 +1,29 @@
 """
-Box management API endpoints for Vagrantfile Generator.
+"""Box management API endpoints for Vagrantfile Generator.
 """
 
-from typing import List
-from fastapi import APIRouter, HTTPException, status
+from typing import List, Optional
+from fastapi import APIRouter, HTTPException, status, Depends
 from fastapi.responses import JSONResponse
 
+from ..models.user_profile import UserProfile
 from ..models.box import Box, BoxCreate, BoxUpdate, BoxSummary
 from ..services.box_service import BoxService, BoxServiceError
+from ..middleware.auth_middleware import get_optional_user
 
 router = APIRouter()
-box_service = BoxService()
+
+# Dependency to get BoxService instance
+def get_box_service(
+    current_user: Optional[UserProfile] = Depends(get_optional_user)
+) -> BoxService:
+    """Get BoxService instance with user context."""
+    user_id = current_user.user_id if current_user else None
+    return BoxService(user_id=user_id)
 
 
 @router.get("/boxes", response_model=List[BoxSummary])
-async def list_boxes(current_user: Optional[UserProfile] = Depends(get_optional_user)):
+async def list_boxes(box_service: BoxService = Depends(get_box_service)):
     """Get list of all boxes."""
     try:
         boxes = box_service.list_boxes()
@@ -27,7 +36,10 @@ async def list_boxes(current_user: Optional[UserProfile] = Depends(get_optional_
 
 
 @router.get("/boxes/{box_id}", response_model=Box)
-async def get_box(box_id: str, current_user: Optional[UserProfile] = Depends(get_optional_user)):
+async def get_box(
+    box_id: str,
+    box_service: BoxService = Depends(get_box_service)
+):
     """Get a specific box by ID."""
     try:
         box = box_service.get_box(box_id)
@@ -45,7 +57,10 @@ async def get_box(box_id: str, current_user: Optional[UserProfile] = Depends(get
 
 
 @router.post("/boxes", response_model=Box, status_code=status.HTTP_201_CREATED)
-async def create_box(box_data: BoxCreate, current_user: Optional[UserProfile] = Depends(get_optional_user)):
+async def create_box(
+    box_data: BoxCreate,
+    box_service: BoxService = Depends(get_box_service)
+):
     """Create a new box."""
     try:
         box = box_service.create_box(box_data)
@@ -66,7 +81,7 @@ async def create_box(box_data: BoxCreate, current_user: Optional[UserProfile] = 
 async def update_box(
     box_id: str,
     box_data: BoxUpdate,
-    current_user: Optional[UserProfile] = Depends(get_optional_user)
+    box_service: BoxService = Depends(get_box_service)
 ):
     """Update an existing box."""
     try:
@@ -92,7 +107,7 @@ async def update_box(
 @router.delete("/boxes/{box_id}")
 async def delete_box(
     box_id: str,
-    current_user: Optional[UserProfile] = Depends(get_optional_user)
+    box_service: BoxService = Depends(get_box_service)
 ):
     """Delete a box."""
     try:

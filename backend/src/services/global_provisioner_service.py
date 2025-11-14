@@ -17,6 +17,7 @@ from ..models.global_provisioner import (
     GlobalProvisionerUpdate,
     GlobalProvisionerSummary
 )
+from .file_service import FileService
 
 
 class GlobalProvisionerServiceError(Exception):
@@ -27,15 +28,30 @@ class GlobalProvisionerServiceError(Exception):
 class GlobalProvisionerService:
     """Service for handling global provisioner operations."""
     
-    def __init__(self, base_directory: str = "data"):
+    def __init__(self, base_directory: str = "data", user_id: Optional[str] = None):
         """
         Initialize the global provisioner service.
         
         Args:
-            base_directory: Base directory for storing provisioner files
+            base_directory: Base directory for storing provisioner files (deprecated, use user_id)
+            user_id: User ID for user-specific storage. If None, uses shared directory.
         """
-        self.base_directory = Path(base_directory)
-        self.provisioners_directory = self.base_directory / "provisioners"
+        # Support user-specific directories
+        if user_id:
+            file_service = FileService()
+            self.provisioners_directory = file_service.get_user_data_path(user_id, "provisioners")
+        else:
+            # For backward compatibility and self-hosted mode
+            if base_directory == "data":
+                # Use shared directory in new multi-user setup
+                file_service = FileService()
+                self.provisioners_directory = file_service.get_shared_data_path("provisioners")
+            else:
+                # Legacy direct path specification
+                self.base_directory = Path(base_directory)
+                self.provisioners_directory = self.base_directory / "provisioners"
+        
+        self.user_id = user_id
         
         # Create directories if they don't exist
         self._ensure_directories()

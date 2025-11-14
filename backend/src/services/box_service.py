@@ -12,6 +12,7 @@ from pathlib import Path
 from datetime import datetime
 
 from ..models.box import Box, BoxCreate, BoxUpdate, BoxSummary
+from .file_service import FileService
 
 
 class BoxServiceError(Exception):
@@ -22,16 +23,31 @@ class BoxServiceError(Exception):
 class BoxService:
     """Service for handling box operations."""
     
-    def __init__(self, base_directory: str = "data"):
+    def __init__(self, base_directory: str = "data", user_id: Optional[str] = None):
         """
         Initialize the box service.
         
         Args:
-            base_directory: Base directory for storing box files
+            base_directory: Base directory for storing box files (deprecated, use user_id)
+            user_id: User ID for user-specific storage. If None, uses shared directory.
         """
-        self.base_directory = Path(base_directory)
-        self.boxes_directory = self.base_directory / "boxes"
+        # Support user-specific directories
+        if user_id:
+            file_service = FileService()
+            self.boxes_directory = file_service.get_user_data_path(user_id, "boxes")
+        else:
+            # For backward compatibility and self-hosted mode
+            if base_directory == "data":
+                # Use shared directory in new multi-user setup
+                file_service = FileService()
+                self.boxes_directory = file_service.get_shared_data_path("boxes")
+            else:
+                # Legacy direct path specification
+                self.base_directory = Path(base_directory)
+                self.boxes_directory = self.base_directory / "boxes"
+        
         self.boxes_file = self.boxes_directory / "boxes.json"
+        self.user_id = user_id
         
         # Create directories if they don't exist
         self._ensure_directories()

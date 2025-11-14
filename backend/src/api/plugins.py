@@ -2,19 +2,27 @@
 Plugin management API endpoints for Vagrantfile Generator.
 """
 
-from typing import List
-from fastapi import APIRouter, HTTPException, status
-from fastapi.responses import JSONResponse
+from typing import List, Optional
+from fastapi import APIRouter, HTTPException, status, Depends
 
+from ..models.user_profile import UserProfile
 from ..models.plugin import Plugin, PluginCreate, PluginUpdate, PluginSummary
 from ..services.plugin_service import PluginService, PluginServiceError
+from ..middleware.auth_middleware import get_optional_user
 
 router = APIRouter()
-plugin_service = PluginService()
+
+# Dependency to get PluginService instance
+def get_plugin_service(
+    current_user: Optional[UserProfile] = Depends(get_optional_user)
+) -> PluginService:
+    """Get PluginService instance with user context."""
+    user_id = current_user.user_id if current_user else None
+    return PluginService(user_id=user_id)
 
 
 @router.get("/plugins", response_model=List[PluginSummary])
-async def list_plugins(current_user: Optional[UserProfile] = Depends(get_optional_user)):
+async def list_plugins(plugin_service: PluginService = Depends(get_plugin_service)):
     """Get list of all plugins."""
     try:
         plugins = plugin_service.list_plugins()
@@ -27,7 +35,10 @@ async def list_plugins(current_user: Optional[UserProfile] = Depends(get_optiona
 
 
 @router.get("/plugins/{plugin_id}", response_model=Plugin)
-async def get_plugin(plugin_id: str, current_user: Optional[UserProfile] = Depends(get_optional_user)):
+async def get_plugin(
+    plugin_id: str,
+    plugin_service: PluginService = Depends(get_plugin_service)
+):
     """Get a specific plugin by ID."""
     try:
         plugin = plugin_service.get_plugin(plugin_id)
@@ -45,7 +56,10 @@ async def get_plugin(plugin_id: str, current_user: Optional[UserProfile] = Depen
 
 
 @router.post("/plugins", response_model=Plugin, status_code=status.HTTP_201_CREATED)
-async def create_plugin(plugin_data: PluginCreate, current_user: Optional[UserProfile] = Depends(get_optional_user)):
+async def create_plugin(
+    plugin_data: PluginCreate,
+    plugin_service: PluginService = Depends(get_plugin_service)
+):
     """Create a new plugin."""
     try:
         plugin = plugin_service.create_plugin(plugin_data)
@@ -66,7 +80,7 @@ async def create_plugin(plugin_data: PluginCreate, current_user: Optional[UserPr
 async def update_plugin(
     plugin_id: str,
     plugin_data: PluginUpdate,
-    current_user: Optional[UserProfile] = Depends(get_optional_user)
+    plugin_service: PluginService = Depends(get_plugin_service)
 ):
     """Update an existing plugin."""
     try:
@@ -92,7 +106,7 @@ async def update_plugin(
 @router.delete("/plugins/{plugin_id}")
 async def delete_plugin(
     plugin_id: str,
-    current_user: Optional[UserProfile] = Depends(get_optional_user)
+    plugin_service: PluginService = Depends(get_plugin_service)
 ):
     """Delete a plugin."""
     try:

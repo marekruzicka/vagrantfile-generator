@@ -18,16 +18,18 @@ from ..services import ProjectService, ProjectNotFoundError
 router = APIRouter()
 
 # Dependency to get ProjectService instance
-def get_project_service() -> ProjectService:
-    """Get ProjectService instance."""
-    return ProjectService()
+def get_project_service(
+    current_user: Optional[UserProfile] = Depends(get_optional_user)
+) -> ProjectService:
+    """Get ProjectService instance with user context."""
+    user_id = current_user.user_id if current_user else None
+    return ProjectService(user_id=user_id)
 
 @router.post("/projects/{project_id}/vms", response_model=VirtualMachine, status_code=201)
 async def create_vm(
     project_id: UUID,
     vm_data: dict,  # Accept raw dict instead of VirtualMachineCreate to bypass validation
     request: Request,
-    current_user: Optional[UserProfile] = Depends(get_optional_user),
     project_service: ProjectService = Depends(get_project_service)
 ):
     """Add a new VM to a project."""
@@ -71,7 +73,6 @@ async def update_vm(
     vm_name: str,
     vm_data: dict,  # Accept raw dict instead of VirtualMachineCreate to bypass validation
     request: Request,
-    current_user: Optional[UserProfile] = Depends(get_optional_user),
     project_service: ProjectService = Depends(get_project_service)
 ):
     """Update a VM in a project."""
@@ -114,7 +115,6 @@ async def update_vm(
 async def delete_vm(
     project_id: UUID,
     vm_name: str,
-    current_user: Optional[UserProfile] = Depends(get_optional_user),
     project_service: ProjectService = Depends(get_project_service)
 ):
     """Remove a VM from a project."""
@@ -138,7 +138,6 @@ async def add_network_interface(
     vm_name: str,
     interface_data: Dict[str, Any],
     request: Request,
-    current_user: Optional[UserProfile] = Depends(get_optional_user),
     project_service: ProjectService = Depends(get_project_service)
 ):
     """Add a network interface to a VM."""
@@ -187,7 +186,6 @@ async def update_network_interface(
     interface_id: str,
     interface_data: Dict[str, Any],
     request: Request,
-    current_user: Optional[UserProfile] = Depends(get_optional_user),
     project_service: ProjectService = Depends(get_project_service)
 ):
     """Update a network interface on a VM."""
@@ -235,7 +233,6 @@ async def delete_network_interface(
     project_id: UUID,
     vm_name: str,
     interface_id: str,
-    current_user: Optional[UserProfile] = Depends(get_optional_user),
     project_service: ProjectService = Depends(get_project_service)
 ):
     """Remove a network interface from a VM."""

@@ -13,6 +13,7 @@ from typing import List, Optional, Dict, Any
 from uuid import UUID
 
 from ..models import Project, ProjectCreate, ProjectUpdate, ProjectSummary, VirtualMachine, NetworkInterface, DeploymentStatus, PluginConfiguration
+from .file_service import FileService
 
 
 class ProjectNotFoundError(Exception):
@@ -23,15 +24,30 @@ class ProjectNotFoundError(Exception):
 class ProjectService:
     """Service class for managing Project entities."""
 
-    def __init__(self, data_dir: str = "data/projects"):
+    def __init__(self, data_dir: str = "data/projects", user_id: Optional[str] = None):
         """
         Initialize the ProjectService.
         
         Args:
-            data_dir: Directory where project JSON files are stored
+            data_dir: Base directory where project JSON files are stored (deprecated, use user_id)
+            user_id: User ID for user-specific storage. If None, uses shared directory.
         """
-        self.data_dir = Path(data_dir)
+        # Support user-specific directories
+        if user_id:
+            file_service = FileService()
+            self.data_dir = file_service.get_user_data_path(user_id, "projects")
+        else:
+            # For backward compatibility and self-hosted mode
+            if data_dir == "data/projects":
+                # Use shared directory in new multi-user setup
+                file_service = FileService()
+                self.data_dir = file_service.get_shared_data_path("projects")
+            else:
+                # Legacy direct path specification
+                self.data_dir = Path(data_dir)
+        
         self.data_dir.mkdir(parents=True, exist_ok=True)
+        self.user_id = user_id
 
     def _get_project_file_path(self, project_id: UUID) -> Path:
         """Get the file path for a project's JSON file."""

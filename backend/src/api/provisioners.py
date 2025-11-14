@@ -20,13 +20,20 @@ from ..services.global_provisioner_service import GlobalProvisionerService, Glob
 
 
 router = APIRouter()
-provisioner_service = GlobalProvisionerService()
+
+# Dependency to get GlobalProvisionerService instance
+def get_provisioner_service(
+    current_user: Optional[UserProfile] = Depends(get_optional_user)
+) -> GlobalProvisionerService:
+    """Get GlobalProvisionerService instance with user context."""
+    user_id = current_user.user_id if current_user else None
+    return GlobalProvisionerService(user_id=user_id)
 
 
 @router.post("/provisioners", response_model=GlobalProvisioner, status_code=status.HTTP_201_CREATED)
 async def create_provisioner(
     provisioner_data: GlobalProvisionerCreate,
-    current_user: Optional[UserProfile] = Depends(get_optional_user)
+    provisioner_service: GlobalProvisionerService = Depends(get_provisioner_service)
 ):
     """
     Create a new global provisioner.
@@ -56,7 +63,9 @@ async def create_provisioner(
 
 
 @router.get("/provisioners", response_model=List[GlobalProvisionerSummary])
-async def list_provisioners(current_user: Optional[UserProfile] = Depends(get_optional_user)):
+async def list_provisioners(
+    provisioner_service: GlobalProvisionerService = Depends(get_provisioner_service)
+):
     """
     List all global provisioners.
     
@@ -76,7 +85,7 @@ async def list_provisioners(current_user: Optional[UserProfile] = Depends(get_op
 @router.get("/provisioners/{provisioner_id}", response_model=GlobalProvisioner)
 async def get_provisioner(
     provisioner_id: str,
-    current_user: Optional[UserProfile] = Depends(get_optional_user)
+    provisioner_service: GlobalProvisionerService = Depends(get_provisioner_service)
 ):
     """
     Get a specific provisioner by ID.
@@ -113,7 +122,7 @@ async def get_provisioner(
 async def update_provisioner(
     provisioner_id: str,
     provisioner_data: GlobalProvisionerUpdate,
-    current_user: Optional[UserProfile] = Depends(get_optional_user)
+    provisioner_service: GlobalProvisionerService = Depends(get_provisioner_service)
 ):
     """
     Update an existing provisioner.
@@ -155,7 +164,7 @@ async def update_provisioner(
 @router.delete("/provisioners/{provisioner_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_provisioner(
     provisioner_id: str,
-    current_user: Optional[UserProfile] = Depends(get_optional_user)
+    provisioner_service: GlobalProvisionerService = Depends(get_provisioner_service)
 ):
     """
     Delete a provisioner.

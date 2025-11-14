@@ -13,6 +13,7 @@ from pathlib import Path
 from datetime import datetime
 
 from ..models.plugin import Plugin, PluginCreate, PluginUpdate, PluginSummary
+from .file_service import FileService
 
 
 class PluginServiceError(Exception):
@@ -23,15 +24,30 @@ class PluginServiceError(Exception):
 class PluginService:
     """Service for handling plugin operations using file-based storage."""
     
-    def __init__(self, base_directory: str = "data"):
+    def __init__(self, base_directory: str = "data", user_id: Optional[str] = None):
         """
         Initialize the plugin service.
         
         Args:
-            base_directory: Base directory for storing plugin files
+            base_directory: Base directory for storing plugin files (deprecated, use user_id)
+            user_id: User ID for user-specific storage. If None, uses shared directory.
         """
-        self.base_directory = Path(base_directory)
-        self.plugins_directory = self.base_directory / "plugins"
+        # Support user-specific directories
+        if user_id:
+            file_service = FileService()
+            self.plugins_directory = file_service.get_user_data_path(user_id, "plugins")
+        else:
+            # For backward compatibility and self-hosted mode
+            if base_directory == "data":
+                # Use shared directory in new multi-user setup
+                file_service = FileService()
+                self.plugins_directory = file_service.get_shared_data_path("plugins")
+            else:
+                # Legacy direct path specification
+                self.base_directory = Path(base_directory)
+                self.plugins_directory = self.base_directory / "plugins"
+        
+        self.user_id = user_id
         
         # Create directories if they don't exist
         self._ensure_directories()
