@@ -20,7 +20,9 @@ from .api.provisioners import router as provisioners_router
 from .api.project_provisioners import router as project_provisioners_router
 from .api.triggers import router as triggers_router
 from .api.project_triggers import router as project_triggers_router
+from .api.config import router as config_router
 from .services import ProjectNotFoundError
+from .utils.deployment import get_deployment_mode, DeploymentMode
 
 # Get environment variables for configuration
 def get_cors_origins() -> List[str]:
@@ -40,6 +42,37 @@ app = FastAPI(
     docs_url="/docs",
     redoc_url="/redoc"
 )
+
+# Startup validation
+@app.on_event("startup")
+async def startup_validation():
+    """Validate configuration on startup."""
+    import logging
+    logger = logging.getLogger("uvicorn")
+    
+    # Check deployment mode
+    try:
+        mode = get_deployment_mode()
+        logger.info(f"Deployment mode: {mode.value}")
+    except ValueError as e:
+        logger.error(f"Invalid deployment mode: {e}")
+        raise
+    
+    # Validate Mailgun configuration in public mode
+    if mode == DeploymentMode.PUBLIC:
+        mailgun_api_key = os.getenv("MAILGUN_API_KEY")
+        mailgun_domain = os.getenv("MAILGUN_DOMAIN")
+        
+        if not mailgun_api_key or not mailgun_domain:
+            logger.warning(
+                "MAILGUN_API_KEY or MAILGUN_DOMAIN not configured. "
+                "Email OTP authentication will be disabled. "
+                "Only OIDC authentication will be available in public mode."
+            )
+        else:
+            logger.info("Mailgun configuration detected - Email OTP authentication enabled")
+    
+    logger.info("Startup validation complete")
 
 # Configure CORS
 cors_origins = get_cors_origins()
@@ -66,6 +99,7 @@ app.include_router(provisioners_router, prefix="/api", tags=["provisioners"])
 app.include_router(project_provisioners_router, prefix="/api", tags=["project-provisioners"])
 app.include_router(triggers_router, prefix="/api", tags=["triggers"])
 app.include_router(project_triggers_router, prefix="/api", tags=["project-triggers"])
+app.include_router(config_router, tags=["config"])
 
 # Global exception handlers
 @app.exception_handler(ProjectNotFoundError)

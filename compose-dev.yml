@@ -16,6 +16,28 @@ services:
     environment:
       - PYTHONPATH=/app
       - CORS_ORIGINS=http://localhost:5173
+      - DEPLOYMENT_MODE=self-hosted
+      - JWT_SECRET=dev-secret-key-change-in-production-min-32-chars
+      - JWT_ALGORITHM=HS256
+      - JWT_EXPIRATION_HOURS=24
+      - MAILGUN_API_KEY=${MAILGUN_API_KEY:-}
+      - MAILGUN_DOMAIN=${MAILGUN_DOMAIN:-}
+      - MAILGUN_FROM_EMAIL=${MAILGUN_FROM_EMAIL:-noreply@localhost}
+      - OIDC_GOOGLE_CLIENT_ID=${OIDC_GOOGLE_CLIENT_ID:-}
+      - OIDC_GOOGLE_CLIENT_SECRET=${OIDC_GOOGLE_CLIENT_SECRET:-}
+      - OIDC_GOOGLE_REDIRECT_URI=${OIDC_GOOGLE_REDIRECT_URI:-http://localhost:8000/api/auth/callback/google}
+      - OIDC_GITHUB_CLIENT_ID=${OIDC_GITHUB_CLIENT_ID:-}
+      - OIDC_GITHUB_CLIENT_SECRET=${OIDC_GITHUB_CLIENT_SECRET:-}
+      - OIDC_GITHUB_REDIRECT_URI=${OIDC_GITHUB_REDIRECT_URI:-http://localhost:8000/api/auth/callback/github}
+      - OIDC_GITLAB_CLIENT_ID=${OIDC_GITLAB_CLIENT_ID:-}
+      - OIDC_GITLAB_CLIENT_SECRET=${OIDC_GITLAB_CLIENT_SECRET:-}
+      - OIDC_GITLAB_REDIRECT_URI=${OIDC_GITLAB_REDIRECT_URI:-http://localhost:8000/api/auth/callback/gitlab}
+      - OTP_RATE_LIMIT_MAX_REQUESTS=5
+      - OTP_RATE_LIMIT_WINDOW_HOURS=1
+      - OTP_LENGTH=6
+      - OTP_EXPIRATION_MINUTES=15
+      - OTP_MAX_ATTEMPTS=3
+      - LOG_LEVEL=INFO
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
       interval: 3s

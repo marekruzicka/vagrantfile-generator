@@ -36,6 +36,9 @@ class FileService:
         self.projects_directory = self.base_directory / "projects"
         self.exports_directory = self.base_directory / "exports"
         self.templates_directory = self.base_directory / "templates"
+        self.shared_directory = self.base_directory / "shared"
+        self.users_directory = self.base_directory / "users"
+        self.auth_directory = self.base_directory / "auth"
         
         # Create directories if they don't exist
         self._ensure_directories()
@@ -46,7 +49,10 @@ class FileService:
             self.base_directory,
             self.projects_directory,
             self.exports_directory,
-            self.templates_directory
+            self.templates_directory,
+            self.shared_directory,
+            self.users_directory,
+            self.auth_directory
         ]
         
         for directory in directories:
@@ -378,6 +384,99 @@ class FileService:
             
         except Exception as e:
             raise FileServiceError(f"Failed to get project stats: {str(e)}")
+    
+    def get_user_data_path(self, user_id: str, resource_type: str = "") -> Path:
+        """
+        Get the data directory path for a specific user.
+        
+        Args:
+            user_id: User identifier (UUID)
+            resource_type: Optional resource type subdirectory (e.g., "projects", "boxes")
+            
+        Returns:
+            Path: Path to user's data directory
+        """
+        user_path = self.users_directory / user_id
+        
+        if resource_type:
+            user_path = user_path / resource_type
+        
+        # Ensure directory exists
+        user_path.mkdir(parents=True, exist_ok=True)
+        
+        return user_path
+    
+    def get_shared_data_path(self, resource_type: str = "") -> Path:
+        """
+        Get the shared data directory path.
+        
+        Args:
+            resource_type: Optional resource type subdirectory (e.g., "projects", "boxes")
+            
+        Returns:
+            Path: Path to shared data directory
+        """
+        shared_path = self.shared_directory
+        
+        if resource_type:
+            shared_path = shared_path / resource_type
+        
+        # Ensure directory exists
+        shared_path.mkdir(parents=True, exist_ok=True)
+        
+        return shared_path
+    
+    def merge_resources(
+        self,
+        user_id: Optional[str],
+        resource_type: str,
+        loader_func
+    ) -> List[Dict[str, Any]]:
+        """
+        Merge shared and user-specific resources.
+        
+        Loads resources from shared directory and user directory (if user_id provided),
+        adding an is_shared flag to each resource.
+        
+        Args:
+            user_id: User identifier (None for self-hosted mode)
+            resource_type: Resource type subdirectory (e.g., "projects", "boxes")
+            loader_func: Function to load individual resource files (takes Path, returns dict)
+            
+        Returns:
+            List of resources with is_shared and owner_id fields added
+        """
+        resources = []
+        
+        # Load shared resources
+        shared_path = self.get_shared_data_path(resource_type)
+        if shared_path.exists():
+            for file_path in shared_path.glob("*.json"):
+                try:
+                    resource = loader_func(file_path)
+                    resource["is_shared"] = True
+                    resource["owner_id"] = None
+                    resources.append(resource)
+                except Exception as e:
+                    # Log error but continue with other resources
+                    import logging
+                    logging.warning(f"Failed to load shared resource {file_path}: {str(e)}")
+        
+        # Load user-specific resources (if in public mode)
+        if user_id:
+            user_path = self.get_user_data_path(user_id, resource_type)
+            if user_path.exists():
+                for file_path in user_path.glob("*.json"):
+                    try:
+                        resource = loader_func(file_path)
+                        resource["is_shared"] = False
+                        resource["owner_id"] = user_id
+                        resources.append(resource)
+                    except Exception as e:
+                        import logging
+                        logging.warning(f"Failed to load user resource {file_path}: {str(e)}")
+        
+        return resources
     
     def health_check(self) -> Dict[str, Any]:
         """

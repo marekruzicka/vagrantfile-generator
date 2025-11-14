@@ -22,30 +22,30 @@
 
 ### Dependencies
 
-- [ ] T001 Add PyJWT to backend/requirements.txt (version 2.8.0)
-- [ ] T002 Add authlib to backend/requirements.txt (version 1.3.0)
-- [ ] T003 Add requests to backend/requirements.txt (version 2.31.0)
+- [X] T001 Add PyJWT to backend/requirements.txt (version 2.8.0)
+- [X] T002 Add authlib to backend/requirements.txt (version 1.3.0)
+- [X] T003 Add requests to backend/requirements.txt (version 2.31.0)
 - [ ] T004 Install dependencies: `pip install -r backend/requirements.txt`
 
 ### Environment Configuration
 
-- [ ] T005 Create backend/.env.example with all auth-related variables (DEPLOYMENT_MODE, JWT_SECRET, MAILGUN_API_KEY, MAILGUN_DOMAIN, OIDC credentials)
-- [ ] T006 Add startup validation in backend/src/main.py to check MAILGUN_API_KEY configuration when DEPLOYMENT_MODE=public (log warning if missing, allow app to start with OTP disabled)
-- [ ] T007 Update compose-dev.yml to include new environment variables from backend/.env
-- [ ] T008 Update compose-prod.yml to include new environment variables
+- [X] T005 Create backend/.env.example with all auth-related variables (DEPLOYMENT_MODE, JWT_SECRET, MAILGUN_API_KEY, MAILGUN_DOMAIN, OIDC credentials)
+- [X] T006 Add startup validation in backend/src/main.py to check MAILGUN_API_KEY configuration when DEPLOYMENT_MODE=public (log warning if missing, allow app to start with OTP disabled)
+- [X] T007 Update compose-dev.yml to include new environment variables from backend/.env
+- [X] T008 Update compose-prod.yml to include new environment variables
 
 ### Directory Structure
 
-- [ ] T009 Create backend/data/auth/ directory for OTP and rate limit storage
-- [ ] T010 Create backend/data/users/ directory for user-specific data
-- [ ] T011 Create backend/src/middleware/ directory for authentication middleware
-- [ ] T012 Create frontend/src/views/login/ directory for login page components
+- [X] T009 Create backend/data/auth/ directory for OTP and rate limit storage
+- [X] T010 Create backend/data/users/ directory for user-specific data
+- [X] T011 Create backend/src/middleware/ directory for authentication middleware
+- [X] T012 Create frontend/src/views/login/ directory for login page components
 
 ### Shared Utilities
 
-- [ ] T013 [P] Create backend/src/utils/deployment.py with get_deployment_mode() function
-- [ ] T014 [P] Create backend/src/utils/validators.py with email and UUID validation helpers
-- [ ] T015 [P] Create backend/src/api/config.py with GET /api/config/deployment-mode endpoint (returns {"mode": "self-hosted"|"public"})
+- [X] T013 [P] Create backend/src/utils/deployment.py with get_deployment_mode() function
+- [X] T014 [P] Create backend/src/utils/validators.py with email and UUID validation helpers
+- [X] T015 [P] Create backend/src/api/config.py with GET /api/config/deployment-mode endpoint (returns {"mode": "self-hosted"|"public"})
 
 ---
 
@@ -55,26 +55,26 @@
 
 ### Models (Data Layer)
 
-- [ ] T016 [P] Create backend/src/models/user_profile.py with UserProfile pydantic model
-- [ ] T017 [P] Create backend/src/models/otp_request.py with OTPRequest pydantic model
-- [ ] T018 [P] Create backend/src/models/rate_limit.py with RateLimitRecord pydantic model
-- [ ] T019 [P] Create backend/src/models/session_token.py with SessionToken pydantic model (JWT claims structure)
+- [X] T016 [P] Create backend/src/models/user_profile.py with UserProfile pydantic model
+- [X] T017 [P] Create backend/src/models/otp_request.py with OTPRequest pydantic model
+- [X] T018 [P] Create backend/src/models/rate_limit.py with RateLimitRecord pydantic model
+- [X] T019 [P] Create backend/src/models/session_token.py with SessionToken pydantic model (JWT claims structure)
 
 ### Core Services (Business Logic)
 
-- [ ] T020 Create backend/src/services/email_service.py with Mailgun integration (send_otp_email method)
-- [ ] T021 Create backend/src/services/session_service.py with JWT token generation and validation (create_token, verify_token methods)
-- [ ] T022 Create backend/src/services/permission_service.py with can_edit_resource and can_delete_resource methods
+- [X] T020 Create backend/src/services/email_service.py with Mailgun integration (send_otp_email method)
+- [X] T021 Create backend/src/services/session_service.py with JWT token generation and validation (create_token, verify_token methods)
+- [X] T022 Create backend/src/services/permission_service.py with can_edit_resource and can_delete_resource methods
 
 ### Middleware
 
-- [ ] T023 Create backend/src/middleware/auth_middleware.py with get_current_user dependency (validates JWT, checks deployment mode)
+- [X] T023 Create backend/src/middleware/auth_middleware.py with get_current_user dependency (validates JWT, checks deployment mode)
 
 ### File Service Updates
 
-- [ ] T024 Update backend/src/services/file_service.py to add get_user_data_path method (returns /data/users/{user_id}/)
-- [ ] T025 Update backend/src/services/file_service.py to add get_shared_data_path method (returns /data/shared/)
-- [ ] T026 Update backend/src/services/file_service.py to add merge_resources method (combines shared + user resources with is_shared flag)
+- [X] T024 Update backend/src/services/file_service.py to add get_user_data_path method (returns /data/users/{user_id}/)
+- [X] T025 Update backend/src/services/file_service.py to add get_shared_data_path method (returns /data/shared/)
+- [X] T026 Update backend/src/services/file_service.py to add merge_resources method (combines shared + user resources with is_shared flag)
 
 ---
 
@@ -86,8 +86,8 @@
 
 ### Implementation Tasks
 
-- [ ] T027 [US1] Update backend/src/middleware/auth_middleware.py to skip authentication when DEPLOYMENT_MODE=self-hosted
-- [ ] T028 [US1] Update backend/src/api/projects.py to use optional auth dependency (Depends(get_current_user) → Optional)
+- [X] T027 [US1] Update backend/src/middleware/auth_middleware.py to skip authentication when DEPLOYMENT_MODE=self-hosted
+- [X] T028 [US1] Update backend/src/api/projects.py to use optional auth dependency (Depends(get_current_user) → Optional)
 - [ ] T029 [US1] Update backend/src/api/boxes.py to use optional auth dependency
 - [ ] T030 [P] [US1] Update backend/src/api/plugins.py to use optional auth dependency
 - [ ] T031 [P] [US1] Update backend/src/api/provisioners.py to use optional auth dependency
