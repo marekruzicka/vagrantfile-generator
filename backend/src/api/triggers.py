@@ -174,18 +174,7 @@ async def delete_trigger(
     trigger_id: str,
     trigger_service: GlobalTriggerService = Depends(get_trigger_service)
 ):
-    """
-    Delete a trigger.
-    
-    Args:
-        trigger_id: Trigger ID to delete
-        
-    Returns:
-        None (204 No Content)
-        
-    Raises:
-        HTTPException: If trigger not found
-    """
+    # Delete a trigger.
     try:
         # Check if trigger is shared (read-only)
         if trigger_service.user_id is not None:
@@ -199,3 +188,27 @@ async def delete_trigger(
                 )
         
         success = trigger_service.delete_trigger(trigger_id)
+        if not success:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Trigger with ID {trigger_id} not found"
+            )
+        return None
+    except HTTPException:
+        raise
+    except GlobalTriggerServiceError as e:
+        # Provide user-friendly response if trigger missing
+        if "not found" in str(e).lower():
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=str(e)
+            )
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(e)
+        )
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to delete trigger: {str(e)}"
+        )

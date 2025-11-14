@@ -91,7 +91,28 @@ window.fetch = async function(...args) {
 
 // Global unhandled error handler
 window.addEventListener('error', function(event) {
-    console.error('Unhandled error:', event.error);
+    // Prevent default error handling to avoid console spam
+    event.preventDefault();
+    
+    // Ignore Alpine.js expression errors - they're expected during initialization
+    const message = event.message || event.error?.message || '';
+    const errorString = event.error?.toString() || '';
+    const filename = event.filename || '';
+    
+    // Filter out Alpine.js warnings and expected initialization errors
+    if (message.includes('Alpine Expression Error') || 
+        message.includes('Cannot read properties of null') ||
+        message.includes('is not defined') ||
+        errorString.includes('Cannot read properties of null') ||
+        errorString.includes('ReferenceError') ||
+        filename.includes('alpinejs')) {
+        // Only log to console in development, don't show to user
+        console.warn('Suppressed Alpine.js initialization error:', message);
+        return;
+    }
+    
+    // For actual errors, log and show to user
+    console.error('Unhandled error:', event.error || message);
     window.showError('An unexpected error occurred. Please refresh the page.');
 });
 

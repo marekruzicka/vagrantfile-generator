@@ -4,8 +4,10 @@ Main FastAPI application for Vagrantfile Generator.
 This module sets up the FastAPI application with all routes and middleware.
 """
 
+import logging
+import sys
 import os
-from typing import List
+from typing import List, Optional, TextIO
 import time
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
@@ -27,6 +29,52 @@ from .api.config import router as config_router
 from .api.auth import router as auth_router
 from .services import ProjectNotFoundError
 from .utils.deployment import get_deployment_mode, DeploymentMode
+
+try:
+    from uvicorn.logging import AccessFormatter
+
+    _original_access_format = AccessFormatter.formatMessage
+
+    def _safe_access_format(self, record):
+        try:
+            return _original_access_format(self, record)
+        except ValueError:
+            return record.getMessage()
+
+    if not getattr(AccessFormatter, "_safe_format_applied", False):
+        AccessFormatter.formatMessage = _safe_access_format
+        AccessFormatter._safe_format_applied = True
+except ImportError:
+    pass
+
+# Configure access logger for custom reports
+class RequestLogger:
+    """Lightweight logger that writes request summaries directly to stdout."""
+
+    def __init__(self, stream: TextIO | None = None):
+        self._stream = stream or sys.stdout
+
+    def info(self, message: str, *args, **kwargs) -> None:
+        """Log an info message, formatting with args if provided."""
+        if args:
+            try:
+                formatted_message = message % args
+            except (TypeError, ValueError):
+                formatted_message = f"{message} {args}"
+        else:
+            formatted_message = message
+
+        self._stream.write(f"{formatted_message}\n")
+        self._stream.flush()
+
+
+REQUEST_LOGGER = RequestLogger()
+
+# Silence uvicorn.access logger to avoid AccessFormatter ValueErrors
+UVICORN_ACCESS_LOGGER = logging.getLogger("uvicorn.access")
+UVICORN_ACCESS_LOGGER.handlers.clear()
+UVICORN_ACCESS_LOGGER.propagate = False
+UVICORN_ACCESS_LOGGER.disabled = True
 
 # Get environment variables for configuration
 def get_cors_origins() -> List[str]:
@@ -51,7 +99,6 @@ app = FastAPI(
 @app.on_event("startup")
 async def startup_validation():
     """Validate configuration on startup."""
-    import logging
     import asyncio
     from .services.cleanup import periodic_cleanup_task
     
@@ -94,9 +141,6 @@ class RequestLoggingMiddleware(BaseHTTPMiddleware):
     """Middleware to log all API requests with timing and user info."""
     
     async def dispatch(self, request: Request, call_next):
-        import logging
-        logger = logging.getLogger("uvicorn.access")
-        
         start_time = time.time()
         
         # Extract user_id from Authorization header if present
@@ -122,10 +166,13 @@ class RequestLoggingMiddleware(BaseHTTPMiddleware):
         
         # Log request
         user_info = f"user={user_id}" if user_id else "unauthenticated"
-        logger.info(
-            f"{request.method} {request.url.path} - "
-            f"status={response.status_code} {user_info} "
-            f"time={process_time:.2f}ms"
+        REQUEST_LOGGER.info(
+            "%s %s status=%s %s time=%.2fms",
+            request.method,
+            request.url.path,
+            response.status_code,
+            user_info,
+            process_time,
         )
         
         return response

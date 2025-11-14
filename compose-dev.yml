@@ -12,7 +12,7 @@ services:
     volumes:
       - ./backend:/app
       # - ./backend/data:/app/data
-    command: ["uvicorn", "src.main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
+    command: ["uvicorn", "src.main:app", "--host", "0.0.0.0", "--port", "8000", "--reload", "--no-access-log"]
     environment:
       - PYTHONPATH=/app
       - CORS_ORIGINS=http://localhost:5173

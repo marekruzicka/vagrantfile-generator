@@ -129,3 +129,4 @@ multiuser.md
 
 # User data (runtime storage - not committed)
 backend/data/
+!backend/data/shared/

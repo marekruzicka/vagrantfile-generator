@@ -1,6 +1,4 @@
-"""
-"""Box management API endpoints for Vagrantfile Generator.
-"""
+"""Box management API endpoints for Vagrantfile Generator."""
 
 from typing import List, Optional
 from fastapi import APIRouter, HTTPException, status, Depends
@@ -24,7 +22,7 @@ def get_box_service(
 
 @router.get("/boxes", response_model=List[BoxSummary])
 async def list_boxes(box_service: BoxService = Depends(get_box_service)):
-    """Get list of all boxes."""
+    # Get list of all boxes.
     try:
         boxes = box_service.list_boxes()
         return boxes
@@ -40,7 +38,7 @@ async def get_box(
     box_id: str,
     box_service: BoxService = Depends(get_box_service)
 ):
-    """Get a specific box by ID."""
+    # Get a specific box by ID.
     try:
         box = box_service.get_box(box_id)
         if not box:
@@ -61,7 +59,7 @@ async def create_box(
     box_data: BoxCreate,
     box_service: BoxService = Depends(get_box_service)
 ):
-    """Create a new box."""
+    # Create a new box.
     try:
         box = box_service.create_box(box_data)
         return box
@@ -83,7 +81,7 @@ async def update_box(
     box_data: BoxUpdate,
     box_service: BoxService = Depends(get_box_service)
 ):
-    """Update an existing box."""
+    # Update an existing box.
     try:
         # Check if box is shared (read-only)
         # Boxes use a single JSON file, so we check if service is using shared directory
@@ -126,7 +124,7 @@ async def delete_box(
     box_id: str,
     box_service: BoxService = Depends(get_box_service)
 ):
-    """Delete a box."""
+    # Delete a box.
     try:
         # Check if box is shared (read-only)
         if box_service.user_id is not None:

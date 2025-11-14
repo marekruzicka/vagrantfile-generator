@@ -202,3 +202,21 @@ async def delete_provisioner(
                 )
         
         success = provisioner_service.delete_provisioner(provisioner_id)
+        if not success:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Provisioner with ID {provisioner_id} not found"
+            )
+        return None
+    except HTTPException:
+        raise
+    except GlobalProvisionerServiceError as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=str(e)
+        )
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to delete provisioner: {str(e)}"
+        )
