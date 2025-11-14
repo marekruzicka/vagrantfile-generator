@@ -54,18 +54,30 @@ class VagrantAPI {
 
     async request(endpoint, options = {}) {
         const url = `${this.baseURL}${endpoint}`;
-        const config = {
-            headers: {
-                'Content-Type': 'application/json',
-                ...options.headers,
-            },
-            ...options,
+        
+        // Build headers
+        const headers = {
+            'Content-Type': 'application/json',
+            ...options.headers,
         };
 
         // Add configuration headers
         if (this.config.allowPublicIPsInPrivateNetworks) {
-            config.headers['X-Allow-Public-IPs'] = 'true';
+            headers['X-Allow-Public-IPs'] = 'true';
         }
+
+        // Add authorization header if authenticated
+        if (window.authManager) {
+            const token = window.authManager.getToken();
+            if (token) {
+                headers['Authorization'] = `Bearer ${token}`;
+            }
+        }
+
+        const config = {
+            headers,
+            ...options,
+        };
 
         if (config.body && typeof config.body === 'object') {
             config.body = JSON.stringify(config.body);
@@ -73,6 +85,21 @@ class VagrantAPI {
 
         try {
             const response = await fetch(url, config);
+            
+            // Handle 401 Unauthorized
+            if (response.status === 401 && window.authManager) {
+                console.log('401 Unauthorized - clearing auth and redirecting to login');
+                window.authManager.clearAuth();
+                
+                // Check if we're in public mode before redirecting
+                if (window.deploymentManager) {
+                    const isPublic = await window.deploymentManager.isPublicMode();
+                    if (isPublic) {
+                        window.location.href = '/views/login/login.html';
+                        throw new Error('Unauthorized - redirecting to login');
+                    }
+                }
+            }
             
             if (response.status === 204 || response.headers.get('content-length') === '0') {
                 if (!response.ok) {

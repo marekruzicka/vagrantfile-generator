@@ -34,6 +34,17 @@ document.addEventListener('DOMContentLoaded', async function() {
         console.log('Main.js: No runtime config loader present; skipping');
     }
 
+    // Initialize deployment manager
+    if (!window.deploymentManager) {
+        console.log('Main.js: Creating deployment manager instance...');
+        window.deploymentManager = new DeploymentManager();
+    }
+
+    // Check authentication before loading app
+    console.log('Main.js: Checking authentication...');
+    await window.authManager.redirectToLogin();
+    console.log('Main.js: Authentication check complete');
+
     // Wait for HTML partials to load
     if (window.htmlLoader) {
         console.log('Main.js: Loading HTML partials...');

@@ -21,6 +21,7 @@ from .api.project_provisioners import router as project_provisioners_router
 from .api.triggers import router as triggers_router
 from .api.project_triggers import router as project_triggers_router
 from .api.config import router as config_router
+from .api.auth import router as auth_router
 from .services import ProjectNotFoundError
 from .utils.deployment import get_deployment_mode, DeploymentMode
 
@@ -100,6 +101,7 @@ app.include_router(project_provisioners_router, prefix="/api", tags=["project-pr
 app.include_router(triggers_router, prefix="/api", tags=["triggers"])
 app.include_router(project_triggers_router, prefix="/api", tags=["project-triggers"])
 app.include_router(config_router, tags=["config"])
+app.include_router(auth_router, tags=["authentication"])
 
 # Global exception handlers
 @app.exception_handler(ProjectNotFoundError)
