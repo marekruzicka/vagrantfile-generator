@@ -454,7 +454,9 @@ class FileService:
             for file_path in shared_path.glob("*.json"):
                 try:
                     resource = loader_func(file_path)
-                    resource["is_shared"] = True
+                    # In self-hosted mode (user_id=None), all resources are editable
+                    # In public mode (user_id set), shared resources are read-only
+                    resource["is_shared"] = user_id is not None
                     resource["owner_id"] = None
                     resources.append(resource)
                 except Exception as e:
