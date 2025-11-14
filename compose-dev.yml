@@ -32,6 +32,8 @@ services:
       - OIDC_GITLAB_CLIENT_ID=${OIDC_GITLAB_CLIENT_ID:-}
       - OIDC_GITLAB_CLIENT_SECRET=${OIDC_GITLAB_CLIENT_SECRET:-}
       - OIDC_GITLAB_REDIRECT_URI=${OIDC_GITLAB_REDIRECT_URI:-http://localhost:8000/api/auth/callback/gitlab}
+      - BASE_URL=http://localhost:8000
+      - FRONTEND_URL=http://localhost:5173
       - OTP_RATE_LIMIT_MAX_REQUESTS=5
       - OTP_RATE_LIMIT_WINDOW_HOURS=1
       - OTP_LENGTH=6

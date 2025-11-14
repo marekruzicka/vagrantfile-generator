@@ -22,6 +22,36 @@ document.addEventListener('alpine:init', () => {
 document.addEventListener('DOMContentLoaded', async function() {
     console.log('Main.js: DOMContentLoaded fired');
     
+    // Check for token in URL query parameter (from OIDC callback)
+    const urlParams = new URLSearchParams(window.location.search);
+    const token = urlParams.get('token');
+    
+    if (token) {
+        console.log('Main.js: Token found in URL, storing and cleaning URL');
+        localStorage.setItem('auth_token', token);
+        
+        // Remove token from URL without page reload
+        const cleanUrl = window.location.origin + window.location.pathname;
+        window.history.replaceState({}, document.title, cleanUrl);
+        
+        // Verify token with backend
+        try {
+            const response = await fetch('/api/auth/me', {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+            
+            if (response.ok) {
+                const user = await response.json();
+                localStorage.setItem('user_profile', JSON.stringify(user));
+                console.log('Main.js: OIDC authentication successful for', user.email);
+            }
+        } catch (error) {
+            console.error('Main.js: Failed to verify OIDC token:', error);
+        }
+    }
+    
     if (window.__loadRuntimeConfig && typeof window.__loadRuntimeConfig === 'function') {
         try {
             console.log('Main.js: Loading runtime config...');

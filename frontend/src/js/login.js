@@ -173,6 +173,12 @@ function loginApp() {
             if (this.timerInterval) {
                 clearInterval(this.timerInterval);
             }
+        },
+
+        loginWithOIDC(provider) {
+            // Redirect to OIDC endpoint
+            window.location.href = `/api/auth/oidc/${provider}`;
         }
     };
 }
+

@@ -4,6 +4,7 @@ Authentication API endpoints.
 Handles OTP and OIDC authentication flows.
 """
 
+import os
 from typing import Optional
 from fastapi import APIRouter, HTTPException, status, Depends
 from pydantic import BaseModel, Field
@@ -14,10 +15,14 @@ from ..services.rate_limit_service import rate_limit_service
 from ..services.user_service import user_service
 from ..services.email_service import email_service
 from ..services.session_service import session_service
+from ..services.oidc_service import OIDCService, OIDCServiceError
 from ..middleware.auth_middleware import get_current_user
 from ..utils.validators import validate_email, validate_otp_code
 
 router = APIRouter(prefix="/api/auth", tags=["authentication"])
+
+# Initialize OIDC service
+oidc_service = OIDCService()
 
 
 class OTPRequestBody(BaseModel):
@@ -158,6 +163,119 @@ async def get_current_user_profile(
     user_service.update_last_login(current_user.user_id)
     
     return current_user
+
+
+@router.get("/oidc/{provider}")
+async def oidc_login(provider: str):
+    """
+    Initiate OIDC/OAuth flow with external provider.
+    
+    Redirects user to provider's authorization page.
+    
+    Args:
+        provider: OAuth provider (google, github, gitlab)
+        
+    Returns:
+        Redirect to provider's authorization URL
+    """
+    # Validate provider
+    if provider not in oidc_service.SUPPORTED_PROVIDERS:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Unsupported provider: {provider}. Supported: {', '.join(oidc_service.SUPPORTED_PROVIDERS)}"
+        )
+    
+    # Check if provider is configured
+    if not oidc_service.is_provider_configured(provider):
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail=f"Provider '{provider}' is not configured. Please contact administrator."
+        )
+    
+    # Get authorization URL
+    try:
+        # Callback URL will be /api/auth/callback/{provider}
+        from starlette.responses import RedirectResponse
+        redirect_uri = f"{os.getenv('BASE_URL', 'http://localhost:8000')}/api/auth/callback/{{provider}}"
+        authorization_url = oidc_service.get_authorization_url(provider, redirect_uri)
+        return RedirectResponse(url=authorization_url)
+    except OIDCServiceError as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=str(e)
+        )
+
+
+@router.get("/callback/{provider}")
+async def oidc_callback(provider: str, code: str, state: Optional[str] = None):
+    """
+    Handle OAuth callback from provider.
+    
+    Exchanges authorization code for access token, fetches user info,
+    creates/updates user, and generates JWT session token.
+    
+    Args:
+        provider: OAuth provider (google, github, gitlab)
+        code: Authorization code from provider
+        state: CSRF protection state (optional)
+        
+    Returns:
+        Redirect to frontend with token in query parameter
+    """
+    # Validate provider
+    if provider not in oidc_service.SUPPORTED_PROVIDERS:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Unsupported provider: {provider}"
+        )
+    
+    # Check if provider is configured
+    if not oidc_service.is_provider_configured(provider):
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail=f"Provider '{provider}' is not configured"
+        )
+    
+    try:
+        # Exchange code for token
+        redirect_uri = f"{os.getenv('BASE_URL', 'http://localhost:8000')}/api/auth/callback/{{provider}}"
+        token = await oidc_service.exchange_code_for_token(provider, code, redirect_uri)
+        
+        # Get user info from provider
+        user_info = await oidc_service.get_user_info(provider, token)
+        
+        if not user_info.get("email"):
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Failed to get email from provider"
+            )
+        
+        # Create or update user
+        user = user_service.create_or_update_user(
+            email=user_info["email"],
+            auth_provider=provider,
+            display_name=user_info.get("name")
+        )
+        
+        # Generate JWT token
+        jwt_token = session_service.create_token(user)
+        
+        # Redirect to frontend with token
+        from starlette.responses import RedirectResponse
+        frontend_url = os.getenv("FRONTEND_URL", "http://localhost:8080")
+        redirect_url = f"{frontend_url}/?token={jwt_token}"
+        return RedirectResponse(url=redirect_url)
+        
+    except OIDCServiceError as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"OIDC authentication failed: {str(e)}"
+        )
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Authentication failed: {str(e)}"
+        )
 
 
 @router.post("/logout", response_model=LogoutResponse)
