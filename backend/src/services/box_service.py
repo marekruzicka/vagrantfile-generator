@@ -304,23 +304,54 @@ class BoxService:
     
     def list_boxes(self) -> List[BoxSummary]:
         """
-        List all boxes.
+        List all boxes (merged shared + user-specific).
         
         Returns:
-            List of box summaries
+            List of box summaries with is_shared and owner_id fields
         """
         try:
-            boxes = self._load_boxes()
+            # Load from current location (already set to user or shared dir)
+            boxes_data = self._load_boxes()
+            boxes = []
             
-            return [
-                BoxSummary(
-                    id=box['id'],
-                    name=box['name'],
-                    description=box['description'],
-                    provider=box['provider']
+            for box_data in boxes_data:
+                box_summary = BoxSummary(
+                    id=box_data['id'],
+                    name=box_data['name'],
+                    description=box_data['description'],
+                    provider=box_data['provider']
                 )
-                for box in boxes
-            ]
+                # Add multi-user fields
+                box_summary.is_shared = (self.user_id is None)
+                box_summary.owner_id = self.user_id
+                boxes.append(box_summary)
+            
+            # If user_id is set, also load shared boxes
+            if self.user_id:
+                file_service = FileService()
+                shared_boxes_dir = file_service.get_shared_data_path("boxes")
+                shared_boxes_file = shared_boxes_dir / "boxes.json"
+                
+                if shared_boxes_file.exists():
+                    try:
+                        with open(shared_boxes_file, 'r', encoding='utf-8') as f:
+                            shared_boxes_data = json.load(f)
+                        
+                        for box_data in shared_boxes_data:
+                            box_summary = BoxSummary(
+                                id=box_data['id'],
+                                name=box_data['name'],
+                                description=box_data['description'],
+                                provider=box_data['provider']
+                            )
+                            box_summary.is_shared = True
+                            box_summary.owner_id = None
+                            boxes.append(box_summary)
+                    except Exception as e:
+                        import logging
+                        logging.warning(f"Failed to load shared boxes: {str(e)}")
+            
+            return boxes
             
         except Exception as e:
             raise BoxServiceError(f"Failed to list boxes: {str(e)}")

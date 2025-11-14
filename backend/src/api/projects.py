@@ -98,6 +98,18 @@ async def update_project(
         if existing_project.deployment_status == DeploymentStatus.READY:
             raise HTTPException(status_code=400, detail="Cannot modify project - project is locked in ready status")
         
+        # Check if project is shared (read-only)
+        if project_service.user_id is not None:
+            # In public mode, check if resource is in shared directory
+            from ..services.file_service import FileService
+            file_service = FileService()
+            shared_path = file_service.get_shared_data_path("projects") / f"{project_id}.json"
+            if shared_path.exists():
+                raise HTTPException(
+                    status_code=403,
+                    detail="Cannot modify shared resource - shared resources are read-only"
+                )
+        
         project = project_service.update_project(project_id, project_data)
         return project
     except ProjectNotFoundError as e:
@@ -111,6 +123,18 @@ async def delete_project(
     project_service: ProjectService = Depends(get_project_service)
 ):
     """Delete a project."""
+    # Check if project is shared (read-only)
+    if project_service.user_id is not None:
+        # In public mode, check if resource is in shared directory
+        from ..services.file_service import FileService
+        file_service = FileService()
+        shared_path = file_service.get_shared_data_path("projects") / f"{project_id}.json"
+        if shared_path.exists():
+            raise HTTPException(
+                status_code=403,
+                detail="Cannot delete shared resource - shared resources are read-only"
+            )
+    
     success = project_service.delete_project(project_id)
     if not success:
         raise HTTPException(status_code=404, detail=f"Project {project_id} not found")

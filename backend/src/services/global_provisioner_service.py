@@ -297,28 +297,38 @@ class GlobalProvisionerService:
     
     def list_provisioners(self, include_deprecated: bool = True) -> List[GlobalProvisioner]:
         """
-        List all provisioners.
+        List all provisioners (merged shared + user-specific).
         
         Args:
             include_deprecated: Whether to include deprecated provisioners
             
         Returns:
-            List of provisioners
+            List of provisioners with is_shared and owner_id fields
         """
         try:
-            all_ids = self._list_all_provisioner_ids()
-            provisioners = []
+            file_service = FileService()
             
-            for provisioner_id in all_ids:
-                provisioner_data = self._load_provisioner_from_file(provisioner_id)
-                if provisioner_data:
-                    try:
-                        provisioner = GlobalProvisioner(**provisioner_data)
-                        provisioners.append(provisioner)
-                    except Exception as e:
-                        # Log error but continue with other provisioners
-                        print(f"Warning: Failed to parse provisioner {provisioner_id}: {e}")
-                        continue
+            # Loader function for merge_resources
+            def load_provisioner_data(file_path: Path) -> dict:
+                with open(file_path, 'r', encoding='utf-8') as f:
+                    return json.load(f)
+            
+            # Merge shared and user resources
+            merged_data = file_service.merge_resources(
+                user_id=self.user_id,
+                resource_type="provisioners",
+                loader_func=load_provisioner_data
+            )
+            
+            provisioners = []
+            for provisioner_data in merged_data:
+                try:
+                    provisioner = GlobalProvisioner(**provisioner_data)
+                    provisioners.append(provisioner)
+                except Exception as e:
+                    # Log error but continue with other provisioners
+                    print(f"Warning: Failed to parse provisioner: {e}")
+                    continue
             
             # Sort by name
             provisioners.sort(key=lambda p: p.name.lower())

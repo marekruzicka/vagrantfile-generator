@@ -281,25 +281,35 @@ class PluginService:
     
     def list_plugins(self, include_deprecated: bool = True) -> List[Plugin]:
         """
-        List all plugins.
+        List all plugins (merged shared + user-specific).
         
         Args:
             include_deprecated: Whether to include deprecated plugins
             
         Returns:
-            List of plugins
+            List of plugins with is_shared and owner_id fields
         """
         try:
-            plugin_ids = self._list_all_plugin_ids()
-            plugins = []
+            file_service = FileService()
             
-            for plugin_id in plugin_ids:
-                plugin_data = self._load_plugin_from_file(plugin_id)
-                if plugin_data:
-                    plugin = Plugin(**plugin_data)
-                    
-                    if include_deprecated or not plugin.is_deprecated:
-                        plugins.append(plugin)
+            # Loader function for merge_resources
+            def load_plugin_data(file_path: Path) -> dict:
+                with open(file_path, 'r', encoding='utf-8') as f:
+                    return json.load(f)
+            
+            # Merge shared and user resources
+            merged_data = file_service.merge_resources(
+                user_id=self.user_id,
+                resource_type="plugins",
+                loader_func=load_plugin_data
+            )
+            
+            plugins = []
+            for plugin_data in merged_data:
+                plugin = Plugin(**plugin_data)
+                
+                if include_deprecated or not plugin.is_deprecated:
+                    plugins.append(plugin)
             
             # Sort by name
             plugins.sort(key=lambda p: p.name.lower())

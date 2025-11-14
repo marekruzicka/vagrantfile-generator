@@ -202,26 +202,34 @@ class GlobalTriggerService:
     
     def list_triggers(self) -> List[GlobalTrigger]:
         """
-        List all global triggers.
+        List all triggers (merged shared + user-specific).
         
         Returns:
-            List of triggers
+            List of GlobalTrigger instances with is_shared and owner_id fields
         """
         try:
-            all_ids = self._list_all_trigger_ids()
-            triggers = []
+            file_service = FileService()
             
-            for trigger_id in all_ids:
-                trigger_data = self._load_trigger_from_file(trigger_id)
-                if trigger_data:
-                    try:
-                        triggers.append(GlobalTrigger(**trigger_data))
-                    except Exception as e:
-                        # Log error but continue with other triggers
-                        print(f"Warning: Failed to load trigger {trigger_id}: {str(e)}")
+            # Loader function for merge_resources
+            def load_trigger_data(file_path: Path) -> dict:
+                with open(file_path, 'r', encoding='utf-8') as f:
+                    return json.load(f)
+            
+            # Merge shared and user resources
+            merged_data = file_service.merge_resources(
+                user_id=self.user_id,
+                resource_type="triggers",
+                loader_func=load_trigger_data
+            )
+            
+            triggers = []
+            for trigger_data in merged_data:
+                trigger = GlobalTrigger(**trigger_data)
+                triggers.append(trigger)
             
             # Sort by name
             triggers.sort(key=lambda t: t.name.lower())
+            
             return triggers
             
         except Exception as e:

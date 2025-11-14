@@ -138,6 +138,17 @@ async def update_trigger(
         HTTPException: If trigger not found or name conflict
     """
     try:
+        # Check if trigger is shared (read-only)
+        if trigger_service.user_id is not None:
+            from ..services.file_service import FileService
+            file_service = FileService()
+            shared_path = file_service.get_shared_data_path("triggers") / f"{trigger_id}.json"
+            if shared_path.exists():
+                raise HTTPException(
+                    status_code=status.HTTP_403_FORBIDDEN,
+                    detail="Cannot modify shared resource - shared resources are read-only"
+                )
+        
         trigger = trigger_service.update_trigger(trigger_id, trigger_data)
         return trigger
     except GlobalTriggerServiceError as e:
@@ -169,22 +180,22 @@ async def delete_trigger(
     Args:
         trigger_id: Trigger ID to delete
         
+    Returns:
+        None (204 No Content)
+        
     Raises:
         HTTPException: If trigger not found
     """
     try:
-        deleted = trigger_service.delete_trigger(trigger_id)
+        # Check if trigger is shared (read-only)
+        if trigger_service.user_id is not None:
+            from ..services.file_service import FileService
+            file_service = FileService()
+            shared_path = file_service.get_shared_data_path("triggers") / f"{trigger_id}.json"
+            if shared_path.exists():
+                raise HTTPException(
+                    status_code=status.HTTP_403_FORBIDDEN,
+                    detail="Cannot delete shared resource - shared resources are read-only"
+                )
         
-        if not deleted:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail=f"Trigger with ID {trigger_id} not found"
-            )
-            
-    except HTTPException:
-        raise
-    except GlobalTriggerServiceError as e:
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=str(e)
-        )
+        success = trigger_service.delete_trigger(trigger_id)

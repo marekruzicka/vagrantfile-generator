@@ -85,6 +85,23 @@ async def update_box(
 ):
     """Update an existing box."""
     try:
+        # Check if box is shared (read-only)
+        # Boxes use a single JSON file, so we check if service is using shared directory
+        if box_service.user_id is not None:
+            from ..services.file_service import FileService
+            file_service = FileService()
+            shared_boxes_file = file_service.get_shared_data_path("boxes") / "boxes.json"
+            if shared_boxes_file.exists():
+                # Check if this box_id exists in shared boxes
+                import json
+                with open(shared_boxes_file, 'r') as f:
+                    shared_boxes = json.load(f)
+                if any(box.get('id') == box_id for box in shared_boxes):
+                    raise HTTPException(
+                        status_code=status.HTTP_403_FORBIDDEN,
+                        detail="Cannot modify shared resource - shared resources are read-only"
+                    )
+        
         box = box_service.update_box(box_id, box_data)
         if not box:
             raise HTTPException(
@@ -111,6 +128,22 @@ async def delete_box(
 ):
     """Delete a box."""
     try:
+        # Check if box is shared (read-only)
+        if box_service.user_id is not None:
+            from ..services.file_service import FileService
+            file_service = FileService()
+            shared_boxes_file = file_service.get_shared_data_path("boxes") / "boxes.json"
+            if shared_boxes_file.exists():
+                # Check if this box_id exists in shared boxes
+                import json
+                with open(shared_boxes_file, 'r') as f:
+                    shared_boxes = json.load(f)
+                if any(box.get('id') == box_id for box in shared_boxes):
+                    raise HTTPException(
+                        status_code=status.HTTP_403_FORBIDDEN,
+                        detail="Cannot delete shared resource - shared resources are read-only"
+                    )
+        
         deleted = box_service.delete_box(box_id)
         if not deleted:
             raise HTTPException(

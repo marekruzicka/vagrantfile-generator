@@ -138,6 +138,17 @@ async def update_provisioner(
         HTTPException: If provisioner not found or update fails
     """
     try:
+        # Check if provisioner is shared (read-only)
+        if provisioner_service.user_id is not None:
+            from ..services.file_service import FileService
+            file_service = FileService()
+            shared_path = file_service.get_shared_data_path("provisioners") / f"{provisioner_id}.json"
+            if shared_path.exists():
+                raise HTTPException(
+                    status_code=status.HTTP_403_FORBIDDEN,
+                    detail="Cannot modify shared resource - shared resources are read-only"
+                )
+        
         provisioner = provisioner_service.update_provisioner(provisioner_id, provisioner_data)
         
         if not provisioner:
@@ -170,25 +181,24 @@ async def delete_provisioner(
     Delete a provisioner.
     
     Args:
-        provisioner_id: Provisioner ID
+        provisioner_id: Provisioner ID to delete
+        
+    Returns:
+        None (204 No Content)
         
     Raises:
         HTTPException: If provisioner not found
     """
     try:
-        deleted = provisioner_service.delete_provisioner(provisioner_id)
+        # Check if provisioner is shared (read-only)
+        if provisioner_service.user_id is not None:
+            from ..services.file_service import FileService
+            file_service = FileService()
+            shared_path = file_service.get_shared_data_path("provisioners") / f"{provisioner_id}.json"
+            if shared_path.exists():
+                raise HTTPException(
+                    status_code=status.HTTP_403_FORBIDDEN,
+                    detail="Cannot delete shared resource - shared resources are read-only"
+                )
         
-        if not deleted:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail=f"Provisioner with ID {provisioner_id} not found"
-            )
-        
-        return None
-    except HTTPException:
-        raise
-    except GlobalProvisionerServiceError as e:
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=str(e)
-        )
+        success = provisioner_service.delete_provisioner(provisioner_id)

@@ -212,6 +212,8 @@ class ProjectSummary(BaseModel):
     updated_at: datetime
     vm_count: int
     deployment_status: DeploymentStatus
+    is_shared: Optional[bool] = Field(default=False, description="Whether this is a shared resource")
+    owner_id: Optional[str] = Field(default=None, description="User ID of the owner (None for shared)")
 
     class Config:
         """Pydantic configuration."""

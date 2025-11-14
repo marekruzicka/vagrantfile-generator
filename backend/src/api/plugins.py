@@ -84,6 +84,17 @@ async def update_plugin(
 ):
     """Update an existing plugin."""
     try:
+        # Check if plugin is shared (read-only)
+        if plugin_service.user_id is not None:
+            from ..services.file_service import FileService
+            file_service = FileService()
+            shared_path = file_service.get_shared_data_path("plugins") / f"{plugin_id}.json"
+            if shared_path.exists():
+                raise HTTPException(
+                    status_code=status.HTTP_403_FORBIDDEN,
+                    detail="Cannot modify shared resource - shared resources are read-only"
+                )
+        
         plugin = plugin_service.update_plugin(plugin_id, plugin_data)
         if not plugin:
             raise HTTPException(
@@ -110,6 +121,17 @@ async def delete_plugin(
 ):
     """Delete a plugin."""
     try:
+        # Check if plugin is shared (read-only)
+        if plugin_service.user_id is not None:
+            from ..services.file_service import FileService
+            file_service = FileService()
+            shared_path = file_service.get_shared_data_path("plugins") / f"{plugin_id}.json"
+            if shared_path.exists():
+                raise HTTPException(
+                    status_code=status.HTTP_403_FORBIDDEN,
+                    detail="Cannot delete shared resource - shared resources are read-only"
+                )
+        
         deleted = plugin_service.delete_plugin(plugin_id)
         if not deleted:
             raise HTTPException(

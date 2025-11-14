@@ -267,34 +267,62 @@ class ProjectService:
 
     def list_projects(self) -> List[ProjectSummary]:
         """
-        List all projects.
+        List all projects (merged shared + user-specific).
         
         Returns:
-            List of ProjectSummary instances
+            List of ProjectSummary instances with is_shared and owner_id fields
         """
         projects = []
+        file_service = FileService()
         
-        # Scan for JSON files in data directory
-        for file_path in self.data_dir.glob("*.json"):
+        # Loader function for merge_resources
+        def load_project_summary(file_path: Path) -> dict:
+            with open(file_path, 'r', encoding='utf-8') as f:
+                data = json.load(f)
+            return {
+                'id': data['id'],
+                'name': data['name'],
+                'description': data['description'],
+                'created_at': data['created_at'],
+                'updated_at': data['updated_at'],
+                'vm_count': len(data.get('vms', [])),
+                'deployment_status': data.get('deployment_status', 'draft')
+            }
+        
+        # Merge shared and user resources
+        merged_data = file_service.merge_resources(
+            user_id=self.user_id,
+            resource_type="projects",
+            loader_func=load_project_summary
+        )
+        
+        # Convert to ProjectSummary instances
+        for data in merged_data:
             try:
-                with open(file_path, 'r', encoding='utf-8') as f:
-                    data = json.load(f)
+                # Parse datetime strings
+                created_at = datetime.fromisoformat(data['created_at'].replace('Z', '+00:00'))
+                updated_at = datetime.fromisoformat(data['updated_at'].replace('Z', '+00:00'))
                 
-                # Create ProjectSummary from the data
                 project_summary = ProjectSummary(
                     id=data['id'],
                     name=data['name'],
                     description=data['description'],
-                    created_at=datetime.fromisoformat(data['created_at'].replace('Z', '+00:00')),
-                    updated_at=datetime.fromisoformat(data['updated_at'].replace('Z', '+00:00')),
-                    vm_count=len(data.get('vms', [])),
-                    deployment_status=DeploymentStatus(data.get('deployment_status', 'draft'))
+                    created_at=created_at,
+                    updated_at=updated_at,
+                    vm_count=data['vm_count'],
+                    deployment_status=DeploymentStatus(data['deployment_status'])
                 )
+                
+                # Add multi-user fields
+                project_summary.is_shared = data.get('is_shared', False)
+                project_summary.owner_id = data.get('owner_id')
                 
                 projects.append(project_summary)
                 
-            except (json.JSONDecodeError, KeyError, ValueError):
-                # Skip invalid files
+            except (KeyError, ValueError) as e:
+                # Skip invalid entries
+                import logging
+                logging.warning(f"Skipping invalid project: {str(e)}")
                 continue
         
         # Sort by creation date (newest first)

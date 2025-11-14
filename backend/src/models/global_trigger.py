@@ -87,6 +87,14 @@ class GlobalTrigger(BaseModel):
         default_factory=datetime.now,
         description="Timestamp when trigger was last updated"
     )
+    is_shared: Optional[bool] = Field(
+        default=False,
+        description="Whether this is a shared resource"
+    )
+    owner_id: Optional[str] = Field(
+        default=None,
+        description="User ID of the owner (None for shared)"
+    )
     
     @field_validator('name')
     @classmethod
