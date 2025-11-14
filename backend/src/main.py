@@ -6,10 +6,13 @@ This module sets up the FastAPI application with all routes and middleware.
 
 import os
 from typing import List
-from fastapi import FastAPI, HTTPException
+import time
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
+from fastapi.exceptions import RequestValidationError
+from starlette.middleware.base import BaseHTTPMiddleware
 
 from .api import projects_router, vms_router, generation_router
 from .api.boxes import router as boxes_router
@@ -49,6 +52,9 @@ app = FastAPI(
 async def startup_validation():
     """Validate configuration on startup."""
     import logging
+    import asyncio
+    from .services.cleanup import periodic_cleanup_task
+    
     logger = logging.getLogger("uvicorn")
     
     # Check deployment mode
@@ -73,11 +79,59 @@ async def startup_validation():
         else:
             logger.info("Mailgun configuration detected - Email OTP authentication enabled")
     
+    # Start background cleanup task
+    logger.info("Starting background cleanup task (runs every 5 minutes)...")
+    asyncio.create_task(periodic_cleanup_task(interval_seconds=300))
+    
     logger.info("Startup validation complete")
 
 # Configure CORS
 cors_origins = get_cors_origins()
 print(f"CORS Origins: {cors_origins}")
+
+# Request logging middleware
+class RequestLoggingMiddleware(BaseHTTPMiddleware):
+    """Middleware to log all API requests with timing and user info."""
+    
+    async def dispatch(self, request: Request, call_next):
+        import logging
+        logger = logging.getLogger("uvicorn.access")
+        
+        start_time = time.time()
+        
+        # Extract user_id from Authorization header if present
+        user_id = None
+        auth_header = request.headers.get("authorization")
+        if auth_header:
+            try:
+                from .services.session_service import session_service
+                parts = auth_header.split()
+                if len(parts) == 2 and parts[0].lower() == "bearer":
+                    token = parts[1]
+                    session_token = session_service.verify_token(token)
+                    if session_token:
+                        user_id = session_token.user_id
+            except Exception:
+                pass  # Failed to extract user_id, continue without it
+        
+        # Process request
+        response = await call_next(request)
+        
+        # Calculate response time
+        process_time = (time.time() - start_time) * 1000  # Convert to milliseconds
+        
+        # Log request
+        user_info = f"user={user_id}" if user_id else "unauthenticated"
+        logger.info(
+            f"{request.method} {request.url.path} - "
+            f"status={response.status_code} {user_info} "
+            f"time={process_time:.2f}ms"
+        )
+        
+        return response
+
+# Add request logging middleware
+app.add_middleware(RequestLoggingMiddleware)
 
 # Add CORS middleware for frontend access
 app.add_middleware(
@@ -104,18 +158,77 @@ app.include_router(config_router, tags=["config"])
 app.include_router(auth_router, tags=["authentication"])
 
 # Global exception handlers
+
+@app.exception_handler(HTTPException)
+async def http_exception_handler(request: Request, exc: HTTPException):
+    """Handle HTTP exceptions with consistent JSON format."""
+    return JSONResponse(
+        status_code=exc.status_code,
+        content={
+            "status": "error",
+            "error": exc.detail,
+            "status_code": exc.status_code
+        }
+    )
+
+@app.exception_handler(RequestValidationError)
+async def validation_exception_handler(request: Request, exc: RequestValidationError):
+    """Handle validation errors with field-level details."""
+    errors = []
+    for error in exc.errors():
+        errors.append({
+            "field": " -> ".join(str(loc) for loc in error["loc"]),
+            "message": error["msg"],
+            "type": error["type"]
+        })
+    
+    return JSONResponse(
+        status_code=422,
+        content={
+            "status": "error",
+            "error": "Validation error",
+            "details": errors
+        }
+    )
+
 @app.exception_handler(ProjectNotFoundError)
-async def project_not_found_handler(request, exc):
+async def project_not_found_handler(request: Request, exc: ProjectNotFoundError):
+    """Handle project not found errors."""
     return JSONResponse(
         status_code=404,
-        content={"error": str(exc)}
+        content={
+            "status": "error",
+            "error": str(exc)
+        }
     )
 
 @app.exception_handler(ValueError)
-async def value_error_handler(request, exc):
+async def value_error_handler(request: Request, exc: ValueError):
+    """Handle value errors."""
     return JSONResponse(
         status_code=400,
-        content={"error": str(exc)}
+        content={
+            "status": "error",
+            "error": str(exc)
+        }
+    )
+
+@app.exception_handler(Exception)
+async def general_exception_handler(request: Request, exc: Exception):
+    """Handle all other exceptions with a generic error message."""
+    import logging
+    logger = logging.getLogger("uvicorn.error")
+    
+    # Log the actual exception for debugging
+    logger.exception(f"Unhandled exception: {exc}")
+    
+    # Return generic error to client (don't expose internal details)
+    return JSONResponse(
+        status_code=500,
+        content={
+            "status": "error",
+            "error": "An internal server error occurred. Please try again later."
+        }
     )
 
 # Health check endpoint

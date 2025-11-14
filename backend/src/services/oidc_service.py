@@ -123,15 +123,18 @@ class OIDCService:
             OIDCServiceError: If provider is not supported or configured
         """
         if provider not in self.SUPPORTED_PROVIDERS:
+            logger.warning(f"OIDC login attempt with unsupported provider: {provider}")
             raise OIDCServiceError(f"Unsupported provider: {provider}")
         
         if not self.is_provider_configured(provider):
+            logger.warning(f"OIDC login attempt with unconfigured provider: {provider}")
             raise OIDCServiceError(f"Provider not configured: {provider}")
         
         try:
             client = getattr(self.oauth, provider)
             redirect_uri_with_provider = redirect_uri.format(provider=provider)
             authorization_url, state = client.create_authorization_url(redirect_uri_with_provider)
+            logger.info(f"OIDC: Generated authorization URL for {provider}")
             return authorization_url
         except Exception as e:
             logger.error(f"Failed to get authorization URL for {provider}: {str(e)}")
@@ -153,15 +156,18 @@ class OIDCService:
             OIDCServiceError: If exchange fails
         """
         if provider not in self.SUPPORTED_PROVIDERS:
+            logger.warning(f"OIDC callback with unsupported provider: {provider}")
             raise OIDCServiceError(f"Unsupported provider: {provider}")
         
         if not self.is_provider_configured(provider):
+            logger.warning(f"OIDC callback with unconfigured provider: {provider}")
             raise OIDCServiceError(f"Provider not configured: {provider}")
         
         try:
             client = getattr(self.oauth, provider)
             redirect_uri_with_provider = redirect_uri.format(provider=provider)
             token = await client.authorize_access_token(redirect_uri=redirect_uri_with_provider)
+            logger.info(f"OIDC: Successfully exchanged code for token with {provider}")
             return token
         except Exception as e:
             logger.error(f"Failed to exchange code for token with {provider}: {str(e)}")
@@ -182,9 +188,11 @@ class OIDCService:
             OIDCServiceError: If user info fetch fails
         """
         if provider not in self.SUPPORTED_PROVIDERS:
+            logger.warning(f"Attempt to get user info from unsupported provider: {provider}")
             raise OIDCServiceError(f"Unsupported provider: {provider}")
         
         if not self.is_provider_configured(provider):
+            logger.warning(f"Attempt to get user info from unconfigured provider: {provider}")
             raise OIDCServiceError(f"Provider not configured: {provider}")
         
         try:
@@ -193,11 +201,13 @@ class OIDCService:
             if provider == "google":
                 # Google provides userinfo endpoint
                 user_info = await client.userinfo(token=token)
-                return {
+                result = {
                     "email": user_info.get("email"),
                     "name": user_info.get("name"),
                     "provider_user_id": user_info.get("sub")
                 }
+                logger.info(f"OIDC: Retrieved user info from Google for {result.get('email')}")
+                return result
             
             elif provider == "github":
                 # GitHub requires fetching user endpoint
@@ -209,22 +219,26 @@ class OIDCService:
                 emails = email_resp.json()
                 primary_email = next((e["email"] for e in emails if e["primary"]), None)
                 
-                return {
+                result = {
                     "email": primary_email or user_data.get("email"),
                     "name": user_data.get("name") or user_data.get("login"),
                     "provider_user_id": str(user_data.get("id"))
                 }
+                logger.info(f"OIDC: Retrieved user info from GitHub for {result.get('email')}")
+                return result
             
             elif provider == "gitlab":
                 # GitLab provides user endpoint
                 resp = await client.get("user", token=token)
                 user_data = resp.json()
                 
-                return {
+                result = {
                     "email": user_data.get("email"),
                     "name": user_data.get("name") or user_data.get("username"),
                     "provider_user_id": str(user_data.get("id"))
                 }
+                logger.info(f"OIDC: Retrieved user info from GitLab for {result.get('email')}")
+                return result
             
             else:
                 raise OIDCServiceError(f"Unknown provider: {provider}")

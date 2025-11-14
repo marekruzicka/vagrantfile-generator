@@ -25,6 +25,58 @@ Docker or Podman installed on your system
 Modern web browser (Chrome, Firefox, Safari, Edge)
 Available port 8080 (and possibly 8000 if you want to expose backend) on your machine
 
+## Deployment Modes
+
+Vagrantfile Generator supports two deployment modes:
+
+### Self-Hosted Mode (Default)
+Perfect for local development or personal use. No authentication required.
+
+- ✅ No configuration needed
+- ✅ All features available immediately
+- ✅ Data stored locally in `/data` directory
+- ⚠️ Not suitable for multi-user or public deployments
+
+### Public Mode
+Designed for multi-user environments with full authentication.
+
+- 🔒 User authentication required (Email OTP + Google/GitHub/GitLab OAuth)
+- 👥 Multi-user support with data isolation
+- 🔐 Session management with JWT tokens
+- 📧 Email OTP delivery via Mailgun
+- 🌐 OIDC/OAuth integration with external providers
+
+**Required Environment Variables for Public Mode:**
+```bash
+# Deployment
+DEPLOYMENT_MODE=public
+
+# JWT Configuration
+JWT_SECRET_KEY=<your-secret-key>  # Generate with: openssl rand -hex 32
+
+# Backend URLs (required for OIDC)
+BASE_URL=https://your-domain.com
+FRONTEND_URL=https://your-domain.com
+
+# Email OTP (optional - falls back to OIDC only if not configured)
+MAILGUN_API_KEY=<your-mailgun-api-key>
+MAILGUN_DOMAIN=<your-mailgun-domain>
+MAILGUN_FROM_EMAIL=noreply@your-domain.com
+
+# OIDC Providers (at least one required)
+OIDC_GOOGLE_CLIENT_ID=<google-oauth-client-id>
+OIDC_GOOGLE_CLIENT_SECRET=<google-oauth-client-secret>
+
+OIDC_GITHUB_CLIENT_ID=<github-oauth-client-id>
+OIDC_GITHUB_CLIENT_SECRET=<github-oauth-client-secret>
+
+OIDC_GITLAB_CLIENT_ID=<gitlab-oauth-client-id>
+OIDC_GITLAB_CLIENT_SECRET=<gitlab-oauth-client-secret>
+OIDC_GITLAB_URL=https://gitlab.com  # Optional, defaults to gitlab.com
+```
+
+See [AUTHENTICATION.md](./docs/AUTHENTICATION.md) for detailed authentication setup guide.
+
 ## Quick Start
 
 ```bash
