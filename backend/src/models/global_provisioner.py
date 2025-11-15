@@ -81,6 +81,10 @@ class GlobalProvisioner(BaseModel):
         default=None,
         description="User ID of the owner (None for shared)"
     )
+    source_id: Optional[str] = Field(
+        default=None,
+        description="ID of the original shared resource this was copied from"
+    )
     
     @field_validator('name')
     @classmethod
