@@ -114,12 +114,23 @@ async def update_plugin(
         )
 
 
-@router.delete("/plugins/{plugin_id}")
+@router.delete("/plugins/{plugin_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_plugin(
     plugin_id: str,
     plugin_service: PluginService = Depends(get_plugin_service)
 ):
-    """Delete a plugin."""
+    """
+    Delete a plugin.
+    
+    Args:
+        plugin_id: Plugin ID to delete
+        
+    Returns:
+        None (204 No Content)
+        
+    Raises:
+        HTTPException: If plugin not found or is shared
+    """
     try:
         # Check if plugin is shared (read-only)
         if plugin_service.user_id is not None:
@@ -138,10 +149,9 @@ async def delete_plugin(
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail=f"Plugin with ID {plugin_id} not found"
             )
-        return JSONResponse(
-            status_code=status.HTTP_200_OK,
-            content={"message": f"Plugin {plugin_id} deleted successfully"}
-        )
+        return None
+    except HTTPException:
+        raise
     except PluginServiceError as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
