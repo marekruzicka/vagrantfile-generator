@@ -507,40 +507,40 @@ class ProjectService:
         """Get the total number of projects."""
         return len(list(self.data_dir.glob("*.json")))
 
-    def add_plugin_to_project(self, project_id: UUID, plugin: 'PluginConfiguration') -> Project:
+    def add_plugin_to_project(self, project_id: UUID, plugin_id: str) -> Project:
         """
         Add a plugin to a project's global plugins.
         
         Args:
             project_id: Project UUID
-            plugin: PluginConfiguration instance to add
+            plugin_id: Plugin ID to add to project
             
         Returns:
             Updated Project instance
             
         Raises:
             ProjectNotFoundError: If project doesn't exist
-            ValueError: If plugin name conflicts
+            ValueError: If plugin ID already exists in project
         """
         project = self._load_project_from_file(project_id)
         
         # Check if plugin already exists
-        if any(p.name == plugin.name for p in project.global_plugins):
-            raise ValueError(f"Plugin '{plugin.name}' already exists in project")
+        if plugin_id in project.global_plugins:
+            raise ValueError(f"Plugin with ID '{plugin_id}' already exists in project")
         
-        project.global_plugins.append(plugin)
+        project.global_plugins.append(plugin_id)
         project.update_timestamp()
         self._save_project_to_file(project)
         return project
 
-    def update_plugin_in_project(self, project_id: UUID, plugin_name: str, plugin: 'PluginConfiguration') -> Project:
+    def update_plugin_in_project(self, project_id: UUID, old_plugin_id: str, new_plugin_id: str) -> Project:
         """
-        Update a plugin in a project's global plugins.
+        Update (replace) a plugin in a project's global plugins.
         
         Args:
             project_id: Project UUID
-            plugin_name: Name of plugin to update
-            plugin: Updated PluginConfiguration instance
+            old_plugin_id: ID of plugin to replace
+            new_plugin_id: ID of new plugin
             
         Returns:
             Updated Project instance
@@ -552,29 +552,25 @@ class ProjectService:
         project = self._load_project_from_file(project_id)
         
         # Find the plugin index
-        plugin_index = None
-        for i, p in enumerate(project.global_plugins):
-            if p.name == plugin_name:
-                plugin_index = i
-                break
-        
-        if plugin_index is None:
-            raise ValueError(f"Plugin '{plugin_name}' not found in project")
+        try:
+            plugin_index = project.global_plugins.index(old_plugin_id)
+        except ValueError:
+            raise ValueError(f"Plugin '{old_plugin_id}' not found in project")
         
         # Update the plugin
-        project.global_plugins[plugin_index] = plugin
+        project.global_plugins[plugin_index] = new_plugin_id
         project.update_timestamp()
         self._save_project_to_file(project)
         
         return project
 
-    def remove_plugin_from_project(self, project_id: UUID, plugin_name: str) -> Project:
+    def remove_plugin_from_project(self, project_id: UUID, plugin_id: str) -> Project:
         """
         Remove a plugin from a project's global plugins.
         
         Args:
             project_id: Project UUID
-            plugin_name: Name of plugin to remove
+            plugin_id: ID of plugin to remove
             
         Returns:
             Updated Project instance
@@ -587,10 +583,10 @@ class ProjectService:
         
         # Find and remove the plugin
         original_count = len(project.global_plugins)
-        project.global_plugins = [p for p in project.global_plugins if p.name != plugin_name]
+        project.global_plugins = [p for p in project.global_plugins if p != plugin_id]
         
         if len(project.global_plugins) == original_count:
-            raise ValueError(f"Plugin '{plugin_name}' not found in project")
+            raise ValueError(f"Plugin '{plugin_id}' not found in project")
         
         project.update_timestamp()
         self._save_project_to_file(project)
@@ -647,6 +643,34 @@ class ProjectService:
         self._save_project_to_file(project)
         return project
 
+    def update_provisioner_in_project(self, project_id: UUID, old_provisioner_id: str, new_provisioner_id: str) -> Project:
+        """
+        Update (replace) a provisioner in a project's global provisioners.
+        
+        Args:
+            project_id: Project UUID
+            old_provisioner_id: ID of provisioner to replace
+            new_provisioner_id: ID of new provisioner
+            
+        Returns:
+            Updated Project instance
+            
+        Raises:
+            ProjectNotFoundError: If project doesn't exist
+            ValueError: If provisioner not found in project
+        """
+        project = self._load_project_from_file(project_id)
+        
+        try:
+            provisioner_index = project.global_provisioners.index(old_provisioner_id)
+        except ValueError:
+            raise ValueError(f"Provisioner '{old_provisioner_id}' not found in project")
+        
+        project.global_provisioners[provisioner_index] = new_provisioner_id
+        project.update_timestamp()
+        self._save_project_to_file(project)
+        return project
+
     def add_trigger_to_project(self, project_id: UUID, trigger_id: str) -> Project:
         """
         Add a trigger to a project's global triggers.
@@ -668,7 +692,35 @@ class ProjectService:
         if trigger_id in project.global_triggers:
             raise ValueError(f"Trigger '{trigger_id}' already exists in project")
         
-        project.global_triggers.append(trigger_id)
+        project.global_triggers.remove(trigger_id)
+        project.update_timestamp()
+        self._save_project_to_file(project)
+        return project
+
+    def update_trigger_in_project(self, project_id: UUID, old_trigger_id: str, new_trigger_id: str) -> Project:
+        """
+        Update (replace) a trigger in a project's global triggers.
+        
+        Args:
+            project_id: Project UUID
+            old_trigger_id: ID of trigger to replace
+            new_trigger_id: ID of new trigger
+            
+        Returns:
+            Updated Project instance
+            
+        Raises:
+            ProjectNotFoundError: If project doesn't exist
+            ValueError: If trigger not found in project
+        """
+        project = self._load_project_from_file(project_id)
+        
+        try:
+            trigger_index = project.global_triggers.index(old_trigger_id)
+        except ValueError:
+            raise ValueError(f"Trigger '{old_trigger_id}' not found in project")
+        
+        project.global_triggers[trigger_index] = new_trigger_id
         project.update_timestamp()
         self._save_project_to_file(project)
         return project
