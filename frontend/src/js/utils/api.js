@@ -205,14 +205,14 @@ class VagrantAPI {
 
     // Project Plugin management methods
     async getProjectPlugins(projectId) { return this.request(`/projects/${projectId}/plugins`); }
-    async addPluginToProject(projectId, pluginData) { 
-        return this.request(`/projects/${projectId}/plugins`, { method: 'POST', body: pluginData }); 
+    async addPluginToProject(projectId, pluginId) { 
+        return this.request(`/projects/${projectId}/plugins/${pluginId}`, { method: 'POST' }); 
     }
-    async updatePluginInProject(projectId, pluginName, pluginData) { 
-        return this.request(`/projects/${projectId}/plugins/${pluginName}`, { method: 'PUT', body: pluginData }); 
+    async updatePluginInProject(projectId, pluginId, pluginData) { 
+        return this.request(`/projects/${projectId}/plugins/${pluginId}`, { method: 'PUT', body: pluginData }); 
     }
-    async removePluginFromProject(projectId, pluginName) { 
-        return this.request(`/projects/${projectId}/plugins/${pluginName}`, { method: 'DELETE' }); 
+    async removePluginFromProject(projectId, pluginId) { 
+        return this.request(`/projects/${projectId}/plugins/${pluginId}`, { method: 'DELETE' }); 
     }
 
     // Network interface management methods

@@ -12,7 +12,7 @@ from pathlib import Path
 from typing import List, Optional, Dict, Any
 from uuid import UUID
 
-from ..models import Project, ProjectCreate, ProjectUpdate, ProjectSummary, VirtualMachine, NetworkInterface, DeploymentStatus, PluginConfiguration
+from ..models import Project, ProjectCreate, ProjectUpdate, ProjectSummary, VirtualMachine, NetworkInterface, DeploymentStatus
 from .file_service import FileService
 
 
@@ -90,12 +90,8 @@ class ProjectService:
                     vms.append(self._construct_vm_without_validation(vm_data))
                 data = {**data, 'vms': vms}
             
-            # Handle global_plugins separately to avoid validation issues
-            plugins = []
-            if 'global_plugins' in data:
-                for plugin_data in data['global_plugins']:
-                    plugins.append(PluginConfiguration.construct(**plugin_data))
-                data = {**data, 'global_plugins': plugins}
+            # global_plugins, global_provisioners, and global_triggers are now just lists of IDs (strings)
+            # No special handling needed - they're already in the correct format
             
             # Use construct() to create model without validation for existing data
             # This maintains backward compatibility with legacy projects

@@ -150,6 +150,9 @@ function vagrantApp() {
             selectedProvisionerIds: []
         },
         
+        // Project Plugin cache
+        projectPluginsCache: {}, // Cache plugin details by ID
+        
         // Global Trigger management state
         availableTriggers: [],
         showEditTriggerModal: false,
@@ -632,15 +635,8 @@ function vagrantApp() {
                     const plugin = this.availablePlugins.find(p => p.id === pluginId);
                     if (!plugin) continue;
                     
-                    const pluginData = {
-                        name: plugin.name,
-                        version: plugin.default_version || null,
-                        scope: 'global',
-                        config: {}
-                    };
-                    
                     try {
-                        const addedPlugin = await api.addPluginToProject(this.currentProject.id, pluginData);
+                        const addedPlugin = await api.addPluginToProject(this.currentProject.id, pluginId);
                         if (addedPlugin) {
                             addedPlugins.push(addedPlugin);
                         }
@@ -650,12 +646,17 @@ function vagrantApp() {
                     }
                 }
                 
-                // Add all successfully added plugins to current project
+                // Add plugin IDs to current project and collect plugin objects for display
                 if (!this.currentProject.global_plugins) {
                     this.currentProject.global_plugins = [];
                 }
                 if (addedPlugins.length > 0) {
-                    this.currentProject.global_plugins.push(...addedPlugins);
+                    // Add plugin IDs to the project (backend stores IDs only)
+                    const newPluginIds = addedPlugins.map(p => p.id);
+                    this.currentProject.global_plugins.push(...newPluginIds);
+                    
+                    // Reload project plugins to get the full list with details
+                    await this.loadProjectPlugins();
                 }
                 
                 this.syncProjectInList();
@@ -676,7 +677,38 @@ function vagrantApp() {
             }
         },
         
-
+        async loadProjectPlugins() {
+            if (!this.currentProject || !this.currentProject.global_plugins) return;
+            
+            // Load details for all plugins in the project
+            for (const pluginId of this.currentProject.global_plugins) {
+                if (!this.projectPluginsCache[pluginId]) {
+                    await this.loadPluginDetails(pluginId);
+                }
+            }
+        },
+        
+        async loadPluginDetails(pluginId) {
+            try {
+                const plugin = await api.getPlugin(pluginId);
+                this.projectPluginsCache[pluginId] = plugin;
+            } catch (error) {
+                console.error(`Failed to load plugin ${pluginId}:`, error);
+            }
+        },
+        
+        // Plugin helper functions
+        getPluginById(pluginId) {
+            return this.projectPluginsCache[pluginId] || 
+                   this.availablePlugins.find(p => p.id === pluginId);
+        },
+        
+        getProjectPlugins() {
+            if (!this.currentProject || !this.currentProject.global_plugins) return [];
+            return this.currentProject.global_plugins
+                .map(id => this.getPluginById(id))
+                .filter(p => p !== undefined);
+        },
         
         openDeleteProjectPluginModal(plugin) {
             this.deletingProjectPlugin = plugin;
@@ -687,12 +719,15 @@ function vagrantApp() {
             if (!this.currentProject || !this.deletingProjectPlugin) return;
             
             try {
-                await api.removePluginFromProject(this.currentProject.id, this.deletingProjectPlugin.name);
+                await api.removePluginFromProject(this.currentProject.id, this.deletingProjectPlugin.id);
                 
-                // Remove from current project
+                // Remove from current project's plugin IDs
                 this.currentProject.global_plugins = this.currentProject.global_plugins.filter(
-                    p => p.name !== this.deletingProjectPlugin.name
+                    id => id !== this.deletingProjectPlugin.id
                 );
+                
+                // Remove from cache
+                delete this.projectPluginsCache[this.deletingProjectPlugin.id];
                 
                 this.syncProjectInList();
                 this.showDeleteProjectPluginModal = false;
@@ -718,22 +753,22 @@ function vagrantApp() {
         },
         
         // Plugin Selection Management
-        isPluginSelected(pluginName) {
-            return this.selectedPlugins.includes(pluginName);
+        isPluginSelected(pluginId) {
+            return this.selectedPlugins.includes(pluginId);
         },
         
-        togglePluginSelection(pluginName) {
-            const index = this.selectedPlugins.indexOf(pluginName);
+        togglePluginSelection(pluginId) {
+            const index = this.selectedPlugins.indexOf(pluginId);
             if (index > -1) {
                 this.selectedPlugins.splice(index, 1);
             } else {
-                this.selectedPlugins.push(pluginName);
+                this.selectedPlugins.push(pluginId);
             }
         },
         
         selectAllPlugins() {
             if (!this.currentProject || !this.currentProject.global_plugins) return;
-            this.selectedPlugins = this.currentProject.global_plugins.map(p => p.name);
+            this.selectedPlugins = [...this.currentProject.global_plugins];
         },
         
         clearPluginSelection() {
@@ -750,16 +785,21 @@ function vagrantApp() {
             
             try {
                 // Delete each selected plugin
-                const deletePromises = this.selectedPlugins.map(pluginName => 
-                    api.removePluginFromProject(this.currentProject.id, pluginName)
+                const deletePromises = this.selectedPlugins.map(pluginId => 
+                    api.removePluginFromProject(this.currentProject.id, pluginId)
                 );
                 
                 await Promise.all(deletePromises);
                 
                 // Remove from current project
                 this.currentProject.global_plugins = this.currentProject.global_plugins.filter(
-                    p => !this.selectedPlugins.includes(p.name)
+                    id => !this.selectedPlugins.includes(id)
                 );
+                
+                // Remove from cache
+                this.selectedPlugins.forEach(id => {
+                    delete this.projectPluginsCache[id];
+                });
                 
                 this.syncProjectInList();
                 this.showBulkDeletePluginsModal = false;
@@ -1193,6 +1233,9 @@ function vagrantApp() {
                 
                 // Initialize project labels
                 this.updateProjectLabels();
+                
+                // Load project plugins
+                await this.loadProjectPlugins();
                 
                 // Load project provisioners
                 await this.loadProjectProvisioners();

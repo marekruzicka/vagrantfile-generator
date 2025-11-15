@@ -111,15 +111,15 @@
     </div>
     
     <!-- Plugins Grid -->
-    <div x-show="sectionsOpen.projectPlugins && currentProject?.global_plugins?.length > 0" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-      <template x-for="plugin in currentProject?.global_plugins" :key="plugin.name">
+    <div x-show="sectionsOpen.projectPlugins && getProjectPlugins().length > 0" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+      <template x-for="plugin in getProjectPlugins()" :key="plugin.id">
         <div class="border border-gray-200 rounded-lg p-4 hover:border-purple-300 transition-colors group"
-             :class="{ 'ring-2 ring-purple-500': isPluginSelected(plugin.name) }">
+             :class="{ 'ring-2 ring-purple-500': isPluginSelected(plugin.id) }">
           <div class="flex items-start justify-between mb-3">
             <div class="flex items-center space-x-3">
               <input type="checkbox" 
-                     :checked="isPluginSelected(plugin.name)"
-                     @change="togglePluginSelection(plugin.name)"
+                     :checked="isPluginSelected(plugin.id)"
+                     @change="togglePluginSelection(plugin.id)"
                      class="w-4 h-4 text-purple-600 border-gray-300 rounded focus:ring-purple-500">
               <div class="w-10 h-10 bg-gradient-to-br from-purple-500 to-pink-600 rounded-lg flex items-center justify-center flex-shrink-0">
                 <svg class="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20">

@@ -8,7 +8,7 @@ using Jinja2 templates.
 from typing import Dict, Any, List, Tuple
 from jinja2 import Environment, BaseLoader, Template
 
-from ..models import Project, VirtualMachine, NetworkInterface, SyncedFolder, Provisioner, PluginConfiguration
+from ..models import Project, VirtualMachine, NetworkInterface, SyncedFolder, Provisioner
 
 
 class StringTemplateLoader(BaseLoader):
