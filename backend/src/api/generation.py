@@ -5,7 +5,7 @@ This module contains API endpoints for generating and validating Vagrantfiles.
 """
 
 from uuid import UUID
-from typing import Dict, Any
+from typing import Dict, Any, Optional
 
 from fastapi import APIRouter, HTTPException, Depends
 from fastapi.responses import PlainTextResponse
@@ -13,13 +13,18 @@ from fastapi.responses import PlainTextResponse
 from ..services.vagrantfile_generator import VagrantfileGenerator
 from ..services.box_service import BoxService
 from ..services.project_service import ProjectService, ProjectNotFoundError
+from ..models.user_profile import UserProfile
+from ..middleware.auth_middleware import get_optional_user
 
 router = APIRouter()
 
 # Dependencies
-def get_project_service() -> ProjectService:
-    """Get ProjectService instance."""
-    return ProjectService()
+def get_project_service(
+    current_user: Optional[UserProfile] = Depends(get_optional_user)
+) -> ProjectService:
+    """Get ProjectService instance with user context."""
+    user_id = current_user.user_id if current_user else None
+    return ProjectService(user_id=user_id)
 
 def get_vagrantfile_generator() -> VagrantfileGenerator:
     """Get VagrantfileGenerator instance."""
