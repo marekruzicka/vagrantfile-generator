@@ -127,20 +127,31 @@ class BoxService:
             Box if found, None otherwise
         """
         try:
+            box_data = None
+            
             # Try user directory first
             if self.user_id:
                 user_file = self.file_service.get_user_data_path(self.user_id, "boxes") / f"{box_id}.json"
                 if user_file.exists():
                     with open(user_file, 'r', encoding='utf-8') as f:
-                        return Box(**json.load(f))
+                        box_data = json.load(f)
             
-            # Try shared directory
-            shared_file = self.file_service.get_shared_data_path("boxes") / f"{box_id}.json"
-            if shared_file.exists():
-                with open(shared_file, 'r', encoding='utf-8') as f:
-                    return Box(**json.load(f))
+            # Try shared directory if not found in user directory
+            if not box_data:
+                shared_file = self.file_service.get_shared_data_path("boxes") / f"{box_id}.json"
+                if shared_file.exists():
+                    with open(shared_file, 'r', encoding='utf-8') as f:
+                        box_data = json.load(f)
             
-            return None
+            if not box_data:
+                return None
+            
+            # Apply is_shared and owner_id metadata
+            box_data = self.file_service.apply_shared_metadata(
+                box_data, box_id, "boxes", self.user_id
+            )
+            
+            return Box(**box_data)
             
         except Exception as e:
             raise BoxServiceError(f"Failed to get box {box_id}: {str(e)}")
@@ -352,6 +363,7 @@ class BoxService:
                 "name": f"{box_data['name']} (Copy)",
                 "is_shared": False,
                 "owner_id": self.user_id,
+                "source_id": box_id,  # Track original shared resource
                 "created_at": now,
                 "updated_at": now
             }
@@ -364,4 +376,28 @@ class BoxService:
             return Box(**box_copy)
             
         except Exception as e:
-            raise BoxServiceError(f"Failed to copy box: {str(e)}")
+            raise BoxServiceError(f"Failed to copy box: {str(e)}")    
+    def get_copies_of_shared_resource(self, source_id: str) -> List[Box]:
+        """
+        Get all user's copies of a specific shared resource.
+        
+        Args:
+            source_id: ID of the original shared resource
+            
+        Returns:
+            List of boxes that were copied from the specified shared resource
+            
+        Raises:
+            BoxServiceError: If user_id not set
+        """
+        if not self.user_id:
+            return []  # Self-hosted mode has no copies
+        
+        try:
+            # List all user boxes and filter by source_id
+            all_boxes = self.list_boxes()
+            copies = [b for b in all_boxes if b.source_id == source_id]
+            return copies
+            
+        except Exception as e:
+            raise BoxServiceError(f"Failed to get copies: {str(e)}")

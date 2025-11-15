@@ -220,8 +220,11 @@ class GlobalProvisionerService:
             if not provisioner_data:
                 return None
             
-            # In public mode (user_id set), access control is enforced by directory structure
-            # If file is found in user's directory, access is allowed
+            # Apply is_shared and owner_id metadata
+            provisioner_data = self.file_service.apply_shared_metadata(
+                provisioner_data, provisioner_id, "provisioners", self.user_id
+            )
+            
             return GlobalProvisioner(**provisioner_data)
             
         except Exception as e:
@@ -466,6 +469,7 @@ class GlobalProvisionerService:
                 "name": f"{provisioner_data['name']} (Copy)",
                 "is_shared": False,
                 "owner_id": self.user_id,
+                "source_id": provisioner_id,  # Track original shared resource
                 "created_at": now,
                 "updated_at": now
             }
@@ -479,3 +483,28 @@ class GlobalProvisionerService:
             
         except Exception as e:
             raise GlobalProvisionerServiceError(f"Failed to copy provisioner: {str(e)}")
+    
+    def get_copies_of_shared_resource(self, source_id: str) -> List[GlobalProvisioner]:
+        """
+        Get all user's copies of a specific shared resource.
+        
+        Args:
+            source_id: ID of the original shared resource
+            
+        Returns:
+            List of provisioners that were copied from the specified shared resource
+            
+        Raises:
+            GlobalProvisionerServiceError: If user_id not set
+        """
+        if not self.user_id:
+            return []  # Self-hosted mode has no copies
+        
+        try:
+            # List all user provisioners and filter by source_id
+            all_provisioners = self.list_provisioners()
+            copies = [p for p in all_provisioners if p.source_id == source_id]
+            return copies
+            
+        except Exception as e:
+            raise GlobalProvisionerServiceError(f"Failed to get copies: {str(e)}")

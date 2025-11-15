@@ -219,9 +219,11 @@ class PluginService:
             if not plugin_data:
                 return None
             
-            # In public mode (user_id set), access control is enforced by directory structure
-            # If file is found in user's directory, access is allowed
-            # If not found, None is returned (same as file not existing)
+            # Apply is_shared and owner_id metadata based on deployment mode
+            plugin_data = self.file_service.apply_shared_metadata(
+                plugin_data, plugin_id, "plugins", self.user_id
+            )
+            
             return Plugin(**plugin_data)
             
         except Exception as e:
@@ -238,12 +240,12 @@ class PluginService:
             Plugin if found, None otherwise
         """
         try:
-            plugin_ids = self._list_all_plugin_ids()
+            # Use list_plugins which already merges shared and user resources
+            plugins = self.list_plugins(include_deprecated=True)
             
-            for plugin_id in plugin_ids:
-                plugin_data = self._load_plugin_from_file(plugin_id)
-                if plugin_data and plugin_data.get("name") == plugin_name:
-                    return Plugin(**plugin_data)
+            for plugin in plugins:
+                if plugin.name == plugin_name:
+                    return plugin
             
             return None
             
@@ -446,6 +448,7 @@ class PluginService:
                 "name": f"{plugin_data['name']} (Copy)",
                 "is_shared": False,
                 "owner_id": self.user_id,
+                "source_id": plugin_id,  # Track original shared resource
                 "created_at": now,
                 "updated_at": now
             }
@@ -459,3 +462,28 @@ class PluginService:
             
         except Exception as e:
             raise PluginServiceError(f"Failed to copy plugin: {str(e)}")
+    
+    def get_copies_of_shared_resource(self, source_id: str) -> List[Plugin]:
+        """
+        Get all user's copies of a specific shared resource.
+        
+        Args:
+            source_id: ID of the original shared resource
+            
+        Returns:
+            List of plugins that were copied from the specified shared resource
+            
+        Raises:
+            PluginServiceError: If user_id not set
+        """
+        if not self.user_id:
+            return []  # Self-hosted mode has no copies
+        
+        try:
+            # List all user plugins and filter by source_id
+            all_plugins = self.list_plugins()
+            copies = [p for p in all_plugins if p.source_id == source_id]
+            return copies
+            
+        except Exception as e:
+            raise PluginServiceError(f"Failed to get copies: {str(e)}")

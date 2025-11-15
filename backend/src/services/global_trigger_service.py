@@ -220,8 +220,11 @@ class GlobalTriggerService:
             if not trigger_data:
                 return None
             
-            # In public mode (user_id set), access control is enforced by directory structure
-            # If file is found in user's directory, access is allowed
+            # Apply is_shared and owner_id metadata
+            trigger_data = self.file_service.apply_shared_metadata(
+                trigger_data, trigger_id, "triggers", self.user_id
+            )
+            
             return GlobalTrigger(**trigger_data)
             
         except Exception as e:
@@ -346,6 +349,7 @@ class GlobalTriggerService:
                 "name": f"{trigger_data['name']} (Copy)",
                 "is_shared": False,
                 "owner_id": self.user_id,
+                "source_id": trigger_id,  # Track original shared resource
                 "created_at": now,
                 "updated_at": now
             }
@@ -486,6 +490,7 @@ class GlobalTriggerService:
                 "name": f"{trigger_data['name']} (Copy)",
                 "is_shared": False,
                 "owner_id": self.user_id,
+                "source_id": trigger_id,  # Track original shared resource
                 "created_at": now,
                 "updated_at": now
             }
@@ -499,3 +504,28 @@ class GlobalTriggerService:
             
         except Exception as e:
             raise GlobalTriggerServiceError(f"Failed to copy trigger: {str(e)}")
+    
+    def get_copies_of_shared_resource(self, source_id: str) -> List[GlobalTrigger]:
+        """
+        Get all user's copies of a specific shared resource.
+        
+        Args:
+            source_id: ID of the original shared resource
+            
+        Returns:
+            List of triggers that were copied from the specified shared resource
+            
+        Raises:
+            GlobalTriggerServiceError: If user_id not set
+        """
+        if not self.user_id:
+            return []  # Self-hosted mode has no copies
+        
+        try:
+            # List all user triggers and filter by source_id
+            all_triggers = self.list_triggers()
+            copies = [t for t in all_triggers if t.source_id == source_id]
+            return copies
+            
+        except Exception as e:
+            raise GlobalTriggerServiceError(f"Failed to get copies: {str(e)}")
