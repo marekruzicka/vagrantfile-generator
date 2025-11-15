@@ -176,3 +176,21 @@ async def copy_shared_box(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=str(e)
         )
+
+@router.get("/boxes/copies-of/{source_id}", response_model=List[Box])
+async def get_copies_of_shared_box(
+    source_id: str,
+    box_service: BoxService = Depends(get_box_service)
+):
+    """
+    Get all user's copies of a specific shared box.
+    Useful for showing existing copies before creating a new one.
+    """
+    try:
+        copies = box_service.get_copies_of_shared_resource(source_id)
+        return copies
+    except BoxServiceError as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=str(e)
+        )

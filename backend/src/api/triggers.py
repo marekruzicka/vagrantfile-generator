@@ -236,3 +236,22 @@ async def copy_shared_trigger(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=str(e)
         )
+
+
+@router.get("/triggers/copies-of/{source_id}", response_model=List[GlobalTrigger])
+async def get_copies_of_shared_trigger(
+    source_id: str,
+    trigger_service: GlobalTriggerService = Depends(get_trigger_service)
+):
+    """
+    Get all user's copies of a specific shared trigger.
+    Useful for showing existing copies before creating a new one.
+    """
+    try:
+        copies = trigger_service.get_copies_of_shared_resource(source_id)
+        return copies
+    except GlobalTriggerServiceError as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=str(e)
+        )

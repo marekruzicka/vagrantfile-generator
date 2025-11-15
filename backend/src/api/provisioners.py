@@ -244,3 +244,22 @@ async def copy_shared_provisioner(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=str(e)
         )
+
+
+@router.get("/provisioners/copies-of/{source_id}", response_model=List[GlobalProvisioner])
+async def get_copies_of_shared_provisioner(
+    source_id: str,
+    provisioner_service: GlobalProvisionerService = Depends(get_provisioner_service)
+):
+    """
+    Get all user's copies of a specific shared provisioner.
+    Useful for showing existing copies before creating a new one.
+    """
+    try:
+        copies = provisioner_service.get_copies_of_shared_resource(source_id)
+        return copies
+    except GlobalProvisionerServiceError as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=str(e)
+        )
