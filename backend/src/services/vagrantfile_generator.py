@@ -188,35 +188,22 @@ end
         plugin_service = PluginService()
         enriched_plugins = []
         
-        for plugin_config in project.global_plugins:
+        for plugin_id in project.global_plugins:
             try:
-                # Try to get full plugin details by name
-                full_plugin = plugin_service.get_plugin_by_name(plugin_config.name)
+                # Get full plugin details by ID
+                full_plugin = plugin_service.get_plugin(plugin_id)
                 if full_plugin:
                     # Create enriched plugin object with configuration
                     enriched_plugin = {
-                        'name': plugin_config.name,
-                        'version': plugin_config.version,
+                        'name': full_plugin.name,
+                        'version': full_plugin.version,
                         'configuration': full_plugin.configuration,
-                        'is_deprecated': plugin_config.is_deprecated
+                        'is_deprecated': full_plugin.is_deprecated
                     }
                     enriched_plugins.append(enriched_plugin)
-                else:
-                    # Fallback to basic info if plugin not found
-                    enriched_plugins.append({
-                        'name': plugin_config.name,
-                        'version': plugin_config.version,
-                        'configuration': None,
-                        'is_deprecated': plugin_config.is_deprecated
-                    })
             except Exception as e:
-                # If fetching fails, use basic info
-                enriched_plugins.append({
-                    'name': plugin_config.name,
-                    'version': plugin_config.version,
-                    'configuration': None,
-                    'is_deprecated': plugin_config.is_deprecated
-                })
+                # If fetching fails, skip this plugin
+                pass
         
         # Load global provisioners for this project
         from .global_provisioner_service import GlobalProvisionerService

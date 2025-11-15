@@ -229,29 +229,6 @@ class PluginService:
         except Exception as e:
             raise PluginServiceError(f"Failed to get plugin: {str(e)}")
     
-    def get_plugin_by_name(self, plugin_name: str) -> Optional[Plugin]:
-        """
-        Get a specific plugin by name.
-        
-        Args:
-            plugin_name: Plugin name to retrieve
-            
-        Returns:
-            Plugin if found, None otherwise
-        """
-        try:
-            # Use list_plugins which already merges shared and user resources
-            plugins = self.list_plugins(include_deprecated=True)
-            
-            for plugin in plugins:
-                if plugin.name == plugin_name:
-                    return plugin
-            
-            return None
-            
-        except Exception as e:
-            raise PluginServiceError(f"Failed to get plugin by name: {str(e)}")
-    
     def update_plugin(self, plugin_id: str, plugin_data: PluginUpdate) -> Optional[Plugin]:
         """
         Update an existing plugin.

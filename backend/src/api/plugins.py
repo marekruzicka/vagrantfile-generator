@@ -34,30 +34,6 @@ async def list_plugins(plugin_service: PluginService = Depends(get_plugin_servic
         )
 
 
-@router.get("/plugins/by-name/{plugin_name}", response_model=Plugin)
-async def get_plugin_by_name(
-    plugin_name: str,
-    plugin_service: PluginService = Depends(get_plugin_service)
-):
-    """
-    Get a plugin by its name.
-    Useful for checking if a plugin used in a project is shared.
-    """
-    try:
-        plugin = plugin_service.get_plugin_by_name(plugin_name)
-        if not plugin:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail=f"Plugin with name '{plugin_name}' not found"
-            )
-        return plugin
-    except PluginServiceError as e:
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=str(e)
-        )
-
-
 @router.get("/plugins/{plugin_id}", response_model=Plugin)
 async def get_plugin(
     plugin_id: str,
