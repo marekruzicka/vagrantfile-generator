@@ -66,7 +66,10 @@ class ProjectUpdate(ProjectBase):
     """Schema for updating an existing project."""
     version: str = Field(default="1.0.0", description="Data model version")
     vms: List['VirtualMachine'] = Field(default_factory=list)
-    global_plugins: List['PluginConfiguration'] = Field(default_factory=list)
+    global_plugins: List[str] = Field(
+        default_factory=list,
+        description="List of global plugin IDs applied to all VMs"
+    )
     global_provisioners: List[str] = Field(
         default_factory=list,
         description="List of global provisioner IDs applied to all VMs"
@@ -97,7 +100,10 @@ class Project(ProjectBase):
     created_at: datetime = Field(default_factory=datetime.utcnow)
     updated_at: datetime = Field(default_factory=datetime.utcnow)
     vms: List['VirtualMachine'] = Field(default_factory=list)
-    global_plugins: List['PluginConfiguration'] = Field(default_factory=list)
+    global_plugins: List[str] = Field(
+        default_factory=list,
+        description="List of global plugin IDs applied to all VMs"
+    )
     global_provisioners: List[str] = Field(
         default_factory=list,
         description="List of global provisioner IDs applied to all VMs"
@@ -238,7 +244,6 @@ class ProjectSummary(BaseModel):
 
 # Forward references for circular imports
 from .virtual_machine import VirtualMachine
-from .plugin_configuration import PluginConfiguration
 
 # Update forward references
 Project.model_rebuild()
