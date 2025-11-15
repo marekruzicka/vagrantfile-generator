@@ -128,4 +128,4 @@ refactor.md
 multiuser.md
 
 # User data (runtime storage - not committed)
-backend/data/users
+backend/data/users/

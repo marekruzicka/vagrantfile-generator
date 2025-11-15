@@ -1,0 +1,10 @@
+{
+  "id": "8bee0423-a6cf-4a87-b436-d0353a551657",
+  "name": "generic/rhel8",
+  "description": "RedHat Enterprise Linux 8",
+  "provider": "libvirt",
+  "version": null,
+  "url": null,
+  "created_at": "2025-10-03T07:49:32.279743",
+  "updated_at": "2025-10-03T07:49:32.279743"
+}

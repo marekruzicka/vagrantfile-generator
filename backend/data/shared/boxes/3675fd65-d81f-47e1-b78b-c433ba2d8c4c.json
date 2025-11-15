@@ -1,0 +1,10 @@
+{
+  "id": "3675fd65-d81f-47e1-b78b-c433ba2d8c4c",
+  "name": "generic/rhel9",
+  "description": "RedHat Enterprise Linux 9",
+  "provider": "libvirt",
+  "version": null,
+  "url": null,
+  "created_at": "2025-10-03T07:49:22.149746",
+  "updated_at": "2025-10-03T07:49:22.149746"
+}

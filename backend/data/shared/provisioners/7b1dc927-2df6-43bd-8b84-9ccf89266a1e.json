@@ -1,0 +1,15 @@
+{
+  "id": "7b1dc927-2df6-43bd-8b84-9ccf89266a1e",
+  "name": "Update all system packages",
+  "description": "Supports debian and rhel based distros",
+  "type": "shell",
+  "scope": "global",
+  "shell_config": {
+    "script": "echo \"Starting system package update...\"\n\n# Function to detect OS distribution\nget_distro() {\n    if [[ -f /etc/os-release ]]; then\n        # On Linux systems - source the os-release file\n        source /etc/os-release\n        echo $ID\n    else\n        # Fallback to uname for non-Linux systems\n        uname\n    fi\n}\n\n# Detect the distribution\nDISTRO=$(get_distro)\necho \"Detected OS: $DISTRO\"\n\n# Update packages based on distribution\ncase $DISTRO in\n    rhel|centos|fedora|rocky|almalinux)\n        echo \"RHEL-based distribution detected. Using dnf/yum...\"\n        \n        # Check if dnf is available (RHEL 8+, Fedora)\n        if command -v dnf >/dev/null 2>&1; then\n            echo \"Using dnf package manager\"\n            dnf check-update || true  # Don't fail if no updates available\n            dnf update -y\n            dnf autoremove -y\n        elif command -v yum >/dev/null 2>&1; then\n            echo \"Using yum package manager\"\n            yum check-update || true  # Don't fail if no updates available\n            yum update -y\n            yum autoremove -y 2>/dev/null || yum clean all  # autoremove not available in older yum\n        else\n            echo \"Error: Neither dnf nor yum package manager found\"\n            exit 1\n        fi\n        ;;\n        \n    ubuntu|debian)\n        echo \"Debian-based distribution detected. Using apt...\"\n        \n        # Update package lists\n        apt-get update\n        \n        # Upgrade all packages\n        DEBIAN_FRONTEND=noninteractive apt-get upgrade -y\n        \n        # Remove unnecessary packages\n        apt-get autoremove -y\n        \n        # Clean package cache\n        apt-get autoclean\n        ;;\n        \n    *)\n        echo \"Unsupported distribution: $DISTRO\"\n        echo \"This script supports RHEL-based and Debian-based distributions only\"\n        exit 1\n        ;;\nesac\n\necho \"System package update completed successfully!\"",
+    "privileged": true,
+    "run": "once",
+    "path": null
+  },
+  "created_at": "2025-10-03T07:54:33.572532",
+  "updated_at": "2025-10-03T11:27:30.242731"
+}
