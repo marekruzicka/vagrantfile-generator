@@ -74,6 +74,15 @@ function vagrantApp() {
             allowPublicIPsInPrivateNetworks: false
         },
         
+        // Shared resources preferences
+        showSharedResources: true,
+        favorites: {
+            plugins: [],
+            provisioners: [],
+            triggers: [],
+            boxes: []
+        },
+        
         // Box management state
         showBoxModal: false,
         showDeleteBoxConfirmModal: false,
@@ -209,6 +218,7 @@ function vagrantApp() {
         // Init
         async init() {
             this.loadConfiguration();
+            await this.loadPreferences();
             await this.loadProjects();
             await this.loadBoxes();
             await this.loadPlugins();
@@ -240,6 +250,117 @@ function vagrantApp() {
             } catch (error) {
                 console.error('Failed to save configuration:', error);
                 this.setError('Failed to save configuration');
+            }
+        },
+        
+        // Shared resources preferences management
+        async loadPreferences() {
+            try {
+                const preferences = await api.getPreferences();
+                this.showSharedResources = preferences.show_shared_resources ?? true;
+                this.favorites = {
+                    plugins: preferences.favorite_plugins || [],
+                    provisioners: preferences.favorite_provisioners || [],
+                    triggers: preferences.favorite_triggers || [],
+                    boxes: preferences.favorite_boxes || []
+                };
+            } catch (error) {
+                console.error('Failed to load preferences:', error);
+                // Use defaults if loading fails
+                this.showSharedResources = true;
+                this.favorites = {
+                    plugins: [],
+                    provisioners: [],
+                    triggers: [],
+                    boxes: []
+                };
+            }
+        },
+        
+        async updateShowSharedPreference() {
+            try {
+                await api.setShowShared(this.showSharedResources);
+                // Reload resources to reflect the new filter
+                await Promise.all([
+                    this.loadBoxes(),
+                    this.loadPlugins(),
+                    this.loadProvisioners(),
+                    this.loadTriggers()
+                ]);
+            } catch (error) {
+                console.error('Failed to update show shared preference:', error);
+                this.setError('Failed to update preference');
+            }
+        },
+        
+        isFavorite(type, resourceId) {
+            return this.favorites[type]?.includes(resourceId) || false;
+        },
+        
+        async toggleFavorite(type, resourceId) {
+            try {
+                const isFav = this.isFavorite(type, resourceId);
+                
+                if (isFav) {
+                    await api.removeFavorite(type, resourceId);
+                    this.favorites[type] = this.favorites[type].filter(id => id !== resourceId);
+                } else {
+                    await api.addFavorite(type, resourceId);
+                    if (!this.favorites[type]) {
+                        this.favorites[type] = [];
+                    }
+                    this.favorites[type].push(resourceId);
+                }
+                
+                // Reload resources to reflect favorite status in filtering
+                await this.reloadResourceType(type);
+            } catch (error) {
+                console.error('Failed to toggle favorite:', error);
+                this.setError('Failed to update favorite');
+            }
+        },
+        
+        async copySharedResource(type, resourceId) {
+            try {
+                const copiedResource = await api.copySharedResource(type, resourceId);
+                
+                // Add to appropriate list
+                switch(type) {
+                    case 'plugins':
+                        this.availablePlugins.push(copiedResource);
+                        break;
+                    case 'provisioners':
+                        this.availableProvisioners.push(copiedResource);
+                        break;
+                    case 'triggers':
+                        this.availableTriggers.push(copiedResource);
+                        break;
+                    case 'boxes':
+                        this.availableBoxes.push(copiedResource);
+                        break;
+                }
+                
+                this.setSuccess(`Resource copied! You can now edit "${copiedResource.name}"`);
+            } catch (error) {
+                console.error('Failed to copy resource:', error);
+                this.setError('Failed to copy resource: ' + (error.message || 'Unknown error'));
+            }
+        },
+        
+        async reloadResourceType(type) {
+            switch(type) {
+                case 'plugins':
+                    await this.loadPlugins();
+                    break;
+                case 'provisioners':
+                    await this.loadProvisioners();
+                    break;
+                case 'triggers':
+                    await this.loadTriggers();
+                    break;
+                case 'boxes':
+                    await this.loadBoxes();
+                    break;
             }
         },
         

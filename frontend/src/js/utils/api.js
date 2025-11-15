@@ -234,6 +234,38 @@ class VagrantAPI {
         }); 
     }
 
+    // Preferences and favorites management methods
+    async getPreferences() { return this.request('/config/preferences'); }
+    async updatePreferences(preferences) { 
+        return this.request('/config/preferences', { method: 'PUT', body: preferences }); 
+    }
+    async getShowShared() { return this.request('/config/preferences/show-shared'); }
+    async setShowShared(showShared) { 
+        return this.request('/config/preferences/show-shared', { 
+            method: 'PUT', 
+            body: { show_shared_resources: showShared } 
+        }); 
+    }
+    async getFavorites(type) { return this.request(`/config/preferences/favorites/${type}`); }
+    async addFavorite(type, resourceId) { 
+        return this.request(`/config/preferences/favorites/${type}/add`, { 
+            method: 'POST', 
+            body: { resource_id: resourceId } 
+        }); 
+    }
+    async removeFavorite(type, resourceId) { 
+        return this.request(`/config/preferences/favorites/${type}/remove`, { 
+            method: 'POST', 
+            body: { resource_id: resourceId } 
+        }); 
+    }
+    async checkFavorite(type, resourceId) { 
+        return this.request(`/config/preferences/favorites/${type}/check/${resourceId}`); 
+    }
+    async copySharedResource(type, resourceId) { 
+        return this.request(`/${type}/${resourceId}/copy`, { method: 'POST' }); 
+    }
+
     async downloadVagrantfile(projectId) {
         const response = await fetch(`${this.baseURL}/projects/${projectId}/download`);
         const blob = await response.blob();
