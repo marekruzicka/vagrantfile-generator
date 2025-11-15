@@ -692,7 +692,7 @@ class ProjectService:
         if trigger_id in project.global_triggers:
             raise ValueError(f"Trigger '{trigger_id}' already exists in project")
         
-        project.global_triggers.remove(trigger_id)
+        project.global_triggers.append(trigger_id)
         project.update_timestamp()
         self._save_project_to_file(project)
         return project
