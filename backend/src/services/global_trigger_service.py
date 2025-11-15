@@ -294,7 +294,9 @@ class GlobalTriggerService:
                     timing=t.trigger_config.timing,
                     stage=t.trigger_config.stage,
                     created_at=t.created_at,
-                    updated_at=t.updated_at
+                    updated_at=t.updated_at,
+                    is_shared=t.is_shared,
+                    owner_id=t.owner_id
                 )
                 for t in triggers
             ]

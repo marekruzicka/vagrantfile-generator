@@ -227,19 +227,31 @@
                 <p class="text-xs text-gray-500" x-text="getProvisionerType(provisionerId)"></p>
               </div>
             </div>
-            <div x-show="currentProject?.deployment_status !== 'ready'" class="flex space-x-1 opacity-0 group-hover:opacity-100 transition-opacity">
-              <button @click="openEditProjectProvisionerModal(provisionerId)" 
+            <div class="flex space-x-1 opacity-0 group-hover:opacity-100 transition-opacity">
+              <button x-show="!isProvisionerShared(provisionerId)" 
+                      @click="openEditProjectProvisionerModal(provisionerId)" 
                       class="text-blue-500 hover:text-blue-700 p-1 rounded hover:bg-blue-50"
                       title="Edit provisioner">
                 <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                   <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z"></path>
                 </svg>
               </button>
-              <button @click="openDeleteProjectProvisionerModal(provisionerId)" 
+              <button x-show="!isProvisionerShared(provisionerId)" 
+                      @click="openDeleteProjectProvisionerModal(provisionerId)" 
                       class="text-red-500 hover:text-red-700 p-1 rounded hover:bg-red-50"
                       title="Remove provisioner from project">
                 <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                   <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd"></path>
+                </svg>
+              </button>
+              <!-- Copy button for shared provisioners -->
+              <button x-show="isProvisionerShared(provisionerId)" 
+                      @click="copySharedResource('provisioner', provisionerId)" 
+                      class="text-green-500 hover:text-green-700 p-1 rounded hover:bg-green-50"
+                      title="Copy to my resources">
+                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                  <path d="M7 9a2 2 0 012-2h6a2 2 0 012 2v6a2 2 0 01-2 2H9a2 2 0 01-2-2V9z"></path>
+                  <path d="M5 3a2 2 0 00-2 2v6a2 2 0 002 2V5h8a2 2 0 00-2-2H5z"></path>
                 </svg>
               </button>
             </div>
@@ -247,10 +259,19 @@
           
           <p class="text-sm text-gray-600 mb-2" x-text="getProvisionerDescription(provisionerId)"></p>
           
-          <!-- Status Badge -->
-          <div>
+          <!-- Status Badges -->
+          <div class="flex gap-2">
             <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
               global
+            </span>
+            <span x-show="isProvisionerShared(provisionerId)" 
+                  class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800"
+                  title="This is a shared resource. You can view and use it, but cannot edit or delete it.">
+              <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                <path d="M10 12a2 2 0 100-4 2 2 0 000 4z"></path>
+                <path fill-rule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clip-rule="evenodd"></path>
+              </svg>
+              read-only
             </span>
           </div>
         </div>
@@ -328,25 +349,49 @@
                 </div>
               </div>
             </div>
-            <div x-show="currentProject?.deployment_status !== 'ready'" class="flex space-x-1 opacity-0 group-hover:opacity-100 transition-opacity">
-              <button @click="openEditProjectTriggerModal(triggerId)" 
+            <div class="flex space-x-1 opacity-0 group-hover:opacity-100 transition-opacity">
+              <button x-show="!isTriggerShared(triggerId)" 
+                      @click="openEditProjectTriggerModal(triggerId)" 
                       class="text-orange-500 hover:text-orange-700 p-1 rounded hover:bg-orange-50"
                       title="Edit trigger">
                 <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                   <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z"></path>
                 </svg>
               </button>
-              <button @click="confirmDeleteProjectTrigger(getTriggerById(triggerId))" 
+              <button x-show="!isTriggerShared(triggerId)" 
+                      @click="confirmDeleteProjectTrigger(getTriggerById(triggerId))" 
                       class="text-red-500 hover:text-red-700 p-1 rounded hover:bg-red-50"
                       title="Remove trigger from project">
                 <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                   <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd"></path>
                 </svg>
               </button>
+              <!-- Copy button for shared triggers -->
+              <button x-show="isTriggerShared(triggerId)" 
+                      @click="copySharedResource('trigger', triggerId)" 
+                      class="text-green-500 hover:text-green-700 p-1 rounded hover:bg-green-50"
+                      title="Copy to my resources">
+                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                  <path d="M7 9a2 2 0 012-2h6a2 2 0 012 2v6a2 2 0 01-2 2H9a2 2 0 01-2-2V9z"></path>
+                  <path d="M5 3a2 2 0 00-2 2v6a2 2 0 002 2V5h8a2 2 0 00-2-2H5z"></path>
+                </svg>
+              </button>
             </div>
           </div>
           
           <p class="text-sm text-gray-600 mb-2" x-text="getTriggerDescription(triggerId)"></p>
+          
+          <!-- Read-only Badge for shared triggers -->
+          <div x-show="isTriggerShared(triggerId)">
+            <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800"
+                  title="This is a shared resource. You can view and use it, but cannot edit or delete it.">
+              <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                <path d="M10 12a2 2 0 100-4 2 2 0 000 4z"></path>
+                <path fill-rule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clip-rule="evenodd"></path>
+              </svg>
+              read-only
+            </span>
+          </div>
         </div>
       </template>
     </div>

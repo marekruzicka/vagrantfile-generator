@@ -1014,6 +1014,11 @@ function vagrantApp() {
             return provisioner ? (provisioner.description || 'No description') : '';
         },
         
+        isProvisionerShared(provisionerId) {
+            const provisioner = this.projectProvisionersCache[provisionerId];
+            return provisioner ? provisioner.is_shared === true : false;
+        },
+        
         // Trigger helper functions
         getTriggerById(triggerId) {
             return this.projectTriggersCache[triggerId] || 
@@ -1038,6 +1043,11 @@ function vagrantApp() {
         getTriggerDescription(triggerId) {
             const trigger = this.projectTriggersCache[triggerId];
             return trigger ? (trigger.description || 'No description') : '';
+        },
+        
+        isTriggerShared(triggerId) {
+            const trigger = this.projectTriggersCache[triggerId];
+            return trigger ? trigger.is_shared === true : false;
         },
         
         openEditProjectTriggerModal(triggerId) {

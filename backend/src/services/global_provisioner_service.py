@@ -413,7 +413,9 @@ class GlobalProvisionerService:
                     name=p.name,
                     description=p.description,
                     type=p.type,
-                    scope=p.scope
+                    scope=p.scope,
+                    is_shared=p.is_shared,
+                    owner_id=p.owner_id
                 )
                 for p in provisioners
             ]
