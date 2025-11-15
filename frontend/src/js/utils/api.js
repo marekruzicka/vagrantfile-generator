@@ -266,6 +266,31 @@ class VagrantAPI {
         return this.request(`/${type}/${resourceId}/copy`, { method: 'POST' }); 
     }
 
+    /**
+     * Copy a shared resource and replace it in a project atomically.
+     * 
+     * @param {string} projectId - Project ID
+     * @param {string} resourceType - 'plugins' | 'provisioners' | 'triggers'
+     * @param {string} resourceId - ID of shared resource to copy
+     * @returns {Promise<{old_id: string, new_id: string, project_updated: boolean}>}
+     */
+    async copyAndReplaceInProject(projectId, resourceType, resourceId) {
+        return this.request(`/projects/${projectId}/${resourceType}/${resourceId}/copy`, { 
+            method: 'POST' 
+        });
+    }
+
+    /**
+     * Get a single resource by ID and type.
+     * 
+     * @param {string} resourceType - 'plugins' | 'provisioners' | 'triggers' | 'boxes'
+     * @param {string} resourceId - ID of resource to fetch
+     * @returns {Promise<Object>} Resource object
+     */
+    async getResource(resourceType, resourceId) {
+        return this.request(`/${resourceType}/${resourceId}`);
+    }
+
     async downloadVagrantfile(projectId) {
         const response = await fetch(`${this.baseURL}/projects/${projectId}/download`);
         const blob = await response.blob();

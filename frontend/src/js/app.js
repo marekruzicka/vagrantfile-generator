@@ -18,6 +18,7 @@ function vagrantApp() {
         currentView: 'projects',
         projectFilter: 'all', // 'all', 'draft', 'ready'
         isLoading: false,
+        isEditingResource: false, // Phase 1: Loading state for copy-on-write
         
         // Section collapse state
         sectionsOpen: {
@@ -34,6 +35,16 @@ function vagrantApp() {
         },
         error: null,
         successMessage: null,
+        
+        // Phase 1: Toast notification system
+        toast: {
+            show: false,
+            type: 'info', // 'success' | 'error' | 'info'
+            message: ''
+        },
+        
+        // Phase 1: Edit context for modals (tracks if resource was copied from shared)
+        editContext: {},
         
         // Modals
         showCreateProjectModal: false,
@@ -325,10 +336,12 @@ function vagrantApp() {
         
         async copySharedResource(type, resourceId) {
             try {
-                const copiedResource = await api.copySharedResource(type, resourceId);
+                // Convert singular to plural for API endpoint
+                const pluralType = type.endsWith('s') ? type : type + 's';
+                const copiedResource = await api.copySharedResource(pluralType, resourceId);
                 
                 // Add to appropriate list
-                switch(type) {
+                switch(pluralType) {
                     case 'plugins':
                         this.availablePlugins.push(copiedResource);
                         break;
@@ -507,8 +520,9 @@ function vagrantApp() {
             this.showPluginModal = true;
         },
         
-        openEditPluginModal(plugin) {
+        openEditPluginModal(plugin, context = {}) {
             this.editingPlugin = plugin;
+            this.editContext = context; // Phase 1: Store context for info banner
             // Fetch full plugin details
             this.loadPluginForEdit(plugin.id);
             this.showPluginModal = true;
@@ -744,6 +758,85 @@ function vagrantApp() {
             if (plugin) {
                 this.openEditPluginModal(plugin);
             }
+        },
+        
+        // Phase 1: Smart Edit Click Handler for Copy-on-Write
+        async handleEditClick(resourceType, resource) {
+            if (resource.is_shared) {
+                await this.handleEditSharedResource(resourceType, resource.id);
+            } else {
+                // For user-owned resources, open edit modal directly
+                if (resourceType === 'plugins') {
+                    this.openEditPluginModal(resource);
+                } else if (resourceType === 'provisioners') {
+                    this.openEditProvisionerModal(resource);
+                } else if (resourceType === 'triggers') {
+                    this.openEditTriggerModal(resource);
+                }
+            }
+        },
+        
+        // Phase 1: Copy-on-Write Flow for Shared Resources
+        async handleEditSharedResource(resourceType, resourceId) {
+            this.isEditingResource = true; // Show inline spinner
+            
+            try {
+                // Call atomic copy-and-replace endpoint
+                const result = await api.copyAndReplaceInProject(
+                    this.currentProject.id,
+                    resourceType,
+                    resourceId
+                );
+                
+                // Pessimistic update: wait for API, then update local state
+                await this.replaceResourceInCurrentProject(resourceType, result.old_id, result.new_id);
+                
+                // Load the new copy
+                const newResource = await api.getResource(resourceType, result.new_id);
+                
+                // Open edit modal with new copy
+                if (resourceType === 'plugins') {
+                    this.openEditPluginModal(newResource, { isCopiedFromShared: true });
+                } else if (resourceType === 'provisioners') {
+                    this.openEditProvisionerModal(newResource, { isCopiedFromShared: true });
+                } else if (resourceType === 'triggers') {
+                    this.openEditTriggerModal(newResource, { isCopiedFromShared: true });
+                }
+                
+            } catch (error) {
+                console.error('Failed to copy shared resource:', error);
+                this.showToast('error', `Failed to copy resource: ${error.message}`);
+            } finally {
+                this.isEditingResource = false; // Hide spinner
+            }
+        },
+        
+        // Phase 1: Update Project State After Copy-and-Replace
+        async replaceResourceInCurrentProject(resourceType, oldId, newId) {
+            // Update project array
+            const arrayName = `global_${resourceType}`;
+            const index = this.currentProject[arrayName].indexOf(oldId);
+            
+            if (index !== -1) {
+                this.currentProject[arrayName][index] = newId;
+            }
+            
+            // Reload project to refresh all state
+            await this.loadProject(this.currentProject.id);
+        },
+        
+        // Phase 1: Toast Notification System
+        showToast(type, message) {
+            this.toast = {
+                show: true,
+                type: type, // 'success' | 'error' | 'info'
+                message: message
+            };
+            
+            // Auto-hide after 5 seconds
+            setTimeout(() => {
+                this.toast.show = false;
+            }, 5000);
         },
         
         resetProjectPluginForm() {
@@ -1666,8 +1759,9 @@ function vagrantApp() {
             this.showProvisionerModal = true;
         },
         
-        openEditProvisionerModal(provisioner) {
+        openEditProvisionerModal(provisioner, context = {}) {
             this.editingProvisioner = provisioner;
+            this.editContext = context; // Phase 1: Store context for info banner
             this.loadProvisionerForEdit(provisioner.id);
             this.showProvisionerModal = true;
         },
@@ -1811,8 +1905,9 @@ function vagrantApp() {
             this.showEditTriggerModal = true;
         },
         
-        openEditTriggerModal(trigger) {
+        openEditTriggerModal(trigger, context = {}) {
             this.editingTrigger = trigger;
+            this.editContext = context; // Phase 1: Store context for info banner
             this.loadTriggerForEdit(trigger.id);
             this.showEditTriggerModal = true;
         },
