@@ -405,18 +405,22 @@ const VagrantUIHelpers = {
     async confirmDelete(app) {
         if (!app.deleteTarget) return;
         
+        // Save delete target info before it gets cleared by the delete methods
+        const targetType = app.deleteTarget.type;
+        const targetName = app.deleteTarget.name;
+        const targetId = app.deleteTarget.id;
+        
         app.setLoading(true);
         try {
-            if (app.deleteTarget.type === 'project') {
-                await app.deleteProject(app.deleteTarget.id);
-                app.setSuccess(`Project "${app.deleteTarget.name}" deleted successfully`);
-            } else if (app.deleteTarget.type === 'vm') {
-                await app.deleteVM(app.deleteTarget.name);
-                app.setSuccess(`VM "${app.deleteTarget.name}" deleted successfully`);
+            if (targetType === 'project') {
+                await app.deleteProject(targetId);
+                // Note: deleteProject already shows success message and closes modal
+            } else if (targetType === 'vm') {
+                await app.deleteVM(targetName);
+                // Note: deleteVM already shows success message and closes modal
             }
-            VagrantUIHelpers.closeDeleteConfirmModal(app);
         } catch (error) {
-            app.setError(`Failed to delete ${app.deleteTarget.type}: ${error.message}`);
+            app.setError(`Failed to delete ${targetType}: ${error.message}`);
         } finally {
             app.setLoading(false);
         }
