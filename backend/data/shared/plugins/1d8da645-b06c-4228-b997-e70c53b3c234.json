@@ -8,5 +8,6 @@
   "configuration": null,
   "is_deprecated": false,
   "created_at": "2025-10-02T11:59:40.899866",
-  "updated_at": "2025-10-02T11:59:40.899897"
+  "updated_at": "2025-10-02T11:59:40.899897",
+  "is_shared": true
 }

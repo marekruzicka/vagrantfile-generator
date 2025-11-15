@@ -8,5 +8,6 @@
   "is_deprecated": false,
   "created_at": "2025-10-01T12:33:17.211236",
   "updated_at": "2025-10-02T11:12:32.846032",
-  "configuration": "config.sshconfigmanager.enabled = true\nconfig.sshconfigmanager.ssh_config_dir = \"~/.ssh/config.d/vagrant\"\nconfig.sshconfigmanager.manage_includes = false\nconfig.sshconfigmanager.auto_create_dir = true\nconfig.sshconfigmanager.cleanup_empty_dir = true\nconfig.sshconfigmanager.auto_remove_on_destroy = true\nconfig.sshconfigmanager.update_on_reload = true\nconfig.sshconfigmanager.refresh_on_provision = true\nconfig.sshconfigmanager.keep_config_on_halt = true\nconfig.sshconfigmanager.project_isolation = true"
+  "configuration": "config.sshconfigmanager.enabled = true\nconfig.sshconfigmanager.ssh_config_dir = \"~/.ssh/config.d/vagrant\"\nconfig.sshconfigmanager.manage_includes = false\nconfig.sshconfigmanager.auto_create_dir = true\nconfig.sshconfigmanager.cleanup_empty_dir = true\nconfig.sshconfigmanager.auto_remove_on_destroy = true\nconfig.sshconfigmanager.update_on_reload = true\nconfig.sshconfigmanager.refresh_on_provision = true\nconfig.sshconfigmanager.keep_config_on_halt = true\nconfig.sshconfigmanager.project_isolation = true",
+  "is_shared": true
 }

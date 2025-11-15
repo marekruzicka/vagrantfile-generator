@@ -8,5 +8,6 @@
   "configuration": "config.hostmanager.enabled = true\nconfig.hostmanager.manage_host = true\nconfig.hostmanager.manage_guest = true\nconfig.hostmanager.ignore_private_ip = false\nconfig.hostmanager.include_offline = true",
   "is_deprecated": false,
   "created_at": "2025-10-02T11:12:04.110845",
-  "updated_at": "2025-10-02T11:12:04.110878"
+  "updated_at": "2025-10-02T11:12:04.110878",
+  "is_shared": true
 }
