@@ -15,7 +15,7 @@ services:
     ports:
       - "8000:8000"
     volumes:
-      - backend-data:/app/data
+      - ./backend/data:/app/data
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
       interval: 3s
@@ -45,8 +45,8 @@ services:
       start_period: 5s
     restart: unless-stopped
 
-volumes:
-  backend-data:
+# volumes:
+#   backend-data:
 
 networks:
   default:
