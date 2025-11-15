@@ -454,9 +454,10 @@ class FileService:
             for file_path in shared_path.glob("*.json"):
                 try:
                     resource = loader_func(file_path)
-                    # In self-hosted mode (user_id=None), all resources are editable
-                    # In public mode (user_id set), shared resources are read-only
+                    # In self-hosted mode (user_id=None): is_shared=False (everything is editable)
+                    # In public mode (user_id set): is_shared=True (shared resources are read-only)
                     resource["is_shared"] = user_id is not None
+                    # Set owner_id to None for shared resources
                     resource["owner_id"] = None
                     resources.append(resource)
                 except Exception as e:
@@ -523,3 +524,46 @@ class FileService:
                 "directories_exist": False,
                 "writable": False
             }
+    
+    def apply_shared_metadata(
+        self,
+        resource_data: Dict[str, Any],
+        resource_id: str,
+        resource_type: str,
+        user_id: Optional[str]
+    ) -> Dict[str, Any]:
+        """
+        Apply is_shared and owner_id metadata to a resource based on deployment mode.
+        
+        This ensures consistent behavior across all resource types:
+        - Self-hosted mode: is_shared=False (all resources editable)
+        - Public mode: is_shared based on storage location
+        
+        Args:
+            resource_data: The resource data dict to modify
+            resource_id: ID of the resource
+            resource_type: Type of resource (plugins, boxes, etc.)
+            user_id: User ID (None for self-hosted mode)
+            
+        Returns:
+            Modified resource_data with is_shared and owner_id fields set
+        """
+        if user_id is None:
+            # Self-hosted mode: all resources are editable
+            resource_data["is_shared"] = False
+            resource_data["owner_id"] = None
+        else:
+            # Public mode: check if resource is in shared directory
+            shared_path = self.get_shared_data_path(resource_type) / f"{resource_id}.json"
+            user_path = self.get_user_data_path(user_id, resource_type) / f"{resource_id}.json"
+            
+            if user_path.exists():
+                # User's own resource
+                resource_data["is_shared"] = False
+                resource_data["owner_id"] = user_id
+            elif shared_path.exists():
+                # Shared resource
+                resource_data["is_shared"] = True
+                resource_data["owner_id"] = None
+        
+        return resource_data
