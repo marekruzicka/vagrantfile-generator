@@ -54,6 +54,7 @@ class GlobalProvisionerService:
         
         self.user_id = user_id
         self.file_service = FileService()
+        self.data_dir = self.provisioners_directory  # Alias for backwards compatibility
         
         # Load show_shared preference
         if show_shared is not None:
