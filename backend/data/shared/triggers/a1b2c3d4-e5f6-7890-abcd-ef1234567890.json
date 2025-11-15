@@ -9,10 +9,9 @@
     "info": "Register VMs to RedHat Insights inventory",
     "warn": null,
     "run": null,
-    "run_remote_inline": "timeout 30s bash -c 'sudo rhc connect -o #{ENV['DEVENV_ORG_ID']} -a #{ENV['DEVENV_ACTIVATION_KEY']}'",
+    "run_remote_inline": "timeout 30s bash -c 'sudo rhc connect -o #{ENV['RH_ORG_ID']} -a #{ENV['RH_ACTIVATION_KEY']}'",
     "on_error": "continue"
   },
   "created_at": "2025-10-03T10:00:00",
-  "updated_at": "2025-10-03T10:00:00",
-  "is_shared": true
+  "updated_at": "2025-11-15T19:36:35.493805"
 }
