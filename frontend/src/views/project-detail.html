@@ -241,6 +241,7 @@
             </div>
             <div class="flex space-x-1 opacity-0 group-hover:opacity-100 transition-opacity">
               <button @click="handleEditClick('provisioners', getProvisionerById(provisionerId))" 
+                      x-show="currentProject?.deployment_status !== 'ready'"
                       class="text-orange-500 hover:text-orange-700 p-1 rounded hover:bg-orange-50"
                       :title="isProvisionerShared(provisionerId) ? 'Edit (will create your copy)' : 'Edit provisioner'">
                 <svg x-show="!isEditingResource" class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
@@ -250,8 +251,9 @@
                   <path d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z"></path>
                 </svg>
               </button>
-              <!-- Remove button (always shown) -->
+              <!-- Remove button (only shown when not ready) -->
               <button @click="openDeleteProjectProvisionerModal(provisionerId)" 
+                      x-show="currentProject?.deployment_status !== 'ready'"
                       class="text-red-500 hover:text-red-700 p-1 rounded hover:bg-red-50"
                       title="Remove provisioner from project">
                 <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
@@ -355,6 +357,7 @@
             </div>
             <div class="flex space-x-1 opacity-0 group-hover:opacity-100 transition-opacity">
               <button @click="handleEditClick('triggers', getTriggerById(triggerId))" 
+                      x-show="currentProject?.deployment_status !== 'ready'"
                       class="text-orange-500 hover:text-orange-700 p-1 rounded hover:bg-orange-50"
                       :title="isTriggerShared(triggerId) ? 'Edit (will create your copy)' : 'Edit trigger'">
                 <svg x-show="!isEditingResource" class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
@@ -365,6 +368,7 @@
                 </svg>
               </button>
               <button @click="confirmDeleteProjectTrigger(getTriggerById(triggerId))" 
+                      x-show="currentProject?.deployment_status !== 'ready'"
                       class="text-red-500 hover:text-red-700 p-1 rounded hover:bg-red-50"
                       title="Remove trigger from project">
                 <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
@@ -466,8 +470,8 @@
           <div class="flex justify-between items-start mb-4">
             <div class="flex items-center space-x-3">
               <input type="checkbox" 
-                     :checked="isVMSelected(vm.name)"
-                     @change="toggleVMSelection(vm.name)"
+                     :checked="isVMSelected(vm.id)"
+                     @change="toggleVMSelection(vm.id)"
                      class="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500">
               <div class="w-10 h-10 bg-gradient-to-br from-green-500 to-emerald-600 rounded-lg flex items-center justify-center">
                 <svg class="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20">

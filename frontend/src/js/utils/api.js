@@ -149,8 +149,17 @@ class VagrantAPI {
     }
     async getProjectStats() { return this.request('/projects/stats'); }
     async createVM(projectId, data) { return this.request(`/projects/${projectId}/vms`, { method: 'POST', body: data }); }
-    async updateVM(projectId, vmName, data) { return this.request(`/projects/${projectId}/vms/${vmName}`, { method: 'PUT', body: data }); }
-    async deleteVM(projectId, vmName) { return this.request(`/projects/${projectId}/vms/${vmName}`, { method: 'DELETE' }); }
+    async updateVM(projectId, vmId, data) { 
+        return this.request(`/projects/${projectId}/vms/${vmId}`, { 
+            method: 'PUT', 
+            body: data 
+        }); 
+    }
+    async deleteVM(projectId, vmId) { 
+        return this.request(`/projects/${projectId}/vms/${vmId}`, { 
+            method: 'DELETE' 
+        }); 
+    }
     async generateVagrantfile(projectId) { return this.request(`/projects/${projectId}/generate`, { method: 'POST' }); }
     async getBoxes() { return this.request('/vagrant/boxes'); }
     

@@ -371,7 +371,6 @@ const VagrantUIHelpers = {
     openEditVMModal(app, vm) {
         // Create a deep copy to avoid modifying the original VM data
         app.editingVM = JSON.parse(JSON.stringify(vm));
-        app.editingVM.originalName = vm.name;
         
         // Ensure labels is always an array
         if (!app.editingVM.labels || !Array.isArray(app.editingVM.labels)) {
@@ -416,7 +415,7 @@ const VagrantUIHelpers = {
                 await app.deleteProject(targetId);
                 // Note: deleteProject already shows success message and closes modal
             } else if (targetType === 'vm') {
-                await app.deleteVM(targetName);
+                await app.deleteVM(targetId);  // Use ID instead of name
                 // Note: deleteVM already shows success message and closes modal
             }
         } catch (error) {

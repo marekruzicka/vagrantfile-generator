@@ -406,13 +406,13 @@ class ProjectService:
         self._save_project_to_file(project)
         return project
 
-    def update_vm_in_project(self, project_id: UUID, vm_name: str, vm_data: Dict[str, Any]) -> Project:
+    def update_vm_in_project(self, project_id: UUID, vm_id: str, vm_data: Dict[str, Any]) -> Project:
         """
         Update a VM in a project.
         
         Args:
             project_id: Project UUID
-            vm_name: Name of VM to update
+            vm_id: ID of VM to update
             vm_data: Updated VM data
             
         Returns:
@@ -424,9 +424,9 @@ class ProjectService:
         """
         project = self._load_project_from_file(project_id)
         
-        vm = project.get_vm(vm_name)
+        vm = project.get_vm(vm_id)
         if not vm:
-            raise ValueError(f"VM '{vm_name}' not found in project")
+            raise ValueError(f"VM with ID '{vm_id}' not found in project")
         
         # Update VM fields
         for field, value in vm_data.items():
@@ -438,13 +438,13 @@ class ProjectService:
         
         return project
 
-    def remove_vm_from_project(self, project_id: UUID, vm_name: str) -> Project:
+    def remove_vm_from_project(self, project_id: UUID, vm_id: str) -> Project:
         """
         Remove a VM from a project.
         
         Args:
             project_id: Project UUID
-            vm_name: Name of VM to remove
+            vm_id: ID of VM to remove
             
         Returns:
             Updated Project instance
@@ -455,8 +455,8 @@ class ProjectService:
         """
         project = self._load_project_from_file(project_id)
         
-        if not project.remove_vm(vm_name):
-            raise ValueError(f"VM '{vm_name}' not found in project")
+        if not project.remove_vm(vm_id):
+            raise ValueError(f"VM with ID '{vm_id}' not found in project")
         
         self._save_project_to_file(project)
         return project

@@ -158,19 +158,19 @@ class Project(ProjectBase):
         self.vms.append(vm)
         self.update_timestamp()
 
-    def remove_vm(self, vm_name: str) -> bool:
-        """Remove a VM by name. Returns True if found and removed."""
+    def remove_vm(self, vm_id: str) -> bool:
+        """Remove a VM by ID. Returns True if found and removed."""
         for i, vm in enumerate(self.vms):
-            if vm.name == vm_name:
+            if vm.id == vm_id:
                 del self.vms[i]
                 self.update_timestamp()
                 return True
         return False
 
-    def get_vm(self, vm_name: str) -> Optional['VirtualMachine']:
-        """Get a VM by name."""
+    def get_vm(self, vm_id: str) -> Optional['VirtualMachine']:
+        """Get a VM by ID."""
         for vm in self.vms:
-            if vm.name == vm_name:
+            if vm.id == vm_id:
                 return vm
         return None
 
