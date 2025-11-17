@@ -26,9 +26,12 @@ def get_project_service(
     user_id = current_user.user_id if current_user else None
     return ProjectService(user_id=user_id)
 
-def get_vagrantfile_generator() -> VagrantfileGenerator:
-    """Get VagrantfileGenerator instance."""
-    return VagrantfileGenerator()
+def get_vagrantfile_generator(
+    current_user: Optional[UserProfile] = Depends(get_optional_user)
+) -> VagrantfileGenerator:
+    """Get VagrantfileGenerator instance with user context."""
+    user_id = current_user.user_id if current_user else None
+    return VagrantfileGenerator(user_id=user_id)
 
 @router.post("/projects/{project_id}/generate", response_model=dict)
 async def generate_vagrantfile(
