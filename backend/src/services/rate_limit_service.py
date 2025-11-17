@@ -13,6 +13,7 @@ from typing import Optional
 
 from ..models.rate_limit import RateLimitRecord
 from ..utils.validators import validate_email, normalize_email
+from .file_service import FileService
 
 logger = logging.getLogger(__name__)
 
@@ -25,6 +26,7 @@ class RateLimitService:
         self.storage_path = Path(storage_path)
         self.max_requests = int(os.getenv("OTP_RATE_LIMIT_MAX_REQUESTS", "5"))
         self.window_hours = int(os.getenv("OTP_RATE_LIMIT_WINDOW_HOURS", "1"))
+        self.file_service = FileService()
         
         # Ensure storage directory exists
         self.storage_path.parent.mkdir(parents=True, exist_ok=True)

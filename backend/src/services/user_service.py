@@ -12,6 +12,7 @@ from typing import Optional, List
 
 from ..models.user_profile import UserProfile
 from ..utils.validators import validate_email, validate_uuid, generate_uuid, normalize_email
+from .file_service import FileService
 
 logger = logging.getLogger(__name__)
 
@@ -23,6 +24,7 @@ class UserService:
         """Initialize user service with storage configuration."""
         self.base_path = Path(base_path)
         self.base_path.mkdir(parents=True, exist_ok=True)
+        self.file_service = FileService()
     
     def create_or_update_user(
         self,

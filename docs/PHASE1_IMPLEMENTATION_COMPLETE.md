@@ -215,6 +215,20 @@ make dev
 - Works on Unix-based systems (Linux, macOS)
 - Windows support: os.replace() is also atomic on Windows
 
+## Bug Fixes
+
+### Runtime AttributeError Fix
+**Issue:** OTPService, RateLimitService, and UserService were calling `self.file_service.atomic_write_json()` but didn't instantiate `FileService` in their `__init__` methods.
+
+**Error:** `AttributeError: 'OTPService' object has no attribute 'file_service'`
+
+**Fix:** Added `self.file_service = FileService()` to `__init__` methods of:
+- `OTPService`
+- `RateLimitService`
+- `UserService`
+
+(BoxService, PluginService, GlobalProvisionerService, GlobalTriggerService, and PreferenceService already had it)
+
 ## Documentation
 
 Full analysis and implementation guide:
