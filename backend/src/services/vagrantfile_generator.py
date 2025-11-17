@@ -132,14 +132,16 @@ Vagrant.configure("2") do |config|
 end
 '''
 
-    def __init__(self, template_string: str | None = None):
+    def __init__(self, template_string: str | None = None, user_id: str | None = None):
         """
         Initialize the VagrantfileGenerator.
         
         Args:
             template_string: Custom Jinja2 template (optional)
+            user_id: User ID for loading user-specific resources (optional)
         """
         template_str = template_string or self.VAGRANTFILE_TEMPLATE
+        self.user_id = user_id
         
         # Setup Jinja2 environment
         self.env = Environment(
@@ -185,7 +187,7 @@ end
         is_valid, errors, warnings = project.validate_for_generation()
         
         # Enrich global_plugins with full plugin details (including configuration)
-        plugin_service = PluginService()
+        plugin_service = PluginService(user_id=self.user_id)
         enriched_plugins = []
         
         for plugin_id in project.global_plugins:
@@ -207,7 +209,7 @@ end
         
         # Load global provisioners for this project
         from .global_provisioner_service import GlobalProvisionerService
-        provisioner_service = GlobalProvisionerService()
+        provisioner_service = GlobalProvisionerService(user_id=self.user_id)
         
         global_provisioners = []
         if project.global_provisioners:
@@ -223,7 +225,7 @@ end
         
         # Load global triggers for this project
         from .global_trigger_service import GlobalTriggerService
-        trigger_service = GlobalTriggerService()
+        trigger_service = GlobalTriggerService(user_id=self.user_id)
         
         global_triggers = []
         if project.global_triggers:

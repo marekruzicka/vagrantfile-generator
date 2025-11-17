@@ -343,7 +343,7 @@ class GlobalTriggerService:
                 trigger_data = json.load(f)
             
             # Verify it's a shared resource
-            if not trigger_data.get("is_shared", False):
+            if trigger_data.get("is_shared", False) is False:
                 raise GlobalTriggerServiceError("Can only copy shared resources")
             
             # Generate new ID for the copy
@@ -484,7 +484,7 @@ class GlobalTriggerService:
                 trigger_data = json.load(f)
             
             # Verify it's a shared resource
-            if not trigger_data.get("is_shared", False):
+            if trigger_data.get("is_shared", False) is False:
                 raise GlobalTriggerServiceError("Can only copy shared resources")
             
             # Generate new ID for the copy
