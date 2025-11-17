@@ -102,6 +102,16 @@ class ProjectService:
         
         # Convert to dict and save
         data = project.dict()
+
+        # Ensure metadata fields are present in stored JSON for multi-user public mode
+        # In public mode (user_id set) we want explicit ownership recorded
+        if self.user_id:
+            data["is_shared"] = False
+            data["owner_id"] = self.user_id
+        else:
+            # Self-hosted mode: no explicit owner and resource is editable
+            data["is_shared"] = False
+            data["owner_id"] = None
         
         # Custom JSON encoder for datetime and UUID
         def json_encoder(obj):
@@ -140,6 +150,9 @@ class ProjectService:
             created_at=datetime.utcnow(),
             updated_at=datetime.utcnow()
         )
+        # Set multi-user metadata for API responses and stored JSON
+        project.is_shared = False
+        project.owner_id = self.user_id if self.user_id else None
         
         # Save to file
         self._save_project_to_file(project)

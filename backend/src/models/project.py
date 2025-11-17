@@ -78,6 +78,10 @@ class ProjectUpdate(ProjectBase):
         default_factory=list,
         description="List of global trigger IDs applied to the project"
     )
+    # Multi-user metadata
+    is_shared: Optional[bool] = Field(default=False, description="Whether this is a shared resource")
+    owner_id: Optional[str] = Field(default=None, description="User ID of the owner (None for shared)")
+    source_id: Optional[str] = Field(default=None, description="ID of the original shared resource this was copied from")
 
     @validator('vms')
     def validate_vm_names_unique(cls, v):

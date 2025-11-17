@@ -114,6 +114,12 @@ class GlobalProvisionerService:
             
             # Update timestamp
             provisioner_data["updated_at"] = datetime.now().isoformat()
+
+            # Ensure metadata fields exist in stored JSON
+            if "is_shared" not in provisioner_data:
+                provisioner_data["is_shared"] = False
+            if "owner_id" not in provisioner_data:
+                provisioner_data["owner_id"] = self.user_id if self.user_id else None
             
             with open(file_path, 'w', encoding='utf-8') as f:
                 json.dump(provisioner_data, f, indent=2, ensure_ascii=False)
@@ -191,6 +197,8 @@ class GlobalProvisionerService:
                 "type": provisioner_data.type,
                 "scope": provisioner_data.scope,
                 "shell_config": provisioner_data.shell_config.model_dump() if provisioner_data.shell_config else None,
+                "is_shared": False,
+                "owner_id": self.user_id if self.user_id else None,
                 "created_at": now,
                 "updated_at": now
             }
