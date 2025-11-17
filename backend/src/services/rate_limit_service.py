@@ -167,8 +167,7 @@ class RateLimitService:
     def _save_records(self, records: dict) -> None:
         """Save rate limit records to file."""
         try:
-            with open(self.storage_path, 'w') as f:
-                json.dump(records, f, indent=2)
+            self.file_service.atomic_write_json(self.storage_path, records)
         except IOError as e:
             logger.error(f"Failed to save rate limit records: {e}")
             raise

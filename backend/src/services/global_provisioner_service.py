@@ -121,8 +121,7 @@ class GlobalProvisionerService:
             if "owner_id" not in provisioner_data:
                 provisioner_data["owner_id"] = self.user_id if self.user_id else None
             
-            with open(file_path, 'w', encoding='utf-8') as f:
-                json.dump(provisioner_data, f, indent=2, ensure_ascii=False)
+            self.file_service.atomic_write_json(file_path, provisioner_data)
                 
         except GlobalProvisionerServiceError:
             raise
@@ -484,8 +483,7 @@ class GlobalProvisionerService:
             
             # Save to user directory
             user_file = self.file_service.get_user_data_path(self.user_id, "provisioners") / f"{new_id}.json"
-            with open(user_file, 'w', encoding='utf-8') as f:
-                json.dump(provisioner_copy, f, indent=2, ensure_ascii=False)
+            self.file_service.atomic_write_json(user_file, provisioner_copy)
             
             return GlobalProvisioner(**provisioner_copy)
             

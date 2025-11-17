@@ -115,8 +115,7 @@ class PluginService:
             if "owner_id" not in plugin_data:
                 plugin_data["owner_id"] = self.user_id if self.user_id else None
             
-            with open(plugin_file, 'w', encoding='utf-8') as f:
-                json.dump(plugin_data, f, indent=2, ensure_ascii=False)
+            self.file_service.atomic_write_json(plugin_file, plugin_data)
                 
         except Exception as e:
             raise PluginServiceError(f"Failed to save plugin: {str(e)}")
@@ -443,8 +442,7 @@ class PluginService:
             
             # Save to user directory
             user_file = self.file_service.get_user_data_path(self.user_id, "plugins") / f"{new_id}.json"
-            with open(user_file, 'w', encoding='utf-8') as f:
-                json.dump(plugin_copy, f, indent=2, ensure_ascii=False)
+            self.file_service.atomic_write_json(user_file, plugin_copy)
             
             return Plugin(**plugin_copy)
             

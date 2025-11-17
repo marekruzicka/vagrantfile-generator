@@ -108,8 +108,7 @@ class BoxService:
             else:
                 file_path = self.file_service.get_shared_data_path("boxes") / f"{box_id}.json"
             
-            with open(file_path, 'w', encoding='utf-8') as f:
-                json.dump(box_dict, f, indent=2, ensure_ascii=False)
+            self.file_service.atomic_write_json(file_path, box_dict)
             
             return Box(**box_dict)
             
@@ -217,9 +216,8 @@ class BoxService:
             if 'owner_id' not in box_dict:
                 box_dict['owner_id'] = self.user_id if self.user_id else None
             
-            # Save
-            with open(file_path, 'w', encoding='utf-8') as f:
-                json.dump(box_dict, f, indent=2, ensure_ascii=False)
+            # Save using atomic write
+            self.file_service.atomic_write_json(file_path, box_dict)
             
             return Box(**box_dict)
             
@@ -375,10 +373,9 @@ class BoxService:
                 "updated_at": now
             }
             
-            # Save to user directory
+            # Save to user directory using atomic write
             user_file = self.file_service.get_user_data_path(self.user_id, "boxes") / f"{new_id}.json"
-            with open(user_file, 'w', encoding='utf-8') as f:
-                json.dump(box_copy, f, indent=2, ensure_ascii=False)
+            self.file_service.atomic_write_json(user_file, box_copy)
             
             return Box(**box_copy)
             

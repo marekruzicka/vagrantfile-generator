@@ -188,8 +188,7 @@ class UserService:
         profile_path = user_dir / "profile.json"
         
         try:
-            with open(profile_path, 'w') as f:
-                json.dump(user.model_dump(mode='json'), f, indent=2)
+            self.file_service.atomic_write_json(profile_path, user.model_dump(mode='json'))
         except IOError as e:
             logger.error(f"Failed to save user profile {user.user_id}: {e}")
             raise

@@ -94,13 +94,11 @@ class ProjectService:
             raise ValueError(f"Invalid project data in {file_path}: {e}")
 
     def _save_project_to_file(self, project: Project) -> None:
-        """Save a project to its JSON file."""
+        """Save a project to its JSON file using atomic write."""
         file_path = self._get_project_file_path(project.id)
+        file_service = FileService()
         
-        # Ensure directory exists
-        file_path.parent.mkdir(parents=True, exist_ok=True)
-        
-        # Convert to dict and save
+        # Convert to dict
         data = project.dict()
 
         # Ensure metadata fields are present in stored JSON for multi-user public mode
@@ -121,8 +119,12 @@ class ProjectService:
                 return str(obj)
             raise TypeError(f"Object of type {type(obj)} is not JSON serializable")
         
-        with open(file_path, 'w', encoding='utf-8') as f:
-            json.dump(data, f, indent=2, default=json_encoder, ensure_ascii=False)
+        # Convert to JSON-serializable format
+        import json as json_module
+        json_data = json_module.loads(json_module.dumps(data, default=json_encoder))
+        
+        # Use atomic write
+        file_service.atomic_write_json(file_path, json_data)
 
     def create_project(self, project_data: ProjectCreate) -> Project:
         """
@@ -429,19 +431,23 @@ class ProjectService:
             ProjectNotFoundError: If project doesn't exist
             ValueError: If VM not found in project
         """
-        project = self._load_project_from_file(project_id)
+        file_path = self._get_project_file_path(project_id)
+        file_service = FileService()
         
-        vm = project.get_vm(vm_id)
-        if not vm:
-            raise ValueError(f"VM with ID '{vm_id}' not found in project")
-        
-        # Update VM fields
-        for field, value in vm_data.items():
-            if hasattr(vm, field):
-                setattr(vm, field, value)
-        
-        project.update_timestamp()
-        self._save_project_to_file(project)
+        with file_service.locked_file_operation(file_path, 'exclusive'):
+            project = self._load_project_from_file(project_id)
+            
+            vm = project.get_vm(vm_id)
+            if not vm:
+                raise ValueError(f"VM with ID '{vm_id}' not found in project")
+            
+            # Update VM fields
+            for field, value in vm_data.items():
+                if hasattr(vm, field):
+                    setattr(vm, field, value)
+            
+            project.update_timestamp()
+            self._save_project_to_file(project)
         
         return project
 

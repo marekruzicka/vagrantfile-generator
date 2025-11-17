@@ -201,8 +201,7 @@ class OTPService:
     def _save_requests(self, requests: dict) -> None:
         """Save OTP requests to file."""
         try:
-            with open(self.storage_path, 'w') as f:
-                json.dump(requests, f, indent=2)
+            self.file_service.atomic_write_json(self.storage_path, requests)
         except IOError as e:
             logger.error(f"Failed to save OTP requests: {e}")
             raise

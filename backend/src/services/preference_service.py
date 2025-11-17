@@ -89,8 +89,7 @@ class PreferenceService:
         
         try:
             # Save to file
-            with open(self.settings_file, 'w', encoding='utf-8') as f:
-                json.dump(preferences.dict(), f, indent=2)
+            self.file_service.atomic_write_json(self.settings_file, preferences.dict())
             
             return preferences
         except Exception as e:

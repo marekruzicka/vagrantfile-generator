@@ -5,8 +5,13 @@ This service handles file I/O operations for multi-user data storage.
 """
 
 import json
+import os
+import time
+import fcntl
+import tempfile
 from typing import Dict, List, Any, Optional
 from pathlib import Path
+from contextlib import contextmanager
 
 
 class FileServiceError(Exception):
@@ -225,4 +230,126 @@ class FileService:
                 resource_data["is_shared"] = True
                 resource_data["owner_id"] = None
         
+        return resource_data        
         return resource_data
+    
+    def atomic_write_json(self, file_path: Path, data: dict) -> None:
+        """
+        Write JSON data atomically using temp file + rename.
+        
+        On Unix systems, os.replace() is atomic, ensuring readers never
+        see partial/corrupted data.
+        
+        Args:
+            file_path: Path to file to write
+            data: Dictionary to serialize as JSON
+            
+        Raises:
+            FileServiceError: If write operation fails
+        """
+        # Ensure parent directory exists
+        file_path.parent.mkdir(parents=True, exist_ok=True)
+        
+        # Create temp file in same directory (same filesystem for atomic rename)
+        fd, temp_path = tempfile.mkstemp(
+            dir=file_path.parent,
+            prefix=f".tmp_{file_path.name}_",
+            suffix='.json'
+        )
+        
+        try:
+            # Write to temp file
+            with os.fdopen(fd, 'w', encoding='utf-8') as f:
+                json.dump(data, f, indent=2, ensure_ascii=False)
+                f.flush()
+                os.fsync(f.fileno())  # Force write to disk
+            
+            # Atomic rename (on Unix, this is atomic even across processes)
+            os.replace(temp_path, file_path)
+            
+        except Exception as e:
+            # Cleanup temp file on error
+            try:
+                os.unlink(temp_path)
+            except:
+                pass
+            raise FileServiceError(f"Atomic write failed for {file_path}: {e}")
+    
+    @contextmanager
+    def locked_file_operation(
+        self, 
+        file_path: Path, 
+        mode: str = 'exclusive',
+        timeout: float = 5.0
+    ):
+        """
+        Context manager for locked file operations.
+        
+        Provides advisory file locking to prevent concurrent modifications.
+        Uses a separate .lock file to avoid interfering with the data file.
+        
+        Args:
+            file_path: Path to file to lock
+            mode: 'exclusive' (write) or 'shared' (read)
+            timeout: Maximum seconds to wait for lock
+            
+        Usage:
+            with file_service.locked_file_operation(path, 'exclusive'):
+                data = load_file(path)
+                modify_data(data)
+                save_file(path, data)
+                
+        Raises:
+            FileServiceError: If lock cannot be acquired within timeout
+        """
+        # Ensure directory exists
+        file_path.parent.mkdir(parents=True, exist_ok=True)
+        
+        # Create lock file (separate from data file)
+        lock_file_path = file_path.parent / f".{file_path.name}.lock"
+        
+        lock_fd = None
+        lock_acquired = False
+        
+        try:
+            # Open lock file
+            lock_fd = os.open(
+                lock_file_path, 
+                os.O_CREAT | os.O_RDWR
+            )
+            
+            # Determine lock type
+            lock_type = fcntl.LOCK_EX if mode == 'exclusive' else fcntl.LOCK_SH
+            
+            # Try to acquire lock with timeout
+            start_time = time.time()
+            while True:
+                try:
+                    fcntl.flock(lock_fd, lock_type | fcntl.LOCK_NB)
+                    lock_acquired = True
+                    break
+                except BlockingIOError:
+                    if time.time() - start_time >= timeout:
+                        raise FileServiceError(
+                            f"Could not acquire lock on {file_path.name} "
+                            f"within {timeout} seconds"
+                        )
+                    time.sleep(0.01)  # Wait 10ms before retry
+            
+            # Yield control to caller (lock is held)
+            yield
+            
+        finally:
+            # Release lock
+            if lock_acquired and lock_fd is not None:
+                try:
+                    fcntl.flock(lock_fd, fcntl.LOCK_UN)
+                except:
+                    pass
+            
+            # Close lock file descriptor
+            if lock_fd is not None:
+                try:
+                    os.close(lock_fd)
+                except:
+                    pass
