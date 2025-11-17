@@ -1,21 +1,21 @@
 // VM selection, labeling, and bulk operations
 const VagrantVMManager = {
     // VM Selection and Grouping
-    toggleVMSelection(app, vmName) {
-        const index = app.selectedVMs.indexOf(vmName);
+    toggleVMSelection(app, vmId) {
+        const index = app.selectedVMs.indexOf(vmId);
         if (index === -1) {
-            app.selectedVMs.push(vmName);
+            app.selectedVMs.push(vmId);
         } else {
             app.selectedVMs.splice(index, 1);
         }
     },
     
-    isVMSelected(app, vmName) {
-        return app.selectedVMs.includes(vmName);
+    isVMSelected(app, vmId) {
+        return app.selectedVMs.includes(vmId);
     },
     
     selectAllVMs(app) {
-        app.selectedVMs = app.currentProject?.vms?.map(vm => vm.name) || [];
+        app.selectedVMs = app.currentProject?.vms?.map(vm => vm.id) || [];
     },
     
     clearVMSelection(app) {
@@ -23,7 +23,7 @@ const VagrantVMManager = {
     },
     
     getSelectedVMs(app) {
-        return app.currentProject?.vms?.filter(vm => app.selectedVMs.includes(vm.name)) || [];
+        return app.currentProject?.vms?.filter(vm => app.selectedVMs.includes(vm.id)) || [];
     },
     
     selectVMsByLabel(app, label) {
@@ -33,17 +33,17 @@ const VagrantVMManager = {
             vm.labels && Array.isArray(vm.labels) && vm.labels.includes(label)
         );
         
-        const vmNames = vmsWithLabel.map(vm => vm.name);
+        const vmIds = vmsWithLabel.map(vm => vm.id);
         // Toggle selection - if all VMs with this label are already selected, deselect them
-        const allSelected = vmNames.every(name => app.selectedVMs.includes(name));
+        const allSelected = vmIds.every(id => app.selectedVMs.includes(id));
         
         if (allSelected) {
-            app.selectedVMs = app.selectedVMs.filter(name => !vmNames.includes(name));
+            app.selectedVMs = app.selectedVMs.filter(id => !vmIds.includes(id));
         } else {
             // Add unselected VMs with this label
-            vmNames.forEach(name => {
-                if (!app.selectedVMs.includes(name)) {
-                    app.selectedVMs.push(name);
+            vmIds.forEach(id => {
+                if (!app.selectedVMs.includes(id)) {
+                    app.selectedVMs.push(id);
                 }
             });
         }
@@ -57,7 +57,7 @@ const VagrantVMManager = {
         );
         
         return vmsWithLabel.length > 0 && 
-               vmsWithLabel.every(vm => app.selectedVMs.includes(vm.name));
+               vmsWithLabel.every(vm => app.selectedVMs.includes(vm.id));
     },
     
     getVMCountByLabel(app, label) {
@@ -90,15 +90,15 @@ const VagrantVMManager = {
         app.setLoading(true);
         try {
             const promises = selectedVMs.map(vm => 
-                api.deleteVM(app.currentProject.id, vm.name)
+                api.deleteVM(app.currentProject.id, vm.id)
             );
             
             await Promise.all(promises);
             
             // Remove deleted VMs from current project
-            const deletedNames = selectedVMs.map(vm => vm.name);
+            const deletedIds = selectedVMs.map(vm => vm.id);
             app.currentProject.vms = app.currentProject.vms.filter(vm => 
-                !deletedNames.includes(vm.name)
+                !deletedIds.includes(vm.id)
             );
             
             // Update project labels
@@ -198,8 +198,7 @@ const VagrantVMManager = {
                     vmData.network_interfaces = [...existingInterfaces, ...newInterfaces];
                 }
                 
-                delete vmData.originalName;
-                return api.updateVM(app.currentProject.id, vm.name, vmData);
+                return api.updateVM(app.currentProject.id, vm.id, vmData);
             });
             
             await Promise.all(promises);

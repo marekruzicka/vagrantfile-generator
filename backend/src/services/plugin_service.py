@@ -108,6 +108,12 @@ class PluginService:
             
             plugin_file = self._get_plugin_file_path(plugin_id)
             plugin_data["updated_at"] = datetime.now().isoformat()
+
+            # Ensure metadata fields exist in stored JSON
+            if "is_shared" not in plugin_data:
+                plugin_data["is_shared"] = False
+            if "owner_id" not in plugin_data:
+                plugin_data["owner_id"] = self.user_id if self.user_id else None
             
             with open(plugin_file, 'w', encoding='utf-8') as f:
                 json.dump(plugin_data, f, indent=2, ensure_ascii=False)
@@ -190,6 +196,11 @@ class PluginService:
                 "default_version": plugin_data.default_version,
                 "configuration": plugin_data.configuration,
                 "is_deprecated": plugin_data.is_deprecated,
+                # Set sharing metadata explicitly so stored json contains explicit owner
+                # In public mode (user_id set): is_shared=False, owner_id=user_id
+                # In self-hosted mode (user_id=None): is_shared=False, owner_id=None (editable shared data)
+                "is_shared": False,
+                "owner_id": self.user_id if self.user_id else None,
                 "created_at": now,
                 "updated_at": now
             }

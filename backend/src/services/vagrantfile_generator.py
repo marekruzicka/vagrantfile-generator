@@ -196,7 +196,7 @@ end
                     # Create enriched plugin object with configuration
                     enriched_plugin = {
                         'name': full_plugin.name,
-                        'version': full_plugin.version,
+                        'version': full_plugin.default_version,  # Fixed: was full_plugin.version, should be default_version
                         'configuration': full_plugin.configuration,
                         'is_deprecated': full_plugin.is_deprecated
                     }

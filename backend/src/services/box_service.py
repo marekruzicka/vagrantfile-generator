@@ -96,6 +96,8 @@ class BoxService:
                 "provider": box_data.provider,
                 "version": box_data.version,
                 "url": box_data.url,
+                "is_shared": False,
+                "owner_id": self.user_id if self.user_id else None,
                 "created_at": now,
                 "updated_at": now
             }
@@ -209,6 +211,11 @@ class BoxService:
                 box_dict['url'] = box_data.url
             
             box_dict['updated_at'] = datetime.now().isoformat()
+            # Ensure metadata fields exist in stored JSON
+            if 'is_shared' not in box_dict:
+                box_dict['is_shared'] = False
+            if 'owner_id' not in box_dict:
+                box_dict['owner_id'] = self.user_id if self.user_id else None
             
             # Save
             with open(file_path, 'w', encoding='utf-8') as f:

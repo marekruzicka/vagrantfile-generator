@@ -20,7 +20,9 @@ COPY . .
 RUN mkdir -p /app/data
 
 # Create a non-root user
-RUN useradd -r -s /bin/false appuser && chown -R appuser:appuser /app
+RUN addgroup --gid 1001 appgroup \
+    && adduser --uid 1001 --ingroup appgroup --disabled-login --no-create-home appuser --gecos "" \
+    && chown -R appuser:appgroup /app
 
 # Switch to non-root user
 USER appuser

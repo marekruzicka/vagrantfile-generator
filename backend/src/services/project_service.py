@@ -24,27 +24,21 @@ class ProjectNotFoundError(Exception):
 class ProjectService:
     """Service class for managing Project entities."""
 
-    def __init__(self, data_dir: str = "data/projects", user_id: Optional[str] = None):
+    def __init__(self, user_id: Optional[str] = None):
         """
         Initialize the ProjectService.
         
         Args:
-            data_dir: Base directory where project JSON files are stored (deprecated, use user_id)
-            user_id: User ID for user-specific storage. If None, uses shared directory.
+            user_id: User ID for user-specific storage. If None, uses shared directory (self-hosted mode).
         """
-        # Support user-specific directories
+        file_service = FileService()
+        
         if user_id:
-            file_service = FileService()
+            # Public mode: user-specific directory
             self.data_dir = file_service.get_user_data_path(user_id, "projects")
         else:
-            # For backward compatibility and self-hosted mode
-            if data_dir == "data/projects":
-                # Use shared directory in new multi-user setup
-                file_service = FileService()
-                self.data_dir = file_service.get_shared_data_path("projects")
-            else:
-                # Legacy direct path specification
-                self.data_dir = Path(data_dir)
+            # Self-hosted mode: shared directory
+            self.data_dir = file_service.get_shared_data_path("projects")
         
         self.data_dir.mkdir(parents=True, exist_ok=True)
         self.user_id = user_id
@@ -108,6 +102,16 @@ class ProjectService:
         
         # Convert to dict and save
         data = project.dict()
+
+        # Ensure metadata fields are present in stored JSON for multi-user public mode
+        # In public mode (user_id set) we want explicit ownership recorded
+        if self.user_id:
+            data["is_shared"] = False
+            data["owner_id"] = self.user_id
+        else:
+            # Self-hosted mode: no explicit owner and resource is editable
+            data["is_shared"] = False
+            data["owner_id"] = None
         
         # Custom JSON encoder for datetime and UUID
         def json_encoder(obj):
@@ -146,6 +150,9 @@ class ProjectService:
             created_at=datetime.utcnow(),
             updated_at=datetime.utcnow()
         )
+        # Set multi-user metadata for API responses and stored JSON
+        project.is_shared = False
+        project.owner_id = self.user_id if self.user_id else None
         
         # Save to file
         self._save_project_to_file(project)
@@ -406,13 +413,13 @@ class ProjectService:
         self._save_project_to_file(project)
         return project
 
-    def update_vm_in_project(self, project_id: UUID, vm_name: str, vm_data: Dict[str, Any]) -> Project:
+    def update_vm_in_project(self, project_id: UUID, vm_id: str, vm_data: Dict[str, Any]) -> Project:
         """
         Update a VM in a project.
         
         Args:
             project_id: Project UUID
-            vm_name: Name of VM to update
+            vm_id: ID of VM to update
             vm_data: Updated VM data
             
         Returns:
@@ -424,9 +431,9 @@ class ProjectService:
         """
         project = self._load_project_from_file(project_id)
         
-        vm = project.get_vm(vm_name)
+        vm = project.get_vm(vm_id)
         if not vm:
-            raise ValueError(f"VM '{vm_name}' not found in project")
+            raise ValueError(f"VM with ID '{vm_id}' not found in project")
         
         # Update VM fields
         for field, value in vm_data.items():
@@ -438,13 +445,13 @@ class ProjectService:
         
         return project
 
-    def remove_vm_from_project(self, project_id: UUID, vm_name: str) -> Project:
+    def remove_vm_from_project(self, project_id: UUID, vm_id: str) -> Project:
         """
         Remove a VM from a project.
         
         Args:
             project_id: Project UUID
-            vm_name: Name of VM to remove
+            vm_id: ID of VM to remove
             
         Returns:
             Updated Project instance
@@ -455,8 +462,8 @@ class ProjectService:
         """
         project = self._load_project_from_file(project_id)
         
-        if not project.remove_vm(vm_name):
-            raise ValueError(f"VM '{vm_name}' not found in project")
+        if not project.remove_vm(vm_id):
+            raise ValueError(f"VM with ID '{vm_id}' not found in project")
         
         self._save_project_to_file(project)
         return project

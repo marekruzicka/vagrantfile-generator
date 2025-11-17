@@ -39,6 +39,11 @@ def test_create_project_success():
     assert "updated_at" in data
     assert data["vms"] == []
     assert data["global_plugins"] == []
+    # Ensure multi-user metadata present (self-hosted mode -> editable resources)
+    assert "is_shared" in data
+    assert data["is_shared"] is False
+    assert "owner_id" in data
+    assert data["owner_id"] is None
     
     # Validate datetime format
     datetime.fromisoformat(data["created_at"].replace('Z', '+00:00'))

@@ -114,6 +114,12 @@ class GlobalTriggerService:
             
             # Update timestamp
             trigger_data["updated_at"] = datetime.now().isoformat()
+
+            # Ensure metadata fields exist in stored JSON
+            if "is_shared" not in trigger_data:
+                trigger_data["is_shared"] = False
+            if "owner_id" not in trigger_data:
+                trigger_data["owner_id"] = self.user_id if self.user_id else None
             
             with open(file_path, 'w', encoding='utf-8') as f:
                 json.dump(trigger_data, f, indent=2, ensure_ascii=False)
@@ -189,6 +195,8 @@ class GlobalTriggerService:
                 "name": trigger_data.name,
                 "description": trigger_data.description,
                 "trigger_config": trigger_data.trigger_config.model_dump(),
+                "is_shared": False,
+                "owner_id": self.user_id if self.user_id else None,
                 "created_at": now,
                 "updated_at": now
             }

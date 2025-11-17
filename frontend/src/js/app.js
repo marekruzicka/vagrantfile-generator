@@ -586,10 +586,15 @@ function vagrantApp() {
                     is_deprecated: this.pluginForm.is_deprecated
                 };
                 
+                let updatedPlugin;
                 if (this.editingPlugin) {
-                    await api.updatePlugin(this.editingPlugin.id, pluginData);
+                    updatedPlugin = await api.updatePlugin(this.editingPlugin.id, pluginData);
+                    // Update cache if this plugin is in the current project
+                    if (this.projectPluginsCache[this.editingPlugin.id]) {
+                        this.projectPluginsCache[this.editingPlugin.id] = updatedPlugin;
+                    }
                 } else {
-                    await api.createPlugin(pluginData);
+                    updatedPlugin = await api.createPlugin(pluginData);
                 }
                 
                 await this.loadPlugins();
@@ -1132,6 +1137,12 @@ function vagrantApp() {
             }
         },
         
+        // Provisioner helper functions
+        getProvisionerById(provisionerId) {
+            return this.projectProvisionersCache[provisionerId] || 
+                   this.availableProvisioners.find(p => p.id === provisionerId);
+        },
+        
         getProvisionerName(provisionerId) {
             const provisioner = this.projectProvisionersCache[provisionerId];
             return provisioner ? provisioner.name : 'Loading...';
@@ -1464,9 +1475,16 @@ function vagrantApp() {
             
             this.setLoading(true);
             try {
-                const originalName = this.editingVM.originalName;
+                const vmId = this.editingVM.id;
                 
-                // Create a clean VM object without the originalName property
+                if (!vmId) {
+                    console.error('ERROR: VM ID is not set!', this.editingVM);
+                    this.setError('Failed to update VM: VM ID not found.');
+                    this.setLoading(false);
+                    return;
+                }
+                
+                // Create a clean VM object
                 const vmData = { ...this.editingVM };
                 
                 // Clean up network interfaces data
@@ -1497,12 +1515,10 @@ function vagrantApp() {
                 vmData.memory = parseInt(vmData.memory) || 1024;
                 vmData.cpus = parseInt(vmData.cpus) || 1;
                 
-                delete vmData.originalName;
-                
-                const vm = await api.updateVM(this.currentProject.id, originalName, vmData);
+                const vm = await api.updateVM(this.currentProject.id, vmId, vmData);
                 
                 // Update VM in current project
-                const vmIndex = this.currentProject.vms.findIndex(v => v.name === originalName);
+                const vmIndex = this.currentProject.vms.findIndex(v => v.id === vmId);
                 if (vmIndex !== -1) {
                     this.currentProject.vms[vmIndex] = vm;
                 }
@@ -1550,11 +1566,11 @@ function vagrantApp() {
             }
         },
 
-        async deleteVM(vmName) {
+        async deleteVM(vmId) {
             this.setLoading(true);
             try {
-                await api.deleteVM(this.currentProject.id, vmName);
-                this.currentProject.vms = this.currentProject.vms.filter(vm => vm.name !== vmName);
+                await api.deleteVM(this.currentProject.id, vmId);
+                this.currentProject.vms = this.currentProject.vms.filter(vm => vm.id !== vmId);
                 
                 // Update project labels list
                 this.updateProjectLabels();
@@ -1698,8 +1714,8 @@ function vagrantApp() {
         resetNewVM() { VagrantUIHelpers.resetNewVM(this); },
 
         // VM Selection and Grouping
-        toggleVMSelection(vmName) { VagrantVMManager.toggleVMSelection(this, vmName); },
-        isVMSelected(vmName) { return VagrantVMManager.isVMSelected(this, vmName); },
+        toggleVMSelection(vmId) { VagrantVMManager.toggleVMSelection(this, vmId); },
+        isVMSelected(vmId) { return VagrantVMManager.isVMSelected(this, vmId); },
         selectAllVMs() { VagrantVMManager.selectAllVMs(this); },
         clearVMSelection() { VagrantVMManager.clearVMSelection(this); },
         getSelectedVMs() { return VagrantVMManager.getSelectedVMs(this); },
@@ -1834,10 +1850,15 @@ function vagrantApp() {
                     }
                 };
                 
+                let updatedProvisioner;
                 if (this.editingProvisioner) {
-                    await api.updateProvisioner(this.editingProvisioner.id, provisionerData);
+                    updatedProvisioner = await api.updateProvisioner(this.editingProvisioner.id, provisionerData);
+                    // Update cache if this provisioner is in the current project
+                    if (this.projectProvisionersCache[this.editingProvisioner.id]) {
+                        this.projectProvisionersCache[this.editingProvisioner.id] = updatedProvisioner;
+                    }
                 } else {
-                    await api.createProvisioner(provisionerData);
+                    updatedProvisioner = await api.createProvisioner(provisionerData);
                 }
                 
                 await this.loadProvisioners();
@@ -2077,7 +2098,11 @@ function vagrantApp() {
                     triggerData.trigger_config.warn = this.triggerForm.trigger_config.warn.trim();
                 }
                 
-                await api.updateTrigger(this.editingTrigger.id, triggerData);
+                const updatedTrigger = await api.updateTrigger(this.editingTrigger.id, triggerData);
+                // Update cache if this trigger is in the current project
+                if (this.projectTriggersCache[this.editingTrigger.id]) {
+                    this.projectTriggersCache[this.editingTrigger.id] = updatedTrigger;
+                }
                 await this.loadTriggers();
                 this.closeEditTriggerModal();
                 this.setSuccess('Trigger updated successfully');
