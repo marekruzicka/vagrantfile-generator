@@ -94,12 +94,12 @@ mkdir -p data/users
 
 # Initialize auth data files if they don't exist
 if [ ! -f "data/auth/otp-requests.json" ]; then
-    echo "[]" > data/auth/otp-requests.json
+    echo "{}" > data/auth/otp-requests.json
     print_info "Created data/auth/otp-requests.json"
 fi
 
 if [ ! -f "data/auth/rate-limits.json" ]; then
-    echo "[]" > data/auth/rate-limits.json
+    echo "{}" > data/auth/rate-limits.json
     print_info "Created data/auth/rate-limits.json"
 fi
 
@@ -163,6 +163,6 @@ echo "    - Frontend: http://localhost:5173"
 echo "    - Backend:  http://localhost:8000"
 echo "    - API Docs: http://localhost:8000/docs"
 echo ""
-print_info "For production-like testing, use: make prod-up"
+print_info "For production-like testing, use: make up"
 print_info "For user distribution setup, use: podman-compose up"
 echo ""
