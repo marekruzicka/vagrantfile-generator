@@ -466,12 +466,18 @@ class ProjectService:
             ProjectNotFoundError: If project doesn't exist
             ValueError: If VM not found in project
         """
-        project = self._load_project_from_file(project_id)
+        file_path = self._get_project_file_path(project_id)
+        file_service = FileService()
         
-        if not project.remove_vm(vm_id):
-            raise ValueError(f"VM with ID '{vm_id}' not found in project")
+        with file_service.locked_file_operation(file_path, 'exclusive'):
+            project = self._load_project_from_file(project_id)
+            
+            if not project.remove_vm(vm_id):
+                raise ValueError(f"VM with ID '{vm_id}' not found in project")
+            
+            project.update_timestamp()
+            self._save_project_to_file(project)
         
-        self._save_project_to_file(project)
         return project
 
     def validate_project(self, project_id: UUID) -> Dict[str, Any]:
@@ -588,16 +594,23 @@ class ProjectService:
             ProjectNotFoundError: If project doesn't exist
             ValueError: If plugin not found in project
         """
-        project = self._load_project_from_file(project_id)
+        file_path = self._get_project_file_path(project_id)
+        file_service = FileService()
         
-        # Find and remove the plugin
-        original_count = len(project.global_plugins)
-        project.global_plugins = [p for p in project.global_plugins if p != plugin_id]
+        with file_service.locked_file_operation(file_path, 'exclusive'):
+            project = self._load_project_from_file(project_id)
+            
+            # Find and remove the plugin
+            original_count = len(project.global_plugins)
+            project.global_plugins = [p for p in project.global_plugins if p != plugin_id]
+            
+            if len(project.global_plugins) == original_count:
+                raise ValueError(f"Plugin '{plugin_id}' not found in project")
+            
+            project.update_timestamp()
+            self._save_project_to_file(project)
         
-        if len(project.global_plugins) == original_count:
-            raise ValueError(f"Plugin '{plugin_id}' not found in project")
-        
-        project.update_timestamp()
+        return project
         self._save_project_to_file(project)
         return project
 
@@ -642,14 +655,19 @@ class ProjectService:
             ProjectNotFoundError: If project doesn't exist
             ValueError: If provisioner not found in project
         """
-        project = self._load_project_from_file(project_id)
+        file_path = self._get_project_file_path(project_id)
+        file_service = FileService()
         
-        if provisioner_id not in project.global_provisioners:
-            raise ValueError(f"Provisioner '{provisioner_id}' not found in project")
+        with file_service.locked_file_operation(file_path, 'exclusive'):
+            project = self._load_project_from_file(project_id)
+            
+            if provisioner_id not in project.global_provisioners:
+                raise ValueError(f"Provisioner '{provisioner_id}' not found in project")
+            
+            project.global_provisioners.remove(provisioner_id)
+            project.update_timestamp()
+            self._save_project_to_file(project)
         
-        project.global_provisioners.remove(provisioner_id)
-        project.update_timestamp()
-        self._save_project_to_file(project)
         return project
 
     def update_provisioner_in_project(self, project_id: UUID, old_provisioner_id: str, new_provisioner_id: str) -> Project:
@@ -749,12 +767,18 @@ class ProjectService:
             ProjectNotFoundError: If project doesn't exist
             ValueError: If trigger not found in project
         """
-        project = self._load_project_from_file(project_id)
+        file_path = self._get_project_file_path(project_id)
+        file_service = FileService()
         
-        if trigger_id not in project.global_triggers:
-            raise ValueError(f"Trigger '{trigger_id}' not found in project")
+        with file_service.locked_file_operation(file_path, 'exclusive'):
+            project = self._load_project_from_file(project_id)
+            
+            if trigger_id not in project.global_triggers:
+                raise ValueError(f"Trigger '{trigger_id}' not found in project")
+            
+            project.global_triggers.remove(trigger_id)
+            project.update_timestamp()
+            self._save_project_to_file(project)
         
-        project.global_triggers.remove(trigger_id)
-        project.update_timestamp()
-        self._save_project_to_file(project)
+        return project
         return project
