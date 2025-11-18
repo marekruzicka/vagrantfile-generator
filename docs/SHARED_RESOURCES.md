@@ -3,6 +3,7 @@
 ## Overview
 
 The Vagrantfile Generator supports two deployment modes:
+
 - **Self-hosted mode** (`user_id=None`): Single-user, all resources are editable
 - **Public mode** (`user_id` set): Multi-user, with shared read-only resources
 
@@ -14,7 +15,7 @@ This document describes how shared resources work in **public mode**.
 backend/data/
 ├── shared/              # Read-only resources for all users
 │   ├── boxes/
-│   │   └── boxes.json
+│   │   └── *.json  # Each box stored individually as `{box-id}.json` (see migration note below)
 │   ├── plugins/
 │   │   └── *.json
 │   ├── provisioners/
@@ -44,7 +45,6 @@ All resources include two ownership fields:
 - **`is_shared`**: `boolean`
   - `true` = Shared resource (read-only in public mode)
   - `false` = User-owned resource (editable)
-  
 - **`owner_id`**: `string | null`
   - `null` = Shared resource
   - `{user-id}` = Owned by specific user
@@ -56,17 +56,18 @@ All resources include two ownership fields:
 Each service (`PluginService`, `BoxService`, `GlobalProvisionerService`, `GlobalTriggerService`) follows this pattern:
 
 #### 1. **List/Get Operations** (Read)
+
 ```python
 def list_resources(self) -> List[ResourceSummary]:
     resources = []
-    
+
     # Load shared resources first
     shared_resources = load_from_shared_directory()
     for resource in shared_resources:
         resource.is_shared = (self.user_id is not None)  # True in public mode
         resource.owner_id = None
         resources.append(resource)
-    
+
     # Load user-specific resources (if in public mode)
     if self.user_id:
         user_resources = load_from_user_directory(self.user_id)
@@ -74,11 +75,12 @@ def list_resources(self) -> List[ResourceSummary]:
             resource.is_shared = False
             resource.owner_id = self.user_id
             resources.append(resource)
-    
+
     return resources
 ```
 
 #### 2. **Create Operations** (Write)
+
 ```python
 def create_resource(self, data: ResourceCreate) -> Resource:
     # Always save to user directory in public mode
@@ -90,6 +92,7 @@ def create_resource(self, data: ResourceCreate) -> Resource:
 ```
 
 #### 3. **Update/Delete Operations** (Write)
+
 ```python
 def update_resource(self, resource_id: str, data: ResourceUpdate) -> Resource:
     # Prevent editing shared resources in public mode
@@ -97,7 +100,7 @@ def update_resource(self, resource_id: str, data: ResourceUpdate) -> Resource:
         user_file = get_user_file_path(self.user_id, resource_id)
         if not user_file.exists():
             raise ServiceError("Cannot edit shared resources")
-    
+
     # Proceed with update only if resource is in user directory
     return perform_update(resource_id, data)
 
@@ -107,7 +110,7 @@ def delete_resource(self, resource_id: str) -> bool:
         user_file = get_user_file_path(self.user_id, resource_id)
         if not user_file.exists():
             raise ServiceError("Cannot delete shared resources")
-    
+
     # Proceed with deletion only if resource is in user directory
     return perform_delete(resource_id)
 ```
@@ -131,7 +134,7 @@ async def update_resource(
                 status_code=403,
                 detail="Cannot modify shared resource"
             )
-    
+
     return service.update_resource(resource_id, data)
 ```
 
@@ -142,6 +145,7 @@ async def update_resource(
 Shared resources are visually distinguished with:
 
 1. **Amber border and background**:
+
    ```html
    :class="resource.is_shared ? 'border-amber-200 bg-amber-50/20' : ''"
    ```
@@ -172,43 +176,53 @@ Edit and Delete buttons are hidden for shared resources:
 ### Alpine.js Data Binding
 
 ```javascript
-Alpine.data('settingsData', () => ({
-    plugins: [],
-    provisioners: [],
-    triggers: [],
-    boxes: [],
-    
-    async loadPlugins() {
-        const response = await api.get('/api/plugins');
-        // API returns: [{ id, name, is_shared, owner_id, ... }, ...]
-        this.plugins = response;
-    }
+Alpine.data("settingsData", () => ({
+  plugins: [],
+  provisioners: [],
+  triggers: [],
+  boxes: [],
+
+  async loadPlugins() {
+    const response = await api.get("/api/plugins");
+    // API returns: [{ id, name, is_shared, owner_id, ... }, ...]
+    this.plugins = response;
+  },
 }));
 ```
 
 ## Resource Types
 
 ### 1. Plugins
+
 - **Storage**: Individual JSON files (`{plugin-id}.json`)
 - **Shared**: Common Vagrant plugins (vagrant-libvirt, vagrant-hostmanager, etc.)
 - **User**: Custom or user-added plugins
 
 ### 2. Boxes
-- **Storage**: Single `boxes.json` file with structure `{"boxes": [...]}`
+
+- **Storage**: Individual JSON files (`{box-id}.json`) in `data/shared/boxes/` and `data/users/{user-id}/boxes/`.
+
+  Historically, boxes were stored in a single `boxes.json` file. The current implementation uses one file per box for easier management and copying in public mode. A migration helper script is available at `backend/scripts/migrate_boxes.py` to convert legacy `boxes.json` to the new per-box file structure.
+
+  Note: the backend still includes compatibility checks for the legacy `boxes.json` in some endpoints — for example, `PUT /api/boxes/{box_id}` examines `data/shared/boxes/boxes.json` when running under a legacy dataset. After migrating to per-box files the compatibility checks are no-op.
+
 - **Shared**: Common base images (Ubuntu, Debian, RHEL, etc.)
 - **User**: Custom box images
 
 ### 3. Global Provisioners
+
 - **Storage**: Individual JSON files (`{provisioner-id}.json`)
 - **Shared**: Common provisioning scripts (apt update, yum update, etc.)
 - **User**: Custom provisioning scripts
 
 ### 4. Global Triggers
+
 - **Storage**: Individual JSON files (`{trigger-id}.json`)
 - **Shared**: Common triggers (RHC registration, logging, etc.)
 - **User**: Custom triggers
 
 ### 5. Projects
+
 - **Storage**: Directory per project with `project.json`
 - **Shared**: Example/template projects (read-only)
 - **User**: User-created projects (editable)
@@ -218,11 +232,13 @@ Alpine.data('settingsData', () => ({
 ### Defense in Depth
 
 1. **Backend Validation (Primary)**:
+
    - Service layer checks file ownership before write operations
    - Prevents modification of files outside user directory
    - Returns error if attempting to edit/delete shared resources
 
 2. **API Validation (Secondary)**:
+
    - Additional checks at endpoint level
    - HTTP 403 Forbidden for shared resource modifications
 
@@ -233,17 +249,18 @@ Alpine.data('settingsData', () => ({
 
 ### Permission Matrix
 
-| Operation | Self-hosted Mode | Public Mode (Shared) | Public Mode (User-owned) |
-|-----------|------------------|----------------------|--------------------------|
-| **Read** | ✅ All resources | ✅ Read-only | ✅ Full access |
-| **Create** | ✅ Save to shared | ❌ Not allowed | ✅ Save to user dir |
-| **Update** | ✅ All resources | ❌ Blocked by backend | ✅ User resources only |
-| **Delete** | ✅ All resources | ❌ Blocked by backend | ✅ User resources only |
-| **Use in Projects** | ✅ All resources | ✅ Can reference | ✅ Can reference |
+| Operation           | Self-hosted Mode  | Public Mode (Shared)  | Public Mode (User-owned) |
+| ------------------- | ----------------- | --------------------- | ------------------------ |
+| **Read**            | ✅ All resources  | ✅ Read-only          | ✅ Full access           |
+| **Create**          | ✅ Save to shared | ❌ Not allowed        | ✅ Save to user dir      |
+| **Update**          | ✅ All resources  | ❌ Blocked by backend | ✅ User resources only   |
+| **Delete**          | ✅ All resources  | ❌ Blocked by backend | ✅ User resources only   |
+| **Use in Projects** | ✅ All resources  | ✅ Can reference      | ✅ Can reference         |
 
 ## Example Scenarios
 
 ### Scenario 1: User views Settings page
+
 1. Frontend loads resources via API: `GET /api/plugins`
 2. Backend `PluginService.list_plugins()`:
    - Loads 4 shared plugins from `/data/shared/plugins/`
@@ -256,6 +273,7 @@ Alpine.data('settingsData', () => ({
    - No edit/delete buttons
 
 ### Scenario 2: User creates new plugin
+
 1. User clicks "Add Plugin" → fills form → saves
 2. Frontend: `POST /api/plugins` with plugin data
 3. Backend `PluginService.create_plugin()`:
@@ -267,20 +285,24 @@ Alpine.data('settingsData', () => ({
    - User's plugin has edit/delete buttons visible
 
 ### Scenario 3: User attempts to delete shared plugin
+
 **Via UI** (prevented):
+
 - Delete button is hidden (`x-show="!plugin.is_shared"`)
 - User cannot click it
 
 **Via API** (blocked):
+
 ```bash
 curl -X DELETE http://localhost:8000/api/plugins/{shared-plugin-id} \
   -H "Authorization: Bearer $TOKEN"
 
-# Response: 400 Bad Request
+# Response: 403 Forbidden
 # {"detail": "Cannot delete shared resources"}
 ```
 
 ### Scenario 4: User uses shared plugin in project
+
 1. User creates/edits project
 2. Opens "Add Plugin" dialog
 3. Sees all plugins (shared + owned)
@@ -315,6 +337,7 @@ class PluginSummary(BaseModel):
 ```
 
 Similar structure for:
+
 - `Box` / `BoxSummary`
 - `GlobalProvisioner` / `GlobalProvisionerSummary`
 - `GlobalTrigger` / `GlobalTriggerSummary`
@@ -415,7 +438,11 @@ To add new shared resources (as admin):
 
 ## Known Limitations
 
-1. **Boxes Display Issue**: Boxes list currently shows "0 boxes available" in frontend despite backend returning correct data. This is a separate Alpine.js/frontend issue unrelated to is_shared functionality.
+1. **Boxes Display & migration**: Boxes are now stored as individual `.json` files. If your frontend shows "0 boxes available", please do the following:
+
+- Confirm `data/shared/boxes/` contains per-box `.json` files (and `data/users/{user-id}/boxes/` for user boxes).
+- If you still have a legacy `boxes.json`, run `backend/scripts/migrate_boxes.py` to convert it.
+- If migration is complete and issue persists, check browser DevTools network tab for the `/api/boxes` call and check backend logs.
 
 2. **No Admin UI**: Currently no web UI for managing shared resources. Shared resources must be added directly to `/data/shared/` directories.
 
