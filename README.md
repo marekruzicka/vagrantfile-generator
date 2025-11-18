@@ -1,10 +1,10 @@
 ![logo](./docs/pics/logo_light.png#gh-light-mode-only)
 ![logo](./docs/pics/logo_dark.png#gh-dark-mode-only)
+
 # Overview [![Build, Publish & Release](https://github.com/marekruzicka/vagrantfile-generator/actions/workflows/release.yml/badge.svg)](https://github.com/marekruzicka/vagrantfile-generator/actions/workflows/release.yml) ![Latest Release](https://img.shields.io/github/v/release/marekruzicka/vagrantfile-generator.svg)
 
-
 A modern web-based application for generating Vagrantfiles with an intuitive interface.  
-Create and manage multiple virtual machines, configure networking, provisioners, triggers, plugins, and generate working Vagrant configurations with ease.  
+Create and manage multiple virtual machines, configure networking, provisioners, triggers, plugins, and generate working Vagrant configurations with ease.
 
 Take a [Quick Tour](./docs/APP_OVERVIEW.md) through app inteface.
 
@@ -21,6 +21,7 @@ Take a [Quick Tour](./docs/APP_OVERVIEW.md) through app inteface.
 - **📱 Cross-Platform**: Works on desktop, tablet, and mobile devices
 
 ## Requirements
+
 Docker or Podman installed on your system
 Modern web browser (Chrome, Firefox, Safari, Edge)
 Available port 8080 (and possibly 8000 if you want to expose backend) on your machine
@@ -30,6 +31,7 @@ Available port 8080 (and possibly 8000 if you want to expose backend) on your ma
 Vagrantfile Generator supports two deployment modes:
 
 ### Self-Hosted Mode (Default)
+
 Perfect for local development or personal use. No authentication required.
 
 - ✅ No configuration needed
@@ -38,6 +40,7 @@ Perfect for local development or personal use. No authentication required.
 - ⚠️ Not suitable for multi-user or public deployments
 
 ### Public Mode
+
 Designed for multi-user environments with full authentication.
 
 - 🔒 User authentication required (Email OTP + Google/GitHub/GitLab OAuth)
@@ -47,6 +50,7 @@ Designed for multi-user environments with full authentication.
 - 🌐 OIDC/OAuth integration with external providers
 
 **Required Environment Variables for Public Mode:**
+
 ```bash
 # Deployment
 DEPLOYMENT_MODE=public
@@ -79,15 +83,33 @@ See [AUTHENTICATION.md](./docs/AUTHENTICATION.md) for detailed authentication se
 
 ## Quick Start
 
+### For Users (Running the App)
+
 ```bash
 # Download latest compose.yml
 curl -fsSLO "https://raw.githubusercontent.com/marekruzicka/vagrantfile-generator/refs/heads/master/compose.yml"
 
 # Start the application
-podman-compose -f compose.yml up -d  # docker compose up -d
+podman-compose -f compose.yml up -d  # or: docker compose up -d
 
 # Open your browser: http://localhost:8080
 ```
+
+### For Developers (Local Development)
+
+```bash
+# Clone the repository
+git clone https://github.com/marekruzicka/vagrantfile-generator.git
+cd vagrantfile-generator
+
+# Run setup script
+./setup-local-dev.sh
+
+# Open in VS Code and press F5 to start debugging
+# Or use: make help  # to see all available commands
+```
+
+See [LOCAL_DEVELOPMENT.md](./docs/LOCAL_DEVELOPMENT.md) for detailed development setup.
 
 ## How to Use
 
@@ -97,10 +119,12 @@ podman-compose -f compose.yml up -d  # docker compose up -d
 
 ## Support & Documentation
 
-- **Development Setup**: See [Development Guide](DEVELOPMENT.md) for detailed setup instructions
-- **Local Hosting**: See [Different approaches](./docs/ENVIRONMENTS.md) to run this if you like to host it yourself
-- **Issues**: Report bugs and feature requests through the project repository
-- **Contributing**: Fork the repository and submit pull requests for improvements
+- **Local Development**: See [LOCAL_DEVELOPMENT.md](./docs/LOCAL_DEVELOPMENT.md) for native development setup
+- **Deployment Modes**: See [ENVIRONMENTS.md](./docs/ENVIRONMENTS.md) for DEV/PROD/USER environments
+- **Authentication Setup**: See [AUTHENTICATION.md](./docs/AUTHENTICATION.md) for multi-user configuration
+- **Contributing**: See [CONTRIBUTING.md](./CONTRIBUTING.MD) for contribution guidelines
+- **Architecture**: See [APP_OVERVIEW.md](./docs/APP_OVERVIEW.md) for a tour of the application
+- **Issues**: Report bugs and feature requests through [GitHub Issues](https://github.com/marekruzicka/vagrantfile-generator/issues)
 
 ## License
 

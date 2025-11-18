@@ -1,0 +1,26 @@
+{
+  "recommendations": [
+    // Python
+    "ms-python.python",
+    "ms-python.vscode-pylance",
+    "ms-python.black-formatter",
+    "ms-python.debugpy",
+    
+    // Web development
+    // "esbenp.prettier-vscode",
+    // "bradlc.vscode-tailwindcss",
+    
+    // Docker/Podman
+    "ms-vscode-remote.remote-containers",
+    "redhat.vscode-yaml",
+    
+    // Git
+    // "eamodio.gitlens",
+    
+    // Markdown
+    // "yzhang.markdown-all-in-one",
+    
+    // EditorConfig
+    //"editorconfig.editorconfig"
+  ]
+}

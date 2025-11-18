@@ -14,8 +14,8 @@ services:
       - .env
     ports:
       - "8000:8000"
-    volumes:
-      - ./backend/data:/app/data
+    # volumes:
+    #   - ./backend/data:/app/data
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
       interval: 3s

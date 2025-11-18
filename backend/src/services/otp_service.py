@@ -14,6 +14,7 @@ from typing import Optional
 
 from ..models.otp_request import OTPRequest
 from ..utils.validators import validate_email, normalize_email
+from .file_service import FileService
 
 logger = logging.getLogger(__name__)
 
@@ -27,6 +28,7 @@ class OTPService:
         self.otp_length = int(os.getenv("OTP_LENGTH", "6"))
         self.expiration_minutes = int(os.getenv("OTP_EXPIRATION_MINUTES", "15"))
         self.max_attempts = int(os.getenv("OTP_MAX_ATTEMPTS", "3"))
+        self.file_service = FileService()
         
         # Ensure storage directory exists
         self.storage_path.parent.mkdir(parents=True, exist_ok=True)
@@ -201,8 +203,7 @@ class OTPService:
     def _save_requests(self, requests: dict) -> None:
         """Save OTP requests to file."""
         try:
-            with open(self.storage_path, 'w') as f:
-                json.dump(requests, f, indent=2)
+            self.file_service.atomic_write_json(self.storage_path, requests)
         except IOError as e:
             logger.error(f"Failed to save OTP requests: {e}")
             raise

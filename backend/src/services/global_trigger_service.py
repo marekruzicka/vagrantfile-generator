@@ -121,8 +121,7 @@ class GlobalTriggerService:
             if "owner_id" not in trigger_data:
                 trigger_data["owner_id"] = self.user_id if self.user_id else None
             
-            with open(file_path, 'w', encoding='utf-8') as f:
-                json.dump(trigger_data, f, indent=2, ensure_ascii=False)
+            self.file_service.atomic_write_json(file_path, trigger_data)
                 
         except GlobalTriggerServiceError:
             raise
@@ -364,8 +363,7 @@ class GlobalTriggerService:
             
             # Save to user directory
             user_file = self.file_service.get_user_data_path(self.user_id, "triggers") / f"{new_id}.json"
-            with open(user_file, 'w', encoding='utf-8') as f:
-                json.dump(trigger_copy, f, indent=2, ensure_ascii=False)
+            self.file_service.atomic_write_json(user_file, trigger_copy)
             
             return GlobalTrigger(**trigger_copy)
             
@@ -505,8 +503,7 @@ class GlobalTriggerService:
             
             # Save to user directory
             user_file = self.file_service.get_user_data_path(self.user_id, "triggers") / f"{new_id}.json"
-            with open(user_file, 'w', encoding='utf-8') as f:
-                json.dump(trigger_copy, f, indent=2, ensure_ascii=False)
+            self.file_service.atomic_write_json(user_file, trigger_copy)
             
             return GlobalTrigger(**trigger_copy)
             
