@@ -6,7 +6,7 @@ Handles OTP and OIDC authentication flows.
 
 import os
 from typing import Optional
-from fastapi import APIRouter, HTTPException, status, Depends
+from fastapi import APIRouter, HTTPException, status, Depends, Request
 from pydantic import BaseModel, Field
 
 from ..models.user_profile import UserProfile
@@ -27,11 +27,13 @@ oidc_service = OIDCService()
 
 class OTPRequestBody(BaseModel):
     """Request body for OTP request."""
+
     email: str = Field(..., description="Email address to send OTP to")
 
 
 class OTPRequestResponse(BaseModel):
     """Response for OTP request."""
+
     message: str
     email: str
     expires_in_minutes: int
@@ -39,18 +41,21 @@ class OTPRequestResponse(BaseModel):
 
 class OTPVerifyBody(BaseModel):
     """Request body for OTP verification."""
+
     email: str = Field(..., description="Email address")
     code: str = Field(..., description="6-digit OTP code")
 
 
 class AuthResponse(BaseModel):
     """Response for successful authentication."""
+
     token: str = Field(..., description="JWT session token")
     user: UserProfile = Field(..., description="User profile")
 
 
 class LogoutResponse(BaseModel):
     """Response for logout."""
+
     message: str
 
 
@@ -58,53 +63,52 @@ class LogoutResponse(BaseModel):
 async def request_otp(body: OTPRequestBody):
     """
     Request an OTP code via email.
-    
+
     Rate limited to prevent abuse (5 requests per hour by default).
     """
     # Validate email
     if not validate_email(body.email):
         raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Invalid email address"
+            status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid email address"
         )
-    
+
     # Check if email service is configured
     if not email_service.is_configured():
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-            detail="Email service is not configured. OTP authentication is disabled."
+            detail="Email service is not configured. OTP authentication is disabled.",
         )
-    
+
     # Check rate limit
     if rate_limit_service.check_rate_limit(body.email):
         remaining = rate_limit_service.get_remaining_requests(body.email)
         raise HTTPException(
             status_code=status.HTTP_429_TOO_MANY_REQUESTS,
-            detail=f"Rate limit exceeded. Please try again later. Remaining requests: {remaining}"
+            detail=f"Rate limit exceeded. Please try again later. Remaining requests: {remaining}",
         )
-    
+
     # Generate OTP
     otp_request = otp_service.generate_otp(body.email)
-    
+
     # Store OTP
     otp_service.store_otp(otp_request)
-    
+
     # Record request for rate limiting
     rate_limit_service.record_request(body.email)
-    
+
     # Send email
     try:
         email_service.send_otp_email(body.email, otp_request.code)
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to send OTP email: {str(e)}"
+            detail=f"Failed to send OTP email: {str(e)}",
         )
-    
+
     return OTPRequestResponse(
         message="OTP code sent to your email",
         email=body.email,
-        expires_in_minutes=int(otp_service.expiration_minutes)
+        expires_in_minutes=int(otp_service.expiration_minutes),
     )
 
 
@@ -112,69 +116,63 @@ async def request_otp(body: OTPRequestBody):
 async def verify_otp(body: OTPVerifyBody):
     """
     Verify OTP code and create session.
-    
+
     Returns JWT token and user profile on success.
     """
     # Validate inputs
     if not validate_email(body.email):
         raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Invalid email address"
+            status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid email address"
         )
-    
+
     if not validate_otp_code(body.code):
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Invalid OTP code format. Must be 6 digits."
+            detail="Invalid OTP code format. Must be 6 digits.",
         )
-    
+
     # Verify OTP
     if not otp_service.verify_otp(body.email, body.code):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid or expired OTP code"
+            detail="Invalid or expired OTP code",
         )
-    
+
     # Create or update user
-    user = user_service.create_or_update_user(
-        email=body.email,
-        auth_provider="email"
-    )
-    
+    user = user_service.create_or_update_user(email=body.email, auth_provider="email")
+
     # Generate JWT token
     token = session_service.create_token(user)
-    
-    return AuthResponse(
-        token=token,
-        user=user
-    )
+
+    return AuthResponse(token=token, user=user)
 
 
 @router.get("/me", response_model=UserProfile)
 async def get_current_user_profile(
-    current_user: UserProfile = Depends(get_current_user)
+    current_user: UserProfile = Depends(get_current_user),
 ):
     """
     Get current authenticated user's profile.
-    
+
     Requires valid JWT token in Authorization header.
     """
     # Update last login
     user_service.update_last_login(current_user.user_id)
-    
+
     return current_user
 
 
 @router.get("/oidc/{provider}")
-async def oidc_login(provider: str):
+async def oidc_login(provider: str, request: Request):
     """
     Initiate OIDC/OAuth flow with external provider.
-    
+
     Redirects user to provider's authorization page.
-    
+
     Args:
         provider: OAuth provider (google, github, gitlab)
-        
+        request: Starlette request object
+
     Returns:
         Redirect to provider's authorization URL
     """
@@ -182,43 +180,44 @@ async def oidc_login(provider: str):
     if provider not in oidc_service.SUPPORTED_PROVIDERS:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"Unsupported provider: {provider}. Supported: {', '.join(oidc_service.SUPPORTED_PROVIDERS)}"
+            detail=f"Unsupported provider: {provider}. Supported: {', '.join(oidc_service.SUPPORTED_PROVIDERS)}",
         )
-    
+
     # Check if provider is configured
     if not oidc_service.is_provider_configured(provider):
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-            detail=f"Provider '{provider}' is not configured. Please contact administrator."
+            detail=f"Provider '{provider}' is not configured. Please contact administrator.",
         )
-    
+
     # Get authorization URL
     try:
         # Callback URL will be /api/auth/callback/{provider}
-        from starlette.responses import RedirectResponse
         redirect_uri = f"{os.getenv('BASE_URL', 'http://localhost:8000')}/api/auth/callback/{{provider}}"
-        authorization_url = oidc_service.get_authorization_url(provider, redirect_uri)
-        return RedirectResponse(url=authorization_url)
+        # authorize_redirect returns a RedirectResponse directly
+        return await oidc_service.get_authorization_url(provider, request, redirect_uri)
     except OIDCServiceError as e:
         raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=str(e)
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e)
         )
 
 
 @router.get("/callback/{provider}")
-async def oidc_callback(provider: str, code: str, state: Optional[str] = None):
+async def oidc_callback(
+    provider: str, request: Request, code: str, state: Optional[str] = None
+):
     """
     Handle OAuth callback from provider.
-    
+
     Exchanges authorization code for access token, fetches user info,
     creates/updates user, and generates JWT session token.
-    
+
     Args:
         provider: OAuth provider (google, github, gitlab)
+        request: Starlette request object
         code: Authorization code from provider
         state: CSRF protection state (optional)
-        
+
     Returns:
         Redirect to frontend with token in query parameter
     """
@@ -226,55 +225,58 @@ async def oidc_callback(provider: str, code: str, state: Optional[str] = None):
     if provider not in oidc_service.SUPPORTED_PROVIDERS:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"Unsupported provider: {provider}"
+            detail=f"Unsupported provider: {provider}",
         )
-    
+
     # Check if provider is configured
     if not oidc_service.is_provider_configured(provider):
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-            detail=f"Provider '{provider}' is not configured"
+            detail=f"Provider '{provider}' is not configured",
         )
-    
+
     try:
         # Exchange code for token
         redirect_uri = f"{os.getenv('BASE_URL', 'http://localhost:8000')}/api/auth/callback/{{provider}}"
-        token = await oidc_service.exchange_code_for_token(provider, code, redirect_uri)
-        
+        token = await oidc_service.exchange_code_for_token(
+            provider, request, redirect_uri
+        )
+
         # Get user info from provider
         user_info = await oidc_service.get_user_info(provider, token)
-        
+
         if not user_info.get("email"):
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Failed to get email from provider"
+                detail="Failed to get email from provider",
             )
-        
+
         # Create or update user
         user = user_service.create_or_update_user(
             email=user_info["email"],
             auth_provider=provider,
-            display_name=user_info.get("name")
+            name=user_info.get("name"),
         )
-        
+
         # Generate JWT token
         jwt_token = session_service.create_token(user)
-        
+
         # Redirect to frontend with token
         from starlette.responses import RedirectResponse
+
         frontend_url = os.getenv("FRONTEND_URL", "http://localhost:8080")
         redirect_url = f"{frontend_url}/?token={jwt_token}"
         return RedirectResponse(url=redirect_url)
-        
+
     except OIDCServiceError as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"OIDC authentication failed: {str(e)}"
+            detail=f"OIDC authentication failed: {str(e)}",
         )
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Authentication failed: {str(e)}"
+            detail=f"Authentication failed: {str(e)}",
         )
 
 
@@ -282,7 +284,7 @@ async def oidc_callback(provider: str, code: str, state: Optional[str] = None):
 async def logout(current_user: Optional[UserProfile] = Depends(get_current_user)):
     """
     Logout current user.
-    
+
     Client should remove the JWT token from local storage.
     Server-side session invalidation is not implemented (stateless JWT).
     """
