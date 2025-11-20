@@ -24,7 +24,7 @@
     const text = document.createElement('div')
     text.style.flex = '1 1 60%'
     text.style.fontSize = '14px'
-    text.innerHTML = `We use essential browser storage (login session and preferences). No tracking or advertising cookies are used. <a href="/resources/footer/privacy.md" style="color:#60a5fa; text-decoration:underline;">Privacy details</a>`
+    text.innerHTML = `We only use essential browser storage (login session and preferences). No tracking or advertising cookies are used. <a href="/resources/footer/privacy.md" style="color:#60a5fa; text-decoration:underline;">Privacy details</a>`
 
     const actions = document.createElement('div')
     actions.style.display = 'flex'
