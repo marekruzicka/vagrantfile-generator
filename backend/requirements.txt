@@ -10,3 +10,4 @@ PyJWT==2.8.0
 authlib==1.3.0
 requests==2.31.0
 itsdangerous==2.1.2
+debugpy==1.8.17
