@@ -65,6 +65,7 @@ async def request_otp(body: OTPRequestBody):
     Request an OTP code via email.
 
     Rate limited to prevent abuse (5 requests per hour by default).
+    Test user (when enabled) bypasses rate limiting and email sending.
     """
     # Validate email
     if not validate_email(body.email):
@@ -72,15 +73,18 @@ async def request_otp(body: OTPRequestBody):
             status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid email address"
         )
 
-    # Check if email service is configured
-    if not email_service.is_configured():
+    # Check if this is the test user
+    is_test_user = otp_service.is_test_user(body.email)
+
+    # Check if email service is configured (not required for test user)
+    if not is_test_user and not email_service.is_configured():
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
             detail="Email service is not configured. OTP authentication is disabled.",
         )
 
-    # Check rate limit
-    if rate_limit_service.check_rate_limit(body.email):
+    # Check rate limit (skip for test user)
+    if not is_test_user and rate_limit_service.check_rate_limit(body.email):
         remaining = rate_limit_service.get_remaining_requests(body.email)
         raise HTTPException(
             status_code=status.HTTP_429_TOO_MANY_REQUESTS,
@@ -93,20 +97,26 @@ async def request_otp(body: OTPRequestBody):
     # Store OTP
     otp_service.store_otp(otp_request)
 
-    # Record request for rate limiting
-    rate_limit_service.record_request(body.email)
+    # Record request for rate limiting (skip for test user)
+    if not is_test_user:
+        rate_limit_service.record_request(body.email)
 
-    # Send email
-    try:
-        email_service.send_otp_email(body.email, otp_request.code)
-    except Exception as e:
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to send OTP email: {str(e)}",
-        )
+    # Send email (skip for test user)
+    if not is_test_user:
+        try:
+            email_service.send_otp_email(body.email, otp_request.code)
+        except Exception as e:
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail=f"Failed to send OTP email: {str(e)}",
+            )
 
     return OTPRequestResponse(
-        message="OTP code sent to your email",
+        message=(
+            "OTP code sent to your email"
+            if not is_test_user
+            else "Test user: use static OTP code"
+        ),
         email=body.email,
         expires_in_minutes=int(otp_service.expiration_minutes),
     )

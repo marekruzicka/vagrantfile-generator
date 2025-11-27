@@ -60,7 +60,40 @@ OTP_EXPIRATION_MINUTES=15
 OTP_MAX_ATTEMPTS=3
 OTP_RATE_LIMIT_MAX_REQUESTS=5
 OTP_RATE_LIMIT_WINDOW_HOURS=1
+
+# Optional: Test User (for development/testing)
+# When enabled, allows login with a static OTP code
+TEST_USER_ENABLED=false
+TEST_USER_EMAIL=test@example.com
+TEST_USER_OTP=123456
 ```
+
+### Test User (Development Only)
+
+For development and testing purposes, you can enable a built-in test user that:
+
+- Uses a static OTP code (default: `123456`)
+- Bypasses email sending (no Mailgun required)
+- Bypasses rate limiting
+
+**Enable Test User:**
+
+```bash
+# Add to .env or backend environment
+TEST_USER_ENABLED=true
+TEST_USER_EMAIL=test@example.com  # Default
+TEST_USER_OTP=123456              # Default
+```
+
+**Using Test User:**
+
+1. Navigate to login page
+2. Enter `test@example.com` (or your configured test email)
+3. Click "Send Login Code" - no email will be sent
+4. Enter `123456` (or your configured test OTP)
+5. Click "Verify Code"
+
+⚠️ **Security Warning**: Never enable test user in production! The static OTP provides no security.
 
 ### 4. Generate JWT Secret
 
@@ -89,6 +122,7 @@ docker compose logs backend | grep -i mailgun
 ```
 
 Expected output:
+
 ```
 Mailgun configuration detected - Email OTP authentication enabled
 ```
@@ -102,7 +136,8 @@ Mailgun configuration detected - Email OTP authentication enabled
 3. **Enter Email**: Use an authorized recipient email (if using sandbox)
 4. **Click "Send Code"**
 
-**Expected Result**: 
+**Expected Result**:
+
 - Success message: "Code sent to your email"
 - Email received within 1-2 minutes
 
@@ -113,6 +148,7 @@ Mailgun configuration detected - Email OTP authentication enabled
 3. **Click "Verify"**
 
 **Expected Result**:
+
 - Redirect to main application
 - JWT token stored in localStorage
 - User profile visible in UI
@@ -120,6 +156,7 @@ Mailgun configuration detected - Email OTP authentication enabled
 ### Test 3: API Testing with curl
 
 #### Request OTP
+
 ```bash
 curl -X POST http://localhost:8000/api/auth/otp/request \
   -H "Content-Type: application/json" \
@@ -127,6 +164,7 @@ curl -X POST http://localhost:8000/api/auth/otp/request \
 ```
 
 **Expected Response**:
+
 ```json
 {
   "message": "OTP sent to test@example.com",
@@ -136,6 +174,7 @@ curl -X POST http://localhost:8000/api/auth/otp/request \
 ```
 
 #### Verify OTP
+
 ```bash
 curl -X POST http://localhost:8000/api/auth/otp/verify \
   -H "Content-Type: application/json" \
@@ -143,6 +182,7 @@ curl -X POST http://localhost:8000/api/auth/otp/verify \
 ```
 
 **Expected Response**:
+
 ```json
 {
   "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
@@ -157,6 +197,7 @@ curl -X POST http://localhost:8000/api/auth/otp/verify \
 ```
 
 #### Test Authenticated Endpoint
+
 ```bash
 TOKEN="your-jwt-token-here"
 
@@ -180,6 +221,7 @@ done
 ```
 
 **Expected Result**:
+
 - First 5 requests: Success (200)
 - 6th request: Rate limit error (429)
 
@@ -202,7 +244,8 @@ done
 1. Request an OTP
 2. Enter wrong code 3 times
 
-**Expected Result**: 
+**Expected Result**:
+
 - First 2 attempts: "Invalid code" error
 - 3rd attempt: OTP invalidated, must request new code
 
@@ -217,15 +260,18 @@ done
 1. **Check Spam Folder**
 
 2. **Verify Authorized Recipients** (Sandbox mode):
+
    ```
    Mailgun Dashboard → Sending → Domains → Authorized Recipients
    ```
 
 3. **Check Mailgun Logs**:
+
    - Go to Mailgun Dashboard → Sending → Logs
    - Look for your email delivery status
 
 4. **Check Backend Logs**:
+
    ```bash
    docker compose logs backend | grep -i "otp\|mailgun"
    ```
@@ -252,6 +298,7 @@ OTP_RATE_LIMIT_WINDOW_HOURS=2   # Increase window to 2 hours
 ```
 
 **Manual Reset** (Development only):
+
 ```bash
 rm backend/data/auth/ratelimit_*.json
 docker compose restart backend
@@ -269,6 +316,7 @@ docker compose exec backend env | grep MAILGUN
 ```
 
 Expected output:
+
 ```
 MAILGUN_API_KEY=key-xxxxxxxx
 MAILGUN_DOMAIN=sandboxXXXX.mailgun.org
@@ -282,6 +330,7 @@ MAILGUN_FROM_EMAIL=noreply@sandboxXXXX.mailgun.org
 **Solutions**:
 
 1. **Check Token Format**: Should be `Bearer <token>`
+
    ```bash
    curl -H "Authorization: Bearer eyJhbGci..." http://localhost:8000/api/auth/me
    ```
@@ -321,13 +370,13 @@ If you didn't request this code, please ignore this email.
 
 ### Development vs Production
 
-| Feature | Development | Production |
-|---------|-------------|------------|
-| Domain | Sandbox | Custom domain |
-| HTTPS | Optional | Required |
-| JWT Secret | Simple | Strong random |
-| Rate Limits | Relaxed | Strict |
-| Email Logs | Visible | Private |
+| Feature     | Development | Production    |
+| ----------- | ----------- | ------------- |
+| Domain      | Sandbox     | Custom domain |
+| HTTPS       | Optional    | Required      |
+| JWT Secret  | Simple      | Strong random |
+| Rate Limits | Relaxed     | Strict        |
+| Email Logs  | Visible     | Private       |
 
 ## Integration with Other Auth Methods
 
