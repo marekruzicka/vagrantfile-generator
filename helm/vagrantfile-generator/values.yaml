@@ -1,0 +1,205 @@
+# Vagrantfile Generator Helm Chart Values
+# =========================================
+
+# -- Global settings
+global:
+  # -- Image pull secrets for private registries
+  imagePullSecrets: []
+
+# -- Backend configuration
+backend:
+  # -- Container image settings
+  image:
+    repository: your-registry/vagrantfile-generator-backend
+    tag: latest
+    pullPolicy: IfNotPresent
+
+  # -- Number of replicas (DO NOT CHANGE - backend writes to disk)
+  # Backend is not horizontally scalable due to file-based storage
+  replicas: 1
+
+  # -- Deployment strategy (Recreate to prevent PVC conflicts)
+  strategy:
+    type: Recreate
+
+  # -- Resource requests and limits
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+
+  # -- Container port
+  port: 8000
+
+  # -- Health check settings
+  healthCheck:
+    path: /health
+    initialDelaySeconds: 10
+    periodSeconds: 10
+    timeoutSeconds: 5
+    failureThreshold: 3
+
+  # -- Persistent volume claim settings
+  persistence:
+    enabled: true
+    # -- Storage class (empty string uses cluster default)
+    storageClass: ""
+    # -- Access mode
+    accessMode: ReadWriteOnce
+    # -- Storage size
+    size: 1Gi
+    # -- Annotations for the PVC
+    annotations: {}
+
+  # -- Node selector
+  nodeSelector: {}
+
+  # -- Tolerations
+  tolerations: []
+
+  # -- Affinity rules
+  affinity: {}
+
+  # -- Pod annotations
+  podAnnotations: {}
+
+  # -- Pod security context
+  podSecurityContext:
+    fsGroup: 1001
+
+  # -- Container security context
+  securityContext:
+    runAsUser: 1001
+    runAsGroup: 1001
+    runAsNonRoot: true
+    allowPrivilegeEscalation: false
+    readOnlyRootFilesystem: false
+    capabilities:
+      drop:
+        - ALL
+
+# -- Frontend configuration
+frontend:
+  # -- Container image settings
+  image:
+    repository: your-registry/vagrantfile-generator-frontend
+    tag: latest
+    pullPolicy: IfNotPresent
+
+  # -- Number of replicas (frontend is stateless, can scale)
+  replicas: 1
+
+  # -- Resource requests and limits
+  resources:
+    requests:
+      cpu: 50m
+      memory: 64Mi
+    limits:
+      cpu: 200m
+      memory: 128Mi
+
+  # -- Container port
+  port: 8080
+
+  # -- Health check settings
+  healthCheck:
+    path: /
+    initialDelaySeconds: 5
+    periodSeconds: 10
+    timeoutSeconds: 5
+    failureThreshold: 3
+
+  # -- Node selector
+  nodeSelector: {}
+
+  # -- Tolerations
+  tolerations: []
+
+  # -- Affinity rules
+  affinity: {}
+
+  # -- Pod annotations
+  podAnnotations: {}
+
+  # -- Pod security context
+  podSecurityContext:
+    fsGroup: 1001
+
+  # -- Container security context
+  securityContext:
+    runAsUser: 1001
+    runAsGroup: 1001
+    runAsNonRoot: true
+    allowPrivilegeEscalation: false
+    readOnlyRootFilesystem: false
+    capabilities:
+      drop:
+        - ALL
+
+# -- Ingress configuration
+ingress:
+  enabled: true
+  # -- Ingress class name (e.g., traefik, nginx)
+  className: ""
+  # -- Annotations for the ingress
+  annotations: {}
+    # kubernetes.io/ingress.class: traefik
+    # cert-manager.io/cluster-issuer: letsencrypt-prod
+  # -- Hostname for the application
+  host: vagrantfile.app
+  # -- TLS configuration
+  tls:
+    enabled: true
+    # -- Secret name for TLS certificate (auto-generated if using cert-manager)
+    secretName: ""
+
+# -- Application secrets and configuration
+config:
+  # -- JWT Configuration
+  jwt:
+    # -- Secret key for JWT signing (min 32 characters)
+    # IMPORTANT: Change this in production!
+    secret: "change-this-to-a-secure-secret-key-min-32-chars"
+    algorithm: HS256
+    expirationHours: 24
+
+  # -- Email OTP Configuration (Mailgun)
+  mailgun:
+    # -- Mailgun API key
+    apiKey: ""
+    # -- Mailgun domain
+    domain: ""
+    # -- From email address
+    fromEmail: ""
+
+  # -- OIDC Provider Configuration
+  oidc:
+    # -- Google OAuth
+    google:
+      clientId: ""
+      clientSecret: ""
+    # -- GitHub OAuth
+    github:
+      clientId: ""
+      clientSecret: ""
+    # -- GitLab OAuth
+    gitlab:
+      clientId: ""
+      clientSecret: ""
+
+  # -- Rate limiting configuration
+  rateLimit:
+    maxRequests: 5
+    windowHours: 1
+
+  # -- OTP configuration
+  otp:
+    length: 6
+    expirationMinutes: 15
+    maxAttempts: 3
+
+  # -- Log level (DEBUG, INFO, WARNING, ERROR)
+  logLevel: INFO

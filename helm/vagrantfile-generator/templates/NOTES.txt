@@ -1,0 +1,72 @@
+╔═══════════════════════════════════════════════════════════════════════════════╗
+║                        Vagrantfile Generator                                   ║
+╚═══════════════════════════════════════════════════════════════════════════════╝
+
+Thank you for installing {{ .Chart.Name }}!
+
+{{ if .Values.ingress.enabled -}}
+🌐 Application URL: {{ include "vagrantfile-generator.frontend.externalUrl" . }}
+{{- else }}
+📦 The application is deployed but no Ingress is configured.
+
+To access the application, you can port-forward:
+
+  kubectl port-forward svc/{{ include "vagrantfile-generator.frontend.name" . }} 8080:{{ .Values.frontend.port }} -n {{ .Release.Namespace }}
+
+Then open: http://localhost:8080
+{{- end }}
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+📊 Deployment Status:
+
+  Frontend replicas: {{ .Values.frontend.replicas }}
+  Backend replicas:  1 (fixed - file-based storage)
+
+To check the deployment status:
+
+  kubectl get pods -n {{ .Release.Namespace }} -l "app.kubernetes.io/instance={{ .Release.Name }}"
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+⚠️  IMPORTANT CONFIGURATION NOTES:
+
+1. JWT Secret:
+   {{ if eq .Values.config.jwt.secret "change-this-to-a-secure-secret-key-min-32-chars" -}}
+   ❌ You are using the default JWT secret. Please update it in production!
+   {{- else -}}
+   ✅ Custom JWT secret configured.
+   {{- end }}
+
+2. Authentication Providers:
+   {{- if or .Values.config.oidc.google.clientId .Values.config.oidc.github.clientId .Values.config.oidc.gitlab.clientId }}
+   {{- if .Values.config.oidc.google.clientId }}
+   ✅ Google OAuth configured
+   {{- end }}
+   {{- if .Values.config.oidc.github.clientId }}
+   ✅ GitHub OAuth configured
+   {{- end }}
+   {{- if .Values.config.oidc.gitlab.clientId }}
+   ✅ GitLab OAuth configured
+   {{- end }}
+   {{- else }}
+   ⚠️  No OIDC providers configured. Consider enabling at least one for user authentication.
+   {{- end }}
+
+   {{- if .Values.config.mailgun.apiKey }}
+   ✅ Email OTP (Mailgun) configured
+   {{- else }}
+   ⚠️  Email OTP not configured (Mailgun credentials missing)
+   {{- end }}
+
+3. Persistence:
+   {{- if .Values.backend.persistence.enabled }}
+   ✅ Backend data persistence enabled ({{ .Values.backend.persistence.size }})
+   {{- else }}
+   ❌ Backend data persistence DISABLED - data will be lost on pod restart!
+   {{- end }}
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+📚 For more information, visit:
+   https://github.com/marekruzicka/vagrantfile-generator
