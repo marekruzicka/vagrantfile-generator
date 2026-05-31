@@ -1,9 +1,9 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: { { include "vagrantfile-generator.frontend.configMapName" . } }
+  name: {{ include "vagrantfile-generator.frontend.configMapName" . }}
   labels:
-    { { - include "vagrantfile-generator.frontend.labels" . | nindent 4 } }
+    {{- include "vagrantfile-generator.frontend.labels" . | nindent 4 }}
 data:
   default.conf: |
     server {
@@ -26,7 +26,7 @@ data:
             try_files $uri =404;
         }
 
-        # Proxy API requests to backend service
+        # Proxy all API requests to backend service
         location /api/ {
             proxy_pass http://{{ include "vagrantfile-generator.backend.name" . }}:{{ .Values.backend.port }};
             proxy_http_version 1.1;
