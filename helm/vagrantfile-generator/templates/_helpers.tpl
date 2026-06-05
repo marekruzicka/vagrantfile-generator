@@ -120,30 +120,14 @@ Backend service URL (internal)
 Frontend external URL
 */}}
 {{- define "vagrantfile-generator.frontend.externalUrl" -}}
-{{- if .Values.ingress.enabled }}
-{{- if .Values.ingress.tls.enabled }}
-{{- printf "https://%s" .Values.ingress.host }}
-{{- else }}
-{{- printf "http://%s" .Values.ingress.host }}
-{{- end }}
-{{- else }}
-{{- printf "http://localhost:%d" (int .Values.frontend.port) }}
-{{- end }}
+{{- printf "https://%s" .Values.gatewayAPI.hostname }}
 {{- end }}
 
 {{/*
-Backend external URL (via ingress)
+Backend external URL (via Gateway API)
 */}}
 {{- define "vagrantfile-generator.backend.externalUrl" -}}
-{{- if .Values.ingress.enabled }}
-{{- if .Values.ingress.tls.enabled }}
-{{- printf "https://%s" .Values.ingress.host }}
-{{- else }}
-{{- printf "http://%s" .Values.ingress.host }}
-{{- end }}
-{{- else }}
-{{- printf "http://localhost:%d" (int .Values.backend.port) }}
-{{- end }}
+{{- printf "https://%s" .Values.gatewayAPI.hostname }}
 {{- end }}
 
 {{/*
@@ -160,9 +144,12 @@ imagePullSecrets:
 TLS secret name
 */}}
 {{- define "vagrantfile-generator.tlsSecretName" -}}
-{{- if .Values.ingress.tls.secretName }}
-{{- .Values.ingress.tls.secretName }}
-{{- else }}
 {{- printf "%s-tls" (include "vagrantfile-generator.fullname" .) }}
 {{- end }}
+
+{{/*
+ListenerSet name
+*/}}
+{{- define "vagrantfile-generator.listenerSet.name" -}}
+{{- printf "%s-listeners" (include "vagrantfile-generator.fullname" .) }}
 {{- end }}

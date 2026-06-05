@@ -8,7 +8,7 @@ data:
   default.conf: |
     server {
         listen {{ .Values.frontend.port }} default_server;
-        server_name {{ .Values.ingress.host }} localhost 127.0.0.1 _;
+        server_name {{ .Values.gatewayAPI.hostname }} localhost 127.0.0.1 _;
 
         root /usr/share/nginx/html;
         index index.html;

@@ -1,0 +1,50 @@
+apiVersion: gateway.networking.k8s.io/v1
+kind: ListenerSet
+metadata:
+  name: {{ include "vagrantfile-generator.listenerSet.name" . }}
+  labels:
+    {{- include "vagrantfile-generator.labels" . | nindent 4 }}
+  annotations:
+    cert-manager.io/cluster-issuer: {{ required "gatewayAPI.clusterIssuer is required" .Values.gatewayAPI.clusterIssuer | quote }}
+spec:
+  parentRef:
+    group: gateway.networking.k8s.io
+    kind: Gateway
+    name: {{ required "gatewayAPI.parentGateway.name is required" .Values.gatewayAPI.parentGateway.name }}
+    namespace: {{ required "gatewayAPI.parentGateway.namespace is required" .Values.gatewayAPI.parentGateway.namespace }}
+  listeners:
+    - name: https
+      hostname: {{ required "gatewayAPI.hostname is required" .Values.gatewayAPI.hostname | quote }}
+      port: 443
+      protocol: HTTPS
+      tls:
+        mode: Terminate
+        certificateRefs:
+          - group: ""
+            kind: Secret
+            name: {{ include "vagrantfile-generator.tlsSecretName" . }}
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: {{ include "vagrantfile-generator.fullname" . }}
+  labels:
+    {{- include "vagrantfile-generator.labels" . | nindent 4 }}
+spec:
+  parentRefs:
+    - group: gateway.networking.k8s.io
+      kind: ListenerSet
+      name: {{ include "vagrantfile-generator.listenerSet.name" . }}
+      sectionName: https
+  hostnames:
+    - {{ required "gatewayAPI.hostname is required" .Values.gatewayAPI.hostname | quote }}
+  rules:
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /
+      backendRefs:
+        - group: ""
+          kind: Service
+          name: {{ include "vagrantfile-generator.frontend.name" . }}
+          port: {{ .Values.frontend.port }}

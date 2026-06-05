@@ -4,17 +4,13 @@
 
 Thank you for installing {{ .Chart.Name }}!
 
-{{ if .Values.ingress.enabled -}}
 🌐 Application URL: {{ include "vagrantfile-generator.frontend.externalUrl" . }}
-{{- else }}
-📦 The application is deployed but no Ingress is configured.
 
-To access the application, you can port-forward:
+The parent Gateway must allow ListenerSets from this namespace:
+  {{ .Values.gatewayAPI.parentGateway.name }} in namespace {{ .Values.gatewayAPI.parentGateway.namespace }}
 
-  kubectl port-forward svc/{{ include "vagrantfile-generator.frontend.name" . }} 8080:{{ .Values.frontend.port }} -n {{ .Release.Namespace }}
-
-Then open: http://localhost:8080
-{{- end }}
+ExternalDNS will configure DNS and cert-manager will populate:
+  {{ include "vagrantfile-generator.tlsSecretName" . }}
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 

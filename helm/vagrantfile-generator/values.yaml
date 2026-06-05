@@ -139,22 +139,16 @@ frontend:
       drop:
         - ALL
 
-# -- Ingress configuration
-ingress:
-  enabled: true
-  # -- Ingress class name (e.g., traefik, nginx)
-  className: ""
-  # -- Annotations for the ingress
-  annotations: {}
-    # kubernetes.io/ingress.class: traefik
-    # cert-manager.io/cluster-issuer: letsencrypt-prod
-  # -- Hostname for the application
-  host: vagrantfile.app
-  # -- TLS configuration
-  tls:
-    enabled: true
-    # -- Secret name for TLS certificate (auto-generated if using cert-manager)
-    secretName: ""
+# -- Gateway API configuration
+gatewayAPI:
+  # -- Existing shared Gateway that allows ListenerSets from this namespace
+  parentGateway:
+    name: shared-gateway
+    namespace: gateway-system
+  # -- Public hostname managed by ExternalDNS
+  hostname: vagrantfile.app
+  # -- ClusterIssuer used by cert-manager to populate the generated TLS Secret
+  clusterIssuer: letsencrypt-prod
 
 # -- Application secrets and configuration
 config:
