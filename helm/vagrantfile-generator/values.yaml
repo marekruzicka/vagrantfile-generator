@@ -10,7 +10,7 @@ global:
 backend:
   # -- Container image settings
   image:
-    repository: your-registry/vagrantfile-generator-backend
+    repository: ghcr.io/marekruzicka/vagrantfile-generator-be
     tag: latest
     pullPolicy: IfNotPresent
 
@@ -85,7 +85,7 @@ backend:
 frontend:
   # -- Container image settings
   image:
-    repository: your-registry/vagrantfile-generator-frontend
+    repository: ghcr.io/marekruzicka/vagrantfile-generator-fe
     tag: latest
     pullPolicy: IfNotPresent
 
