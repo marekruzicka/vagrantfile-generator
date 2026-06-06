@@ -33,6 +33,11 @@ metadata:
 spec:
   parentRefs:
     - group: gateway.networking.k8s.io
+      kind: Gateway
+      name: {{ required "gatewayAPI.parentGateway.name is required" .Values.gatewayAPI.parentGateway.name }}
+      namespace: {{ required "gatewayAPI.parentGateway.namespace is required" .Values.gatewayAPI.parentGateway.namespace }}
+      sectionName: web
+    - group: gateway.networking.k8s.io
       kind: ListenerSet
       name: {{ include "vagrantfile-generator.listenerSet.name" . }}
       sectionName: https
