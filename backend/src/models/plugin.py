@@ -22,6 +22,9 @@ class Plugin(BaseModel):
     is_deprecated: bool = Field(default=False, description="Whether the plugin is deprecated")
     created_at: str = Field(..., description="Creation timestamp")
     updated_at: str = Field(..., description="Last update timestamp")
+    is_shared: Optional[bool] = Field(default=False, description="Whether this is a shared resource")
+    owner_id: Optional[str] = Field(default=None, description="User ID of the owner (None for shared)")
+    source_id: Optional[str] = Field(default=None, description="ID of the original shared resource this was copied from")
     
     class Config:
         """Pydantic configuration."""
@@ -71,6 +74,8 @@ class PluginSummary(BaseModel):
     description: Optional[str] = Field(default=None, description="Human-readable description")
     default_version: Optional[str] = Field(default=None, description="Default version constraint")
     is_deprecated: bool = Field(default=False, description="Whether the plugin is deprecated")
+    is_shared: Optional[bool] = Field(default=False, description="Whether this is a shared resource")
+    owner_id: Optional[str] = Field(default=None, description="User ID of the owner (None for shared)")
     
     class Config:
         """Pydantic configuration."""

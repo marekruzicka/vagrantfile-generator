@@ -54,18 +54,30 @@ class VagrantAPI {
 
     async request(endpoint, options = {}) {
         const url = `${this.baseURL}${endpoint}`;
-        const config = {
-            headers: {
-                'Content-Type': 'application/json',
-                ...options.headers,
-            },
-            ...options,
+        
+        // Build headers
+        const headers = {
+            'Content-Type': 'application/json',
+            ...options.headers,
         };
 
         // Add configuration headers
         if (this.config.allowPublicIPsInPrivateNetworks) {
-            config.headers['X-Allow-Public-IPs'] = 'true';
+            headers['X-Allow-Public-IPs'] = 'true';
         }
+
+        // Add authorization header if authenticated
+        if (window.authManager) {
+            const token = window.authManager.getToken();
+            if (token) {
+                headers['Authorization'] = `Bearer ${token}`;
+            }
+        }
+
+        const config = {
+            headers,
+            ...options,
+        };
 
         if (config.body && typeof config.body === 'object') {
             config.body = JSON.stringify(config.body);
@@ -73,6 +85,21 @@ class VagrantAPI {
 
         try {
             const response = await fetch(url, config);
+            
+            // Handle 401 Unauthorized
+            if (response.status === 401 && window.authManager) {
+                console.log('401 Unauthorized - clearing auth and redirecting to login');
+                window.authManager.clearAuth();
+                
+                // Check if we're in public mode before redirecting
+                if (window.deploymentManager) {
+                    const isPublic = await window.deploymentManager.isPublicMode();
+                    if (isPublic) {
+                        window.location.href = '/views/login/login.html';
+                        throw new Error('Unauthorized - redirecting to login');
+                    }
+                }
+            }
             
             if (response.status === 204 || response.headers.get('content-length') === '0') {
                 if (!response.ok) {
@@ -122,8 +149,17 @@ class VagrantAPI {
     }
     async getProjectStats() { return this.request('/projects/stats'); }
     async createVM(projectId, data) { return this.request(`/projects/${projectId}/vms`, { method: 'POST', body: data }); }
-    async updateVM(projectId, vmName, data) { return this.request(`/projects/${projectId}/vms/${vmName}`, { method: 'PUT', body: data }); }
-    async deleteVM(projectId, vmName) { return this.request(`/projects/${projectId}/vms/${vmName}`, { method: 'DELETE' }); }
+    async updateVM(projectId, vmId, data) { 
+        return this.request(`/projects/${projectId}/vms/${vmId}`, { 
+            method: 'PUT', 
+            body: data 
+        }); 
+    }
+    async deleteVM(projectId, vmId) { 
+        return this.request(`/projects/${projectId}/vms/${vmId}`, { 
+            method: 'DELETE' 
+        }); 
+    }
     async generateVagrantfile(projectId) { return this.request(`/projects/${projectId}/generate`, { method: 'POST' }); }
     async getBoxes() { return this.request('/vagrant/boxes'); }
     
@@ -178,14 +214,14 @@ class VagrantAPI {
 
     // Project Plugin management methods
     async getProjectPlugins(projectId) { return this.request(`/projects/${projectId}/plugins`); }
-    async addPluginToProject(projectId, pluginData) { 
-        return this.request(`/projects/${projectId}/plugins`, { method: 'POST', body: pluginData }); 
+    async addPluginToProject(projectId, pluginId) { 
+        return this.request(`/projects/${projectId}/plugins/${pluginId}`, { method: 'POST' }); 
     }
-    async updatePluginInProject(projectId, pluginName, pluginData) { 
-        return this.request(`/projects/${projectId}/plugins/${pluginName}`, { method: 'PUT', body: pluginData }); 
+    async updatePluginInProject(projectId, pluginId, pluginData) { 
+        return this.request(`/projects/${projectId}/plugins/${pluginId}`, { method: 'PUT', body: pluginData }); 
     }
-    async removePluginFromProject(projectId, pluginName) { 
-        return this.request(`/projects/${projectId}/plugins/${pluginName}`, { method: 'DELETE' }); 
+    async removePluginFromProject(projectId, pluginId) { 
+        return this.request(`/projects/${projectId}/plugins/${pluginId}`, { method: 'DELETE' }); 
     }
 
     // Network interface management methods
@@ -205,6 +241,63 @@ class VagrantAPI {
         return this.request(`/projects/${projectId}/vms/${vmName}/network-interfaces/${interfaceId}`, { 
             method: 'DELETE' 
         }); 
+    }
+
+    // Preferences and favorites management methods
+    async getPreferences() { return this.request('/config/preferences'); }
+    async updatePreferences(preferences) { 
+        return this.request('/config/preferences', { method: 'PUT', body: preferences }); 
+    }
+    async getShowShared() { return this.request('/config/preferences/show-shared'); }
+    async setShowShared(showShared) { 
+        return this.request('/config/preferences/show-shared', { 
+            method: 'PUT', 
+            body: { show_shared_resources: showShared } 
+        }); 
+    }
+    async getFavorites(type) { return this.request(`/config/preferences/favorites/${type}`); }
+    async addFavorite(type, resourceId) { 
+        return this.request(`/config/preferences/favorites/${type}/add`, { 
+            method: 'POST', 
+            body: { resource_id: resourceId } 
+        }); 
+    }
+    async removeFavorite(type, resourceId) { 
+        return this.request(`/config/preferences/favorites/${type}/remove`, { 
+            method: 'POST', 
+            body: { resource_id: resourceId } 
+        }); 
+    }
+    async checkFavorite(type, resourceId) { 
+        return this.request(`/config/preferences/favorites/${type}/check/${resourceId}`); 
+    }
+    async copySharedResource(type, resourceId) { 
+        return this.request(`/${type}/${resourceId}/copy`, { method: 'POST' }); 
+    }
+
+    /**
+     * Copy a shared resource and replace it in a project atomically.
+     * 
+     * @param {string} projectId - Project ID
+     * @param {string} resourceType - 'plugins' | 'provisioners' | 'triggers'
+     * @param {string} resourceId - ID of shared resource to copy
+     * @returns {Promise<{old_id: string, new_id: string, project_updated: boolean}>}
+     */
+    async copyAndReplaceInProject(projectId, resourceType, resourceId) {
+        return this.request(`/projects/${projectId}/${resourceType}/${resourceId}/copy`, { 
+            method: 'POST' 
+        });
+    }
+
+    /**
+     * Get a single resource by ID and type.
+     * 
+     * @param {string} resourceType - 'plugins' | 'provisioners' | 'triggers' | 'boxes'
+     * @param {string} resourceId - ID of resource to fetch
+     * @returns {Promise<Object>} Resource object
+     */
+    async getResource(resourceType, resourceId) {
+        return this.request(`/${resourceType}/${resourceId}`);
     }
 
     async downloadVagrantfile(projectId) {

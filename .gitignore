@@ -86,6 +86,7 @@ celerybeat-schedule
 
 # Environments
 .env
+.env.local
 .venv
 env/
 venv/
@@ -114,7 +115,6 @@ frontend/dist/
 frontend/src/styles/output.css
 
 # IDE
-.vscode/
 .idea/
 *.swp
 *.swo
@@ -128,4 +128,11 @@ refactor.md
 multiuser.md
 
 # User data (runtime storage - not committed)
-backend/data/
+backend/data/users/
+
+# Helm production values (contain secrets - never commit)
+helm/**/values-production*.yaml
+helm/**/values-*.local.yaml
+STATUS.md
+.playwright-cli
+cleanup.md

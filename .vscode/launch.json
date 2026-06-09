@@ -1,0 +1,52 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Backend (FastAPI)",
+      "type": "debugpy",
+      "request": "launch",
+      "module": "uvicorn",
+      "args": [
+        "src.main:app",
+        "--host",
+        "0.0.0.0",
+        "--port",
+        "8000",
+        "--reload"
+      ],
+      "jinja": true,
+      "justMyCode": true,
+      "cwd": "${workspaceFolder}/backend",
+      "env": {
+        "PYTHONPATH": "${workspaceFolder}/backend"
+      },
+      "presentation": {
+        "hidden": false,
+        "group": "backend"
+      }
+    },
+    {
+      "name": "Frontend (Vite)",
+      "type": "node",
+      "request": "launch",
+      "program": "${workspaceFolder}/frontend/node_modules/vite/bin/vite.js",
+      "args": ["--host"],
+      "cwd": "${workspaceFolder}/frontend",
+      "console": "integratedTerminal",
+      "presentation": {
+        "hidden": false,
+        "group": "frontend"
+      }
+    }
+  ],
+  "compounds": [
+    {
+      "name": "Full Stack Dev",
+      "configurations": [
+        "Backend (FastAPI)",
+        "Frontend (Vite)"
+      ],
+      "stopAll": true
+    }
+  ]
+}

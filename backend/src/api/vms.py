@@ -5,9 +5,12 @@ This module contains API endpoints for managing virtual machines within projects
 """
 
 from uuid import UUID
-from typing import Dict, Any
+from typing import Dict, Any, Optional
 
 from fastapi import APIRouter, HTTPException, Depends, Request
+
+from ..models.user_profile import UserProfile
+from ..middleware.auth_middleware import get_optional_user
 
 from ..models import VirtualMachine, VirtualMachineCreate, DeploymentStatus
 from ..services import ProjectService, ProjectNotFoundError
@@ -15,9 +18,12 @@ from ..services import ProjectService, ProjectNotFoundError
 router = APIRouter()
 
 # Dependency to get ProjectService instance
-def get_project_service() -> ProjectService:
-    """Get ProjectService instance."""
-    return ProjectService()
+def get_project_service(
+    current_user: Optional[UserProfile] = Depends(get_optional_user)
+) -> ProjectService:
+    """Get ProjectService instance with user context."""
+    user_id = current_user.user_id if current_user else None
+    return ProjectService(user_id=user_id)
 
 @router.post("/projects/{project_id}/vms", response_model=VirtualMachine, status_code=201)
 async def create_vm(
@@ -50,7 +56,7 @@ async def create_vm(
         project = project_service.add_vm_to_project(project_id, vm)
         
         # Return the created VM
-        added_vm = project.get_vm(vm.name)
+        added_vm = project.get_vm(vm.id)
         if not added_vm:
             raise HTTPException(status_code=500, detail="Failed to add VM to project")
         
@@ -61,10 +67,10 @@ async def create_vm(
     except ValueError as e:
         raise HTTPException(status_code=409, detail=str(e))
 
-@router.put("/projects/{project_id}/vms/{vm_name}", response_model=VirtualMachine)
+@router.put("/projects/{project_id}/vms/{vm_id}", response_model=VirtualMachine)
 async def update_vm(
     project_id: UUID,
-    vm_name: str,
+    vm_id: str,
     vm_data: dict,  # Accept raw dict instead of VirtualMachineCreate to bypass validation
     request: Request,
     project_service: ProjectService = Depends(get_project_service)
@@ -89,14 +95,14 @@ async def update_vm(
         # Update VM in project (validation happens during model creation)
         project = project_service.update_vm_in_project(
             project_id, 
-            vm_name, 
+            vm_id, 
             vm_create.dict()
         )
         
         # Return the updated VM
-        updated_vm = project.get_vm(vm_name)
+        updated_vm = project.get_vm(vm_id)
         if not updated_vm:
-            raise HTTPException(status_code=404, detail=f"VM '{vm_name}' not found in project")
+            raise HTTPException(status_code=404, detail=f"VM with ID '{vm_id}' not found in project")
         
         return updated_vm
         
@@ -105,10 +111,10 @@ async def update_vm(
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
 
-@router.delete("/projects/{project_id}/vms/{vm_name}", status_code=204)
+@router.delete("/projects/{project_id}/vms/{vm_id}", status_code=204)
 async def delete_vm(
     project_id: UUID,
-    vm_name: str,
+    vm_id: str,
     project_service: ProjectService = Depends(get_project_service)
 ):
     """Remove a VM from a project."""
@@ -118,7 +124,7 @@ async def delete_vm(
         if existing_project.deployment_status == DeploymentStatus.READY:
             raise HTTPException(status_code=400, detail="Cannot delete VM - project is locked in ready status")
         
-        project_service.remove_vm_from_project(project_id, vm_name)
+        project_service.remove_vm_from_project(project_id, vm_id)
         return None  # 204 No Content
         
     except ProjectNotFoundError as e:
@@ -126,10 +132,10 @@ async def delete_vm(
     except ValueError as e:
         raise HTTPException(status_code=404, detail=str(e))
 
-@router.post("/projects/{project_id}/vms/{vm_name}/network-interfaces", response_model=dict, status_code=201)
+@router.post("/projects/{project_id}/vms/{vm_id}/network-interfaces", response_model=dict, status_code=201)
 async def add_network_interface(
     project_id: UUID,
-    vm_name: str,
+    vm_id: str,
     interface_data: Dict[str, Any],
     request: Request,
     project_service: ProjectService = Depends(get_project_service)
@@ -156,10 +162,10 @@ async def add_network_interface(
         interface = NetworkInterface(**interface_data)
         
         project = project_service.get_project(project_id)
-        vm = project.get_vm(vm_name)
+        vm = project.get_vm(vm_id)
         
         if not vm:
-            raise HTTPException(status_code=404, detail=f"VM '{vm_name}' not found in project")
+            raise HTTPException(status_code=404, detail=f"VM with ID '{vm_id}' not found in project")
         
         vm.add_network_interface(interface)
         
@@ -173,10 +179,10 @@ async def add_network_interface(
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
 
-@router.put("/projects/{project_id}/vms/{vm_name}/network-interfaces/{interface_id}", response_model=dict)
+@router.put("/projects/{project_id}/vms/{vm_id}/network-interfaces/{interface_id}", response_model=dict)
 async def update_network_interface(
     project_id: UUID,
-    vm_name: str,
+    vm_id: str,
     interface_id: str,
     interface_data: Dict[str, Any],
     request: Request,
@@ -197,10 +203,10 @@ async def update_network_interface(
         set_validation_config(validation_config)
         
         project = project_service.get_project(project_id)
-        vm = project.get_vm(vm_name)
+        vm = project.get_vm(vm_id)
         
         if not vm:
-            raise HTTPException(status_code=404, detail=f"VM '{vm_name}' not found in project")
+            raise HTTPException(status_code=404, detail=f"VM with ID '{vm_id}' not found in project")
         
         # Find and update the interface
         for interface in vm.network_interfaces:
@@ -222,10 +228,10 @@ async def update_network_interface(
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
 
-@router.delete("/projects/{project_id}/vms/{vm_name}/network-interfaces/{interface_id}", status_code=204)
+@router.delete("/projects/{project_id}/vms/{vm_id}/network-interfaces/{interface_id}", status_code=204)
 async def delete_network_interface(
     project_id: UUID,
-    vm_name: str,
+    vm_id: str,
     interface_id: str,
     project_service: ProjectService = Depends(get_project_service)
 ):
@@ -237,10 +243,10 @@ async def delete_network_interface(
         if project.deployment_status == DeploymentStatus.READY:
             raise HTTPException(status_code=400, detail="Cannot delete network interface - project is locked in ready status")
         
-        vm = project.get_vm(vm_name)
+        vm = project.get_vm(vm_id)
         
         if not vm:
-            raise HTTPException(status_code=404, detail=f"VM '{vm_name}' not found in project")
+            raise HTTPException(status_code=404, detail=f"VM with ID '{vm_id}' not found in project")
         
         success = vm.remove_network_interface(interface_id)
         if not success:

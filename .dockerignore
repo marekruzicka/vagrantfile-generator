@@ -1,0 +1,75 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.so
+*.egg
+*.egg-info/
+dist/
+build/
+.venv/
+venv/
+ENV/
+.pytest_cache/
+.coverage
+htmlcov/
+.mypy_cache/
+.dmypy.json
+dmypy.json
+
+# Node.js
+node_modules/
+npm-debug.log
+yarn-error.log
+
+# Git
+.git/
+.gitignore
+.gitattributes
+
+# Documentation
+README.md
+CONTRIBUTING.MD
+DEVELOPMENT.md
+CHANGELOG.md
+docs/
+specs/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+
+# Docker
+Dockerfile*
+docker-compose*.yml
+compose*.yml
+.dockerignore
+
+# Logs
+*.log*
+logs/
+
+# Environment files
+.env*
+!.env.example
+
+# Testing
+tests/
+coverage/
+
+# User data (should be mounted as volume, not baked into image)
+backend/data/
+
+# Frontend build artifacts (will be built in container)
+frontend/dist/
+frontend/src/styles/output.css
+
+# Project-specific
+refactor.md
+multiuser.md

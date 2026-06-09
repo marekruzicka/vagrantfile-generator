@@ -1,10 +1,10 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
-
 /* Import component styles */
 @import 'components/footer.css';
 @import 'components/error-page.css';
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
 /* Custom component styles */
 @layer components {
@@ -119,6 +119,11 @@
   
   .status-badge {
     @apply inline-flex items-center px-3 py-1 rounded-full text-sm font-medium;
+  }
+
+  /* Shared Resource Badge */
+  .shared-resource-badge {
+    @apply inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-800 border border-amber-200;
   }
 
   /* Project/VM Components */

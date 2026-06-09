@@ -1,65 +1,97 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Vagrantfile Generator</title>
-    
+
     <!-- Favicons -->
-    <link rel="icon" type="image/x-icon" href="/images/favicon/favicon.ico">
-    <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon/favicon-16x16.png">
-    <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon/favicon-32x32.png">
-    <link rel="apple-touch-icon" sizes="180x180" href="/images/favicon/apple-touch-icon.png">
-    <link rel="manifest" href="/images/favicon/site.webmanifest">
-    
+    <link rel="icon" type="image/x-icon" href="/images/favicon/favicon.ico" />
+    <link
+      rel="icon"
+      type="image/png"
+      sizes="16x16"
+      href="/images/favicon/favicon-16x16.png"
+    />
+    <link
+      rel="icon"
+      type="image/png"
+      sizes="32x32"
+      href="/images/favicon/favicon-32x32.png"
+    />
+    <link
+      rel="apple-touch-icon"
+      sizes="180x180"
+      href="/images/favicon/apple-touch-icon.png"
+    />
+    <link rel="manifest" href="/images/favicon/site.webmanifest" />
+
     <!-- Theme color for mobile browsers -->
-    <meta name="theme-color" content="#3b82f6">
-    <meta name="description" content="Create & manage development environments with Vagrant">
-    
+    <meta name="theme-color" content="#3b82f6" />
+    <meta
+      name="description"
+      content="Create & manage development environments with Vagrant"
+    />
+
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        primary: {
-                            50: '#eff6ff',
-                            100: '#dbeafe',
-                            500: '#3b82f6',
-                            600: '#2563eb',
-                            700: '#1d4ed8',
-                        }
-                    }
-                }
-            }
-        }
-        
-        // Configure Alpine.js to auto-start with defer
-        document.addEventListener('alpine:init', () => {
-            console.log('Alpine.js: alpine:init event fired');
-        });
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              primary: {
+                50: '#eff6ff',
+                100: '#dbeafe',
+                500: '#3b82f6',
+                600: '#2563eb',
+                700: '#1d4ed8',
+              },
+            },
+          },
+        },
+      }
+
+      // Configure Alpine.js to auto-start with defer
+      document.addEventListener('alpine:init', () => {
+        console.log('Alpine.js: alpine:init event fired')
+      })
     </script>
     <script src="js/runtime-config.js"></script>
-    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <script
+      defer
+      src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"
+    ></script>
     <!-- Prism.js for syntax highlighting -->
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" rel="stylesheet">
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css"
+      rel="stylesheet"
+    />
     <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-core.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
     <!-- Marked.js for markdown parsing -->
     <script src="https://cdn.jsdelivr.net/npm/marked@11.0.0/marked.min.js"></script>
     <!-- Custom CSS -->
-    <link rel="stylesheet" href="styles/input.css">
-    
+    <link rel="stylesheet" href="styles/input.css" />
+
     <!-- External JavaScript files -->
     <script src="js/utils/html-loader.js"></script>
+    <script src="js/deployment.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/api-client.js"></script>
     <script src="js/utils/api.js"></script>
     <script src="js/utils/ui-helpers.js"></script>
     <script src="js/vm-manager.js"></script>
     <script src="js/components/footer-component.js"></script>
+    <script src="js/components/error-page-component.js"></script>
     <script src="js/app.js"></script>
     <script src="js/main.js"></script>
-</head>
-<body class="bg-gradient-to-br from-slate-50 to-blue-50 min-h-screen flex flex-col" x-data="vagrantApp()" x-init="init()">
+    <script src="js/cookie-consent.js"></script>
+  </head>
+  <body
+    class="bg-gradient-to-br from-slate-50 to-blue-50 min-h-screen flex flex-col"
+    x-data="vagrantApp()"
+    x-init="init()"
+  >
     <!-- Header -->
     <div data-include-html="/views/header.html"></div>
 
@@ -68,546 +100,1359 @@
 
     <!-- Main Content -->
     <main class="app-container py-8 flex-1">
-        <!-- Projects List View -->
-        <div data-include-html="/views/projects-list.html"></div>
+      <!-- Projects List View -->
+      <div data-include-html="/views/projects-list.html"></div>
 
-        <!-- Project Detail View -->
-        <div data-include-html="/views/project-detail.html"></div>
+      <!-- Project Detail View -->
+      <div data-include-html="/views/project-detail.html"></div>
 
-        <!-- Settings View -->
-        <div x-show="currentView === 'settings'" class="space-y-8">
-            <!-- Settings Header -->
-            <div class="card">
-                <div class="flex items-center justify-between mb-6">
-                    <div class="flex items-center space-x-4">
-                        <button @click="showProjects()" 
-                                class="text-gray-500 hover:text-gray-700 p-2 rounded-lg hover:bg-gray-100 transition-colors">
-                            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                                <path fill-rule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clip-rule="evenodd"></path>
-                            </svg>
-                        </button>
-                        <div>
-                            <h2 class="text-3xl font-bold text-gray-900">Settings</h2>
-                            <p class="text-gray-600 mt-1">Configure Vagrant boxes and application preferences</p>
-                        </div>
-                    </div>
-                </div>
+      <!-- Settings View -->
+      <div x-show="currentView === 'settings'" class="space-y-8">
+        <!-- Settings Header -->
+        <div class="card">
+          <div class="flex items-center justify-between mb-6">
+            <div class="flex items-center space-x-4">
+              <button
+                @click="showProjects()"
+                class="text-gray-500 hover:text-gray-700 p-2 rounded-lg hover:bg-gray-100 transition-colors"
+              >
+                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                  <path
+                    fill-rule="evenodd"
+                    d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z"
+                    clip-rule="evenodd"
+                  ></path>
+                </svg>
+              </button>
+              <div>
+                <h2 class="text-3xl font-bold text-gray-900">Settings</h2>
+                <p class="text-gray-600 mt-1">
+                  Configure Vagrant boxes and application preferences
+                </p>
+              </div>
             </div>
-
-            <!-- Vagrant Boxes Section -->
-            <div class="card">
-                <div class="flex justify-between items-center mb-6">
-                    <div class="flex items-center space-x-4">
-                        <button @click="sectionsOpen.settingsBoxes = !sectionsOpen.settingsBoxes" 
-                                class="text-gray-500 hover:text-gray-700 transition-colors p-1">
-                            <svg class="w-5 h-5 transition-transform" :class="{ 'rotate-180': !sectionsOpen.settingsBoxes }" fill="currentColor" viewBox="0 0 20 20">
-                                <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"></path>
-                            </svg>
-                        </button>
-                        <div @click="sectionsOpen.settingsBoxes = !sectionsOpen.settingsBoxes" class="cursor-pointer">
-                                <h3 class="text-2xl font-bold text-gray-900 hover:text-gray-700 transition-colors">Vagrant Boxes</h3>
-                            <p class="text-gray-600 mt-1">Manage available box images for virtual machines</p>
-                        </div>
-                    </div>
-                    <div x-show="sectionsOpen.settingsBoxes" class="flex items-center space-x-3">
-                        <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800">
-                            <span x-text="`${availableBoxes.length} boxes available`"></span>
-                        </span>
-                        <button @click="loadBoxes()" class="btn btn-secondary">
-                            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                                <path fill-rule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z" clip-rule="evenodd"></path>
-                            </svg>
-                            Refresh Boxes
-                        </button>
-                        <button @click="openAddBoxModal()" class="btn btn-primary">
-                            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                                <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd"></path>
-                            </svg>
-                            Add Box
-                        </button>
-                    </div>
-                </div>
-
-                <!-- Boxes Grid -->
-                <div x-show="sectionsOpen.settingsBoxes && availableBoxes.length > 0" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    <template x-for="box in availableBoxes" :key="box.id">
-                        <div class="border border-gray-200 rounded-lg p-4 hover:border-blue-300 transition-colors">
-                            <div class="flex items-start justify-between mb-3">
-                                <div class="flex items-center space-x-3">
-                                    <div class="w-10 h-10 bg-gradient-to-br from-purple-500 to-blue-600 rounded-lg flex items-center justify-center">
-                                        <svg class="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
-                                            <path fill-rule="evenodd" d="M2 5a2 2 0 012-2h8a2 2 0 012 2v10a2 2 0 002 2H4a2 2 0 01-2-2V5zm3 1h6v4H5V6zm6 6H5v2h6v-2z" clip-rule="evenodd"></path>
-                                            <path d="M15 7h1a2 2 0 012 2v5.5a1.5 1.5 0 01-3 0V9a1 1 0 00-1-1h-1v1z"></path>
-                                        </svg>
-                                    </div>
-                                    <div>
-                                        <h4 class="text-lg font-semibold text-gray-900" x-text="box.name"></h4>
-                                        <p class="text-sm text-gray-500" x-text="box.provider"></p>
-                                    </div>
-                                </div>
-                                <div class="flex space-x-1">
-                                    <button @click="openEditBoxModal(box)" 
-                                            class="p-1 text-gray-400 hover:text-blue-600 transition-colors">
-                                        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                                            <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z"></path>
-                                        </svg>
-                                    </button>
-                                    <button @click="confirmDeleteBox(box)" 
-                                            class="p-1 text-gray-400 hover:text-red-600 transition-colors">
-                                        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                                            <path fill-rule="evenodd" d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z" clip-rule="evenodd"></path>
-                                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8 7a1 1 0 012 0v4a1 1 0 11-2 0V7zM12 7a1 1 0 012 0v4a1 1 0 11-2 0V7z" clip-rule="evenodd"></path>
-                                        </svg>
-                                    </button>
-                                </div>
-                            </div>
-                            <p class="text-gray-600 text-sm mb-3" x-text="box.description"></p>
-                            <div class="flex items-center justify-between">
-                                <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                                    Available
-                                </span>
-                                <div x-show="box.version" class="text-xs text-gray-500">
-                                    v<span x-text="box.version"></span>
-                                </div>
-                            </div>
-                        </div>
-                    </template>
-                </div>
-
-                <!-- Empty Boxes State -->
-                <div x-show="sectionsOpen.settingsBoxes && availableBoxes.length === 0" class="text-center py-12">
-                    <div class="mx-auto h-24 w-24 bg-gradient-to-br from-gray-100 to-gray-200 rounded-full flex items-center justify-center mb-6">
-                        <svg class="h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path>
-                        </svg>
-                    </div>
-                    <h3 class="text-lg font-medium text-gray-900 mb-2">No boxes available</h3>
-                    <p class="text-gray-500 mb-6">Add your first Vagrant box to get started.</p>
-                    <button @click="openAddBoxModal()" class="btn btn-primary">
-                        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                            <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd"></path>
-                        </svg>
-                        Add First Box
-                    </button>
-                </div>
-            </div>
-
-            <!-- Vagrant Plugins Section -->
-            <div class="card">
-                <div class="flex justify-between items-center mb-6">
-                    <div class="flex items-center space-x-4">
-                        <button @click="sectionsOpen.settingsPlugins = !sectionsOpen.settingsPlugins" 
-                                class="text-gray-500 hover:text-gray-700 transition-colors p-1">
-                            <svg class="w-5 h-5 transition-transform" :class="{ 'rotate-180': !sectionsOpen.settingsPlugins }" fill="currentColor" viewBox="0 0 20 20">
-                                <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"></path>
-                            </svg>
-                        </button>
-                        <div @click="sectionsOpen.settingsPlugins = !sectionsOpen.settingsPlugins" class="cursor-pointer">
-                            <h3 class="text-2xl font-bold text-gray-900 hover:text-gray-700 transition-colors">Vagrant Plugins</h3>
-                            <p class="text-gray-600 mt-1">Manage available Vagrant plugins for enhanced functionality</p>
-                        </div>
-                    </div>
-                    <div x-show="sectionsOpen.settingsPlugins" class="flex items-center space-x-3">
-                        <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-purple-100 text-purple-800">
-                            <span x-text="`${availablePlugins.length} plugins available`"></span>
-                        </span>
-                        <button @click="loadPlugins()" class="btn btn-secondary">
-                            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                                <path fill-rule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z" clip-rule="evenodd"></path>
-                            </svg>
-                            Refresh Plugins
-                        </button>
-                        <button @click="openAddPluginModal()" class="btn btn-primary">
-                            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                                <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd"></path>
-                            </svg>
-                            Add Plugin
-                        </button>
-                    </div>
-                </div>
-
-                <!-- Plugins Grid -->
-                <div x-show="sectionsOpen.settingsPlugins && availablePlugins.length > 0" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    <template x-for="plugin in availablePlugins" :key="plugin.id">
-                        <div class="border border-gray-200 rounded-lg p-4 hover:border-purple-300 transition-colors"
-                             :class="{ 'opacity-60': plugin.is_deprecated }">
-                            <div class="flex items-start justify-between mb-3">
-                                <div class="flex items-center space-x-3">
-                                    <div class="w-10 h-10 bg-gradient-to-br from-purple-500 to-pink-600 rounded-lg flex items-center justify-center">
-                                        <svg class="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
-                                            <path fill-rule="evenodd" d="M12.316 3.051a1 1 0 01.633 1.265l-4 12a1 1 0 11-1.898-.632l4-12a1 1 0 011.265-.633zM5.707 6.293a1 1 0 010 1.414L3.414 10l2.293 2.293a1 1 0 11-1.414 1.414l-3-3a1 1 0 010-1.414l3-3a1 1 0 011.414 0zm8.586 0a1 1 0 011.414 0l3 3a1 1 0 010 1.414l-3 3a1 1 0 11-1.414-1.414L16.586 10l-2.293-2.293a1 1 0 010-1.414z" clip-rule="evenodd"></path>
-                                        </svg>
-                                    </div>
-                                    <div>
-                                        <h4 class="text-lg font-semibold text-gray-900" x-text="plugin.name"></h4>
-                                        <p class="text-xs text-gray-500" x-text="plugin.default_version ? (plugin.default_version.startsWith('v') ? plugin.default_version : `v${plugin.default_version}`) : 'latest'"></p>
-                                    </div>
-                                </div>
-                                <div class="flex space-x-1">
-                                    <button @click="openEditPluginModal(plugin)" 
-                                            class="p-1 text-gray-400 hover:text-purple-600 transition-colors">
-                                        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                                            <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z"></path>
-                                        </svg>
-                                    </button>
-                                    <button @click="confirmDeletePlugin(plugin)" 
-                                            class="p-1 text-gray-400 hover:text-red-600 transition-colors">
-                                        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                                            <path fill-rule="evenodd" d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z" clip-rule="evenodd"></path>
-                                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8 7a1 1 0 012 0v4a1 1 0 11-2 0V7zM12 7a1 1 0 012 0v4a1 1 0 11-2 0V7z" clip-rule="evenodd"></path>
-                                        </svg>
-                                    </button>
-                                </div>
-                            </div>
-                            <p class="text-gray-600 text-sm mb-3" x-text="plugin.description || 'No description available'"></p>
-                            <div class="flex items-center justify-between">
-                                <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium"
-                                      :class="plugin.is_deprecated ? 'bg-red-100 text-red-800' : 'bg-green-100 text-green-800'">
-                                    <span x-text="plugin.is_deprecated ? 'Deprecated' : 'Active'"></span>
-                                </span>
-                                <div class="flex space-x-2">
-                                    <a x-show="plugin.source_url" :href="plugin.source_url" target="_blank" 
-                                       class="text-xs text-gray-500 hover:text-purple-600" title="Source Code">
-                                        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                                            <path fill-rule="evenodd" d="M12.316 3.051a1 1 0 01.633 1.265l-4 12a1 1 0 11-1.898-.632l4-12a1 1 0 011.265-.633z" clip-rule="evenodd"></path>
-                                        </svg>
-                                    </a>
-                                    <a x-show="plugin.documentation_url" :href="plugin.documentation_url" target="_blank" 
-                                       class="text-xs text-gray-500 hover:text-purple-600" title="Documentation">
-                                        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                                            <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"></path>
-                                        </svg>
-                                    </a>
-                                </div>
-                            </div>
-                        </div>
-                    </template>
-                </div>
-
-                <!-- Empty Plugins State -->
-                <div x-show="sectionsOpen.settingsPlugins && availablePlugins.length === 0" class="text-center py-12">
-                    <div class="mx-auto h-24 w-24 bg-gradient-to-br from-gray-100 to-gray-200 rounded-full flex items-center justify-center mb-6">
-                        <svg class="h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M11 4a2 2 0 114 0v1a1 1 0 001 1h3a1 1 0 011 1v3a1 1 0 01-1 1h-1a2 2 0 100 4h1a1 1 0 011 1v3a1 1 0 01-1 1h-3a1 1 0 01-1-1v-1a2 2 0 10-4 0v1a1 1 0 01-1 1H7a1 1 0 01-1-1v-3a1 1 0 00-1-1H4a2 2 0 110-4h1a1 1 0 001-1V7a1 1 0 011-1h3a1 1 0 001-1V4z"></path>
-                        </svg>
-                    </div>
-                    <h3 class="text-lg font-medium text-gray-900 mb-2">No plugins available</h3>
-                    <p class="text-gray-500 mb-6">Add your first Vagrant plugin to enhance functionality.</p>
-                    <button @click="openAddPluginModal()" class="btn btn-primary">
-                        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                            <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd"></path>
-                        </svg>
-                        Add First Plugin
-                    </button>
-                </div>
-            </div>
-
-            <!-- Global Provisioners Section -->
-            <div class="card">
-                <div class="flex justify-between items-center mb-6">
-                    <div class="flex items-center space-x-4">
-                        <button @click="sectionsOpen.settingsProvisioners = !sectionsOpen.settingsProvisioners" 
-                                class="text-gray-500 hover:text-gray-700 transition-colors p-1">
-                            <svg class="w-5 h-5 transition-transform" :class="{ 'rotate-180': !sectionsOpen.settingsProvisioners }" fill="currentColor" viewBox="0 0 20 20">
-                                <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"></path>
-                            </svg>
-                        </button>
-                        <div @click="sectionsOpen.settingsProvisioners = !sectionsOpen.settingsProvisioners" class="cursor-pointer">
-                            <h3 class="text-2xl font-bold text-gray-900 hover:text-gray-700 transition-colors">Global Provisioners</h3>
-                            <p class="text-gray-600 mt-1">Configure provisioners that run on all VMs</p>
-                        </div>
-                    </div>
-                    <div x-show="sectionsOpen.settingsProvisioners" class="flex items-center space-x-3">
-                        <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800">
-                            <span x-text="`${availableProvisioners.length} provisioners configured`"></span>
-                        </span>
-                        <button @click="loadProvisioners()" class="btn btn-secondary">
-                            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                                <path fill-rule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z" clip-rule="evenodd"></path>
-                            </svg>
-                            Refresh
-                        </button>
-                        <button @click="openAddProvisionerModal()" class="btn btn-primary">
-                            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                                <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd"></path>
-                            </svg>
-                            Add Provisioner
-                        </button>
-                    </div>
-                </div>
-
-                <!-- Provisioners Grid -->
-                <div x-show="sectionsOpen.settingsProvisioners && availableProvisioners.length > 0" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    <template x-for="provisioner in availableProvisioners" :key="provisioner.id">
-                        <div class="border border-gray-200 rounded-lg p-4 hover:border-blue-300 transition-colors">
-                            <div class="flex items-start justify-between mb-3">
-                                <div class="flex items-center space-x-3">
-                                    <div class="w-10 h-10 bg-gradient-to-br from-blue-500 to-cyan-600 rounded-lg flex items-center justify-center">
-                                        <svg class="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
-                                            <path d="M3 12v3c0 1.657 3.134 3 7 3s7-1.343 7-3v-3c0 1.657-3.134 3-7 3s-7-1.343-7-3z"></path>
-                                            <path d="M3 7v3c0 1.657 3.134 3 7 3s7-1.343 7-3V7c0 1.657-3.134 3-7 3S3 8.657 3 7z"></path>
-                                            <path d="M17 5c0 1.657-3.134 3-7 3S3 6.657 3 5s3.134-3 7-3 7 1.343 7 3z"></path>
-                                        </svg>
-                                    </div>
-                                    <div>
-                                        <h4 class="text-lg font-semibold text-gray-900" x-text="provisioner.name"></h4>
-                                        <p class="text-xs text-gray-500" x-text="provisioner.type"></p>
-                                    </div>
-                                </div>
-                                <div class="flex space-x-1">
-                                    <button @click="openEditProvisionerModal(provisioner)" 
-                                            class="p-1 text-gray-400 hover:text-blue-600 transition-colors">
-                                        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                                            <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z"></path>
-                                        </svg>
-                                    </button>
-                                    <button @click="confirmDeleteProvisioner(provisioner)" 
-                                            class="p-1 text-gray-400 hover:text-red-600 transition-colors">
-                                        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                                            <path fill-rule="evenodd" d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z" clip-rule="evenodd"></path>
-                                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8 7a1 1 0 012 0v4a1 1 0 11-2 0V7zM12 7a1 1 0 012 0v4a1 1 0 11-2 0V7z" clip-rule="evenodd"></path>
-                                        </svg>
-                                    </button>
-                                </div>
-                            </div>
-                            <p class="text-gray-600 text-sm mb-3" x-text="provisioner.description || 'No description provided'"></p>
-                            <div class="flex items-center justify-between">
-                                <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                                    <span x-text="provisioner.scope"></span>
-                                </span>
-                            </div>
-                        </div>
-                    </template>
-                </div>
-
-                <!-- Empty State -->
-                <div x-show="sectionsOpen.settingsProvisioners && availableProvisioners.length === 0" class="text-center py-12">
-                    <div class="mx-auto w-24 h-24 bg-gradient-to-br from-blue-100 to-cyan-100 rounded-full flex items-center justify-center mb-4">
-                        <svg class="w-12 h-12 text-blue-500" fill="currentColor" viewBox="0 0 20 20">
-                            <path d="M3 12v3c0 1.657 3.134 3 7 3s7-1.343 7-3v-3c0 1.657-3.134 3-7 3s-7-1.343-7-3z"></path>
-                            <path d="M3 7v3c0 1.657 3.134 3 7 3s7-1.343 7-3V7c0 1.657-3.134 3-7 3S3 8.657 3 7z"></path>
-                            <path d="M17 5c0 1.657-3.134 3-7 3S3 6.657 3 5s3.134-3 7-3 7 1.343 7 3z"></path>
-                        </svg>
-                    </div>
-                    <h3 class="text-lg font-medium text-gray-900 mb-2">No Provisioners Configured</h3>
-                    <p class="text-gray-600 mb-6">Get started by creating your first global provisioner.</p>
-                    <button @click="openAddProvisionerModal()" class="btn btn-primary">
-                        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                            <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd"></path>
-                        </svg>
-                        Add Your First Provisioner
-                    </button>
-                </div>
-            </div>
-
-            <!-- Global Triggers Section -->
-            <div class="card">
-                <div class="flex justify-between items-center mb-6">
-                    <div class="flex items-center space-x-4">
-                        <button @click="sectionsOpen.settingsTriggers = !sectionsOpen.settingsTriggers" 
-                                class="text-gray-500 hover:text-gray-700 transition-colors p-1">
-                            <svg class="w-5 h-5 transition-transform" :class="{ 'rotate-180': !sectionsOpen.settingsTriggers }" fill="currentColor" viewBox="0 0 20 20">
-                                <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"></path>
-                            </svg>
-                        </button>
-                        <div @click="sectionsOpen.settingsTriggers = !sectionsOpen.settingsTriggers" class="cursor-pointer">
-                            <h3 class="text-2xl font-bold text-gray-900 hover:text-gray-700 transition-colors">Global Triggers</h3>
-                            <p class="text-gray-600 mt-1">Configure triggers that execute before/after Vagrant commands</p>
-                        </div>
-                    </div>
-                    <div x-show="sectionsOpen.settingsTriggers" class="flex items-center space-x-3">
-                        <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-orange-100 text-orange-800">
-                            <span x-text="`${availableTriggers.length} triggers configured`"></span>
-                        </span>
-                        <button @click="loadTriggers()" class="btn btn-secondary">
-                            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                                <path fill-rule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z" clip-rule="evenodd"></path>
-                            </svg>
-                            Refresh
-                        </button>
-                        <button @click="openCreateTriggerModal()" class="btn btn-primary">
-                            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                                <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd"></path>
-                            </svg>
-                            Add Trigger
-                        </button>
-                    </div>
-                </div>
-
-                <!-- Triggers Grid -->
-                <div x-show="sectionsOpen.settingsTriggers && availableTriggers.length > 0" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    <template x-for="trigger in availableTriggers" :key="trigger.id">
-                        <div class="border border-gray-200 rounded-lg p-4 hover:border-orange-300 transition-colors">
-                            <div class="flex items-start justify-between mb-3">
-                                <div class="flex items-center space-x-3">
-                                    <div class="w-10 h-10 bg-gradient-to-br from-orange-500 to-red-600 rounded-lg flex items-center justify-center">
-                                        <svg class="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
-                                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clip-rule="evenodd"></path>
-                                        </svg>
-                                    </div>
-                                    <div>
-                                        <h4 class="text-lg font-semibold text-gray-900" x-text="trigger.name"></h4>
-                                        <div class="flex items-center space-x-1 text-xs">
-                                            <span class="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium"
-                                                  :class="trigger.timing === 'before' ? 'bg-yellow-100 text-yellow-800' : 'bg-green-100 text-green-800'"
-                                                  x-text="trigger.timing"></span>
-                                            <span class="text-gray-500">:</span>
-                                            <span class="text-gray-600 font-medium" x-text="trigger.stage"></span>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="flex space-x-1">
-                                    <button @click="openEditTriggerModal(trigger)" 
-                                            class="p-1 text-gray-400 hover:text-orange-600 transition-colors">
-                                        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                                            <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z"></path>
-                                        </svg>
-                                    </button>
-                                    <button @click="confirmDeleteTrigger(trigger)" 
-                                            class="p-1 text-gray-400 hover:text-red-600 transition-colors">
-                                        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                                            <path fill-rule="evenodd" d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z" clip-rule="evenodd"></path>
-                                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8 7a1 1 0 012 0v4a1 1 0 11-2 0V7zM12 7a1 1 0 012 0v4a1 1 0 11-2 0V7z" clip-rule="evenodd"></path>
-                                        </svg>
-                                    </button>
-                                </div>
-                            </div>
-                            <p class="text-gray-600 text-sm mb-3" x-text="trigger.description || 'No description provided'"></p>
-                        </div>
-                    </template>
-                </div>
-
-                <!-- Empty State -->
-                <div x-show="sectionsOpen.settingsTriggers && availableTriggers.length === 0" class="text-center py-12">
-                    <div class="mx-auto w-24 h-24 bg-gradient-to-br from-orange-100 to-red-100 rounded-full flex items-center justify-center mb-4">
-                        <svg class="w-12 h-12 text-orange-500" fill="currentColor" viewBox="0 0 20 20">
-                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clip-rule="evenodd"></path>
-                        </svg>
-                    </div>
-                    <h3 class="text-lg font-medium text-gray-900 mb-2">No Triggers Configured</h3>
-                    <p class="text-gray-600 mb-6">Get started by creating your first global trigger.</p>
-                    <button @click="openCreateTriggerModal()" class="btn btn-primary">
-                        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                            <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd"></path>
-                        </svg>
-                        Add Your First Trigger
-                    </button>
-                </div>
-            </div>
-
-            <!-- Network Validation Settings -->
-            <div class="card">
-                <h3 class="text-xl font-bold text-gray-900 mb-6">Network Validation Settings</h3>
-                <p class="text-gray-600 mb-6">Configure how IP addresses are validated for private networks. These settings affect both frontend validation and user experience.</p>
-                
-                <div class="space-y-6">
-                    <div class="flex items-start">
-                        <div class="flex items-center h-5">
-                            <input type="checkbox" 
-                                   x-model="config.allowPublicIPsInPrivateNetworks"
-                                   @change="saveConfiguration()"
-                                   id="allowPublicIPs"
-                                   class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 focus:ring-2">
-                        </div>
-                        <div class="ml-3">
-                            <label for="allowPublicIPs" class="text-sm font-medium text-gray-700">
-                                Allow public IP addresses in private networks
-                            </label>
-                            <p class="text-sm text-gray-500 mt-1">
-                                When enabled, allows any valid IPv4 address in private network configurations. 
-                                When disabled (recommended), only private IP ranges (192.168.x.x, 10.x.x.x, 172.16-31.x.x) are allowed.
-                            </p>
-                        </div>
-                    </div>
-                    
-                    <div x-show="config.allowPublicIPsInPrivateNetworks" 
-                         class="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-                        <div class="flex">
-                            <div class="flex-shrink-0">
-                                <svg class="h-5 w-5 text-yellow-400" viewBox="0 0 20 20" fill="currentColor">
-                                    <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"></path>
-                                </svg>
-                            </div>
-                            <div class="ml-3">
-                                <h4 class="text-sm font-medium text-yellow-800">Security Warning</h4>
-                                <p class="text-sm text-yellow-700 mt-1">
-                                    Allowing public IP addresses in private networks may create connectivity issues and security concerns. 
-                                    This option is intended for advanced users with specific network requirements.
-                                </p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- VM Configuration Limits -->
-            <div class="card">
-                <h3 class="text-xl font-bold text-gray-900 mb-6">VM Configuration Limits</h3>
-                <p class="text-gray-600 mb-6">Configure the default limits for virtual machine resources. These limits apply to VM creation and validation.</p>
-                
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div>
-                        <label class="form-label">Maximum CPUs</label>
-                        <input type="number" 
-                               x-model="config.maxCpus" 
-                               min="1" 
-                               max="64" 
-                               class="form-input"
-                               placeholder="8">
-                        <p class="text-sm text-gray-500 mt-1">Maximum number of CPUs allowed per VM</p>
-                    </div>
-                    
-                    <div>
-                        <label class="form-label">Maximum Memory (MB)</label>
-                        <input type="number" 
-                               x-model="config.maxMemoryMB" 
-                               min="512" 
-                               max="131072" 
-                               step="256" 
-                               class="form-input"
-                               placeholder="16384">
-                        <p class="text-sm text-gray-500 mt-1">Maximum memory allowed per VM (in MB)</p>
-                    </div>
-                    
-                    <div>
-                        <label class="form-label">Minimum Memory (MB)</label>
-                        <input type="number" 
-                               x-model="config.minMemoryMB" 
-                               min="128" 
-                               max="8192" 
-                               step="128" 
-                               class="form-input"
-                               placeholder="512">
-                        <p class="text-sm text-gray-500 mt-1">Minimum memory required per VM (in MB)</p>
-                    </div>
-                    
-                    <div>
-                        <label class="form-label">Memory Step Size (MB)</label>
-                        <input type="number" 
-                               x-model="config.memoryStep" 
-                               min="1" 
-                               max="1024" 
-                               class="form-input"
-                               placeholder="256">
-                        <p class="text-sm text-gray-500 mt-1">Memory increment size for input controls</p>
-                    </div>
-                </div>
-                
-                <div class="flex justify-between items-center pt-6 border-t border-gray-200 mt-6">
-                    <div class="text-sm text-gray-600">
-                        <p><strong>Current Limits:</strong></p>
-                        <p>CPUs: 1 - <span x-text="config.maxCpus"></span></p>
-                        <p>Memory: <span x-text="config.minMemoryMB"></span> - <span x-text="config.maxMemoryMB"></span> MB (<span x-text="Math.round(config.maxMemoryMB / 1024)"></span> GB)</p>
-                    </div>
-                    <button @click="saveConfiguration()" class="btn btn-primary">
-                        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                            <path d="M7.707 10.293a1 1 0 10-1.414 1.414l3 3a1 1 0 001.414 0l3-3a1 1 0 00-1.414-1.414L11 11.586V6h5a2 2 0 012 2v6a2 2 0 01-2 2H4a2 2 0 01-2-2V8a2 2 0 012-2h5v5.586l-1.293-1.293zM9 4a1 1 0 012 0v2H9V4z"></path>
-                        </svg>
-                        Save VM Limits
-                    </button>
-                </div>
-            </div>
+          </div>
         </div>
+
+        <!-- Shared Resources Visibility Control -->
+        <div class="card">
+          <div class="flex items-center justify-between">
+            <div>
+              <h3 class="text-lg font-semibold text-gray-900">
+                Shared Resources
+              </h3>
+              <p class="text-sm text-gray-500 mt-1">
+                Control visibility of shared plugins, boxes, provisioners, and
+                triggers
+              </p>
+            </div>
+            <label class="relative inline-flex items-center cursor-pointer">
+              <input
+                type="checkbox"
+                x-model="showSharedResources"
+                @change="updateShowSharedPreference()"
+                class="sr-only peer"
+              />
+              <div
+                class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"
+              ></div>
+              <span
+                class="ml-3 text-sm font-medium text-gray-900"
+                x-text="showSharedResources ? 'Showing' : 'Hidden'"
+              ></span>
+            </label>
+          </div>
+        </div>
+
+        <!-- Vagrant Boxes Section -->
+        <div class="card">
+          <div class="flex justify-between items-center mb-6">
+            <div class="flex items-center space-x-4">
+              <button
+                @click="sectionsOpen.settingsBoxes = !sectionsOpen.settingsBoxes"
+                class="text-gray-500 hover:text-gray-700 transition-colors p-1"
+              >
+                <svg
+                  class="w-5 h-5 transition-transform"
+                  :class="{ 'rotate-180': !sectionsOpen.settingsBoxes }"
+                  fill="currentColor"
+                  viewBox="0 0 20 20"
+                >
+                  <path
+                    fill-rule="evenodd"
+                    d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
+                    clip-rule="evenodd"
+                  ></path>
+                </svg>
+              </button>
+              <div
+                @click="sectionsOpen.settingsBoxes = !sectionsOpen.settingsBoxes"
+                class="cursor-pointer"
+              >
+                <h3
+                  class="text-2xl font-bold text-gray-900 hover:text-gray-700 transition-colors"
+                >
+                  Vagrant Boxes
+                </h3>
+                <p class="text-gray-600 mt-1">
+                  Manage available box images for virtual machines
+                </p>
+              </div>
+            </div>
+            <div
+              x-show="sectionsOpen.settingsBoxes"
+              class="flex items-center space-x-3"
+            >
+              <span
+                class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800"
+              >
+                <span
+                  x-text="`${availableBoxes.length} boxes available`"
+                ></span>
+              </span>
+              <button @click="loadBoxes()" class="btn btn-secondary">
+                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                  <path
+                    fill-rule="evenodd"
+                    d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z"
+                    clip-rule="evenodd"
+                  ></path>
+                </svg>
+                Refresh Boxes
+              </button>
+              <button @click="openAddBoxModal()" class="btn btn-primary">
+                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                  <path
+                    fill-rule="evenodd"
+                    d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z"
+                    clip-rule="evenodd"
+                  ></path>
+                </svg>
+                Add Box
+              </button>
+            </div>
+          </div>
+
+          <!-- Boxes Grid -->
+          <div
+            x-show="sectionsOpen.settingsBoxes && availableBoxes.length > 0"
+            class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"
+          >
+            <template x-for="box in availableBoxes" :key="box.id">
+              <div
+                class="border border-gray-200 rounded-lg p-4 hover:border-blue-300 transition-colors"
+                :class="box.is_shared ? 'border-amber-200 bg-amber-50/20' : ''"
+              >
+                <div class="flex items-start justify-between mb-3">
+                  <div class="flex items-center space-x-3 flex-1">
+                    <div
+                      class="w-10 h-10 bg-gradient-to-br from-purple-500 to-blue-600 rounded-lg flex items-center justify-center"
+                    >
+                      <svg
+                        class="w-5 h-5 text-white"
+                        fill="currentColor"
+                        viewBox="0 0 20 20"
+                      >
+                        <path
+                          fill-rule="evenodd"
+                          d="M2 5a2 2 0 012-2h8a2 2 0 012 2v10a2 2 0 002 2H4a2 2 0 01-2-2V5zm3 1h6v4H5V6zm6 6H5v2h6v-2z"
+                          clip-rule="evenodd"
+                        ></path>
+                        <path
+                          d="M15 7h1a2 2 0 012 2v5.5a1.5 1.5 0 01-3 0V9a1 1 0 00-1-1h-1v1z"
+                        ></path>
+                      </svg>
+                    </div>
+                    <div class="flex-1 min-w-0">
+                      <div class="flex items-center gap-2 flex-wrap">
+                        <h4
+                          class="text-lg font-semibold text-gray-900"
+                          x-text="box.name"
+                        ></h4>
+                        <span
+                          x-show="box.is_shared"
+                          class="shared-resource-badge"
+                          title="This is a shared box. You can use it in your projects, but cannot edit or delete it."
+                        >
+                          <svg
+                            class="w-3 h-3"
+                            fill="currentColor"
+                            viewBox="0 0 20 20"
+                          >
+                            <path
+                              d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v3h8v-3zM6 8a2 2 0 11-4 0 2 2 0 014 0zM16 18v-3a5.972 5.972 0 00-.75-2.906A3.005 3.005 0 0119 15v3h-3zM4.75 12.094A5.973 5.973 0 004 15v3H1v-3a3 3 0 013.75-2.906z"
+                            ></path>
+                          </svg>
+                          Shared
+                        </span>
+                      </div>
+                      <p
+                        class="text-sm text-gray-500"
+                        x-text="box.provider"
+                      ></p>
+                    </div>
+                  </div>
+                  <div class="flex space-x-1">
+                    <!-- Star button (for shared resources) -->
+                    <button
+                      x-show="box.is_shared"
+                      @click="toggleFavorite('boxes', box.id)"
+                      :class="isFavorite('boxes', box.id) ? 'text-yellow-500' : 'text-gray-400'"
+                      class="p-1 hover:text-yellow-500 transition-colors"
+                      :title="isFavorite('boxes', box.id) ? 'Remove from favorites' : 'Add to favorites'"
+                    >
+                      <svg
+                        class="w-4 h-4"
+                        :fill="isFavorite('boxes', box.id) ? 'currentColor' : 'none'"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          stroke-width="2"
+                          d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"
+                        ></path>
+                      </svg>
+                    </button>
+                    <!-- Copy button (for shared resources) -->
+                    <button
+                      x-show="box.is_shared"
+                      @click="copySharedResource('boxes', box.id)"
+                      class="p-1 text-gray-400 hover:text-blue-600 transition-colors"
+                      title="Copy to My Resources"
+                    >
+                      <svg
+                        class="w-4 h-4"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          stroke-width="2"
+                          d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"
+                        ></path>
+                      </svg>
+                    </button>
+                    <!-- Edit/Delete buttons (for user's own resources) -->
+                    <button
+                      x-show="!box.is_shared"
+                      @click="openEditBoxModal(box)"
+                      class="p-1 text-gray-400 hover:text-blue-600 transition-colors"
+                    >
+                      <svg
+                        class="w-4 h-4"
+                        fill="currentColor"
+                        viewBox="0 0 20 20"
+                      >
+                        <path
+                          d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z"
+                        ></path>
+                      </svg>
+                    </button>
+                    <button
+                      x-show="!box.is_shared"
+                      @click="confirmDeleteBox(box)"
+                      class="p-1 text-gray-400 hover:text-red-600 transition-colors"
+                    >
+                      <svg
+                        class="w-4 h-4"
+                        fill="currentColor"
+                        viewBox="0 0 20 20"
+                      >
+                        <path
+                          fill-rule="evenodd"
+                          d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z"
+                          clip-rule="evenodd"
+                        ></path>
+                        <path
+                          fill-rule="evenodd"
+                          d="M10 18a8 8 0 100-16 8 8 0 000 16zM8 7a1 1 0 012 0v4a1 1 0 11-2 0V7zM12 7a1 1 0 012 0v4a1 1 0 11-2 0V7z"
+                          clip-rule="evenodd"
+                        ></path>
+                      </svg>
+                    </button>
+                  </div>
+                </div>
+                <p
+                  class="text-gray-600 text-sm mb-3"
+                  x-text="box.description"
+                ></p>
+                <div class="flex items-center justify-between">
+                  <span
+                    class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800"
+                  >
+                    Available
+                  </span>
+                  <div x-show="box.version" class="text-xs text-gray-500">
+                    v<span x-text="box.version"></span>
+                  </div>
+                </div>
+              </div>
+            </template>
+          </div>
+
+          <!-- Empty Boxes State -->
+          <div
+            x-show="sectionsOpen.settingsBoxes && availableBoxes.length === 0"
+            class="text-center py-12"
+          >
+            <div
+              class="mx-auto h-24 w-24 bg-gradient-to-br from-gray-100 to-gray-200 rounded-full flex items-center justify-center mb-6"
+            >
+              <svg
+                class="h-12 w-12 text-gray-400"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="1"
+                  d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"
+                ></path>
+              </svg>
+            </div>
+            <h3 class="text-lg font-medium text-gray-900 mb-2">
+              No boxes available
+            </h3>
+            <p class="text-gray-500 mb-6">
+              Add your first Vagrant box to get started.
+            </p>
+            <button @click="openAddBoxModal()" class="btn btn-primary">
+              <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                <path
+                  fill-rule="evenodd"
+                  d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z"
+                  clip-rule="evenodd"
+                ></path>
+              </svg>
+              Add First Box
+            </button>
+          </div>
+        </div>
+
+        <!-- Vagrant Plugins Section -->
+        <div class="card">
+          <div class="flex justify-between items-center mb-6">
+            <div class="flex items-center space-x-4">
+              <button
+                @click="sectionsOpen.settingsPlugins = !sectionsOpen.settingsPlugins"
+                class="text-gray-500 hover:text-gray-700 transition-colors p-1"
+              >
+                <svg
+                  class="w-5 h-5 transition-transform"
+                  :class="{ 'rotate-180': !sectionsOpen.settingsPlugins }"
+                  fill="currentColor"
+                  viewBox="0 0 20 20"
+                >
+                  <path
+                    fill-rule="evenodd"
+                    d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
+                    clip-rule="evenodd"
+                  ></path>
+                </svg>
+              </button>
+              <div
+                @click="sectionsOpen.settingsPlugins = !sectionsOpen.settingsPlugins"
+                class="cursor-pointer"
+              >
+                <h3
+                  class="text-2xl font-bold text-gray-900 hover:text-gray-700 transition-colors"
+                >
+                  Vagrant Plugins
+                </h3>
+                <p class="text-gray-600 mt-1">
+                  Manage available Vagrant plugins for enhanced functionality
+                </p>
+              </div>
+            </div>
+            <div
+              x-show="sectionsOpen.settingsPlugins"
+              class="flex items-center space-x-3"
+            >
+              <span
+                class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-purple-100 text-purple-800"
+              >
+                <span
+                  x-text="`${availablePlugins.length} plugins available`"
+                ></span>
+              </span>
+              <button @click="loadPlugins()" class="btn btn-secondary">
+                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                  <path
+                    fill-rule="evenodd"
+                    d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z"
+                    clip-rule="evenodd"
+                  ></path>
+                </svg>
+                Refresh Plugins
+              </button>
+              <button @click="openAddPluginModal()" class="btn btn-primary">
+                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                  <path
+                    fill-rule="evenodd"
+                    d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z"
+                    clip-rule="evenodd"
+                  ></path>
+                </svg>
+                Add Plugin
+              </button>
+            </div>
+          </div>
+
+          <!-- Plugins Grid -->
+          <div
+            x-show="sectionsOpen.settingsPlugins && availablePlugins.length > 0"
+            class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"
+          >
+            <template x-for="plugin in availablePlugins" :key="plugin.id">
+              <div
+                class="border border-gray-200 rounded-lg p-4 hover:border-purple-300 transition-colors"
+                :class="{ 'opacity-60': plugin.is_deprecated, 'border-amber-200 bg-amber-50/20': plugin.is_shared }"
+              >
+                <div class="flex items-start justify-between mb-3">
+                  <div class="flex items-center space-x-3 flex-1">
+                    <div
+                      class="w-10 h-10 bg-gradient-to-br from-purple-500 to-pink-600 rounded-lg flex items-center justify-center"
+                    >
+                      <svg
+                        class="w-5 h-5 text-white"
+                        fill="currentColor"
+                        viewBox="0 0 20 20"
+                      >
+                        <path
+                          fill-rule="evenodd"
+                          d="M12.316 3.051a1 1 0 01.633 1.265l-4 12a1 1 0 11-1.898-.632l4-12a1 1 0 011.265-.633zM5.707 6.293a1 1 0 010 1.414L3.414 10l2.293 2.293a1 1 0 11-1.414 1.414l-3-3a1 1 0 010-1.414l3-3a1 1 0 011.414 0zm8.586 0a1 1 0 011.414 0l3 3a1 1 0 010 1.414l-3 3a1 1 0 11-1.414-1.414L16.586 10l-2.293-2.293a1 1 0 010-1.414z"
+                          clip-rule="evenodd"
+                        ></path>
+                      </svg>
+                    </div>
+                    <div class="flex-1 min-w-0">
+                      <div class="flex items-center gap-2 flex-wrap">
+                        <h4
+                          class="text-lg font-semibold text-gray-900"
+                          x-text="plugin.name"
+                        ></h4>
+                        <span
+                          x-show="plugin.is_shared"
+                          class="shared-resource-badge"
+                          title="This is a shared plugin. You can use it in your projects, but cannot edit or delete it."
+                        >
+                          <svg
+                            class="w-3 h-3"
+                            fill="currentColor"
+                            viewBox="0 0 20 20"
+                          >
+                            <path
+                              d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v3h8v-3zM6 8a2 2 0 11-4 0 2 2 0 014 0zM16 18v-3a5.972 5.972 0 00-.75-2.906A3.005 3.005 0 0119 15v3h-3zM4.75 12.094A5.973 5.973 0 004 15v3H1v-3a3 3 0 013.75-2.906z"
+                            ></path>
+                          </svg>
+                          Shared
+                        </span>
+                      </div>
+                      <p
+                        class="text-xs text-gray-500"
+                        x-text="plugin.default_version ? (plugin.default_version.startsWith('v') ? plugin.default_version : `v${plugin.default_version}`) : 'latest'"
+                      ></p>
+                    </div>
+                  </div>
+                  <div class="flex space-x-1">
+                    <!-- Star button (for shared resources) -->
+                    <button
+                      x-show="plugin.is_shared"
+                      @click="toggleFavorite('plugins', plugin.id)"
+                      :class="isFavorite('plugins', plugin.id) ? 'text-yellow-500' : 'text-gray-400'"
+                      class="p-1 hover:text-yellow-500 transition-colors"
+                      :title="isFavorite('plugins', plugin.id) ? 'Remove from favorites' : 'Add to favorites'"
+                    >
+                      <svg
+                        class="w-4 h-4"
+                        :fill="isFavorite('plugins', plugin.id) ? 'currentColor' : 'none'"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          stroke-width="2"
+                          d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"
+                        ></path>
+                      </svg>
+                    </button>
+                    <!-- Copy button (for shared resources) -->
+                    <button
+                      x-show="plugin.is_shared"
+                      @click="copySharedResource('plugins', plugin.id)"
+                      class="p-1 text-gray-400 hover:text-purple-600 transition-colors"
+                      title="Copy to My Resources"
+                    >
+                      <svg
+                        class="w-4 h-4"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          stroke-width="2"
+                          d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"
+                        ></path>
+                      </svg>
+                    </button>
+                    <!-- Edit/Delete buttons (for user's own resources) -->
+                    <button
+                      x-show="!plugin.is_shared"
+                      @click="openEditPluginModal(plugin)"
+                      class="p-1 text-gray-400 hover:text-purple-600 transition-colors"
+                    >
+                      <svg
+                        class="w-4 h-4"
+                        fill="currentColor"
+                        viewBox="0 0 20 20"
+                      >
+                        <path
+                          d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z"
+                        ></path>
+                      </svg>
+                    </button>
+                    <button
+                      x-show="!plugin.is_shared"
+                      @click="confirmDeletePlugin(plugin)"
+                      class="p-1 text-gray-400 hover:text-red-600 transition-colors"
+                    >
+                      <svg
+                        class="w-4 h-4"
+                        fill="currentColor"
+                        viewBox="0 0 20 20"
+                      >
+                        <path
+                          fill-rule="evenodd"
+                          d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z"
+                          clip-rule="evenodd"
+                        ></path>
+                        <path
+                          fill-rule="evenodd"
+                          d="M10 18a8 8 0 100-16 8 8 0 000 16zM8 7a1 1 0 012 0v4a1 1 0 11-2 0V7zM12 7a1 1 0 012 0v4a1 1 0 11-2 0V7z"
+                          clip-rule="evenodd"
+                        ></path>
+                      </svg>
+                    </button>
+                  </div>
+                </div>
+                <p
+                  class="text-gray-600 text-sm mb-3"
+                  x-text="plugin.description || 'No description available'"
+                ></p>
+                <div class="flex items-center justify-between">
+                  <span
+                    class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium"
+                    :class="plugin.is_deprecated ? 'bg-red-100 text-red-800' : 'bg-green-100 text-green-800'"
+                  >
+                    <span
+                      x-text="plugin.is_deprecated ? 'Deprecated' : 'Active'"
+                    ></span>
+                  </span>
+                  <div class="flex space-x-2">
+                    <a
+                      x-show="plugin.source_url"
+                      :href="plugin.source_url"
+                      target="_blank"
+                      class="text-xs text-gray-500 hover:text-purple-600"
+                      title="Source Code"
+                    >
+                      <svg
+                        class="w-4 h-4"
+                        fill="currentColor"
+                        viewBox="0 0 20 20"
+                      >
+                        <path
+                          fill-rule="evenodd"
+                          d="M12.316 3.051a1 1 0 01.633 1.265l-4 12a1 1 0 11-1.898-.632l4-12a1 1 0 011.265-.633z"
+                          clip-rule="evenodd"
+                        ></path>
+                      </svg>
+                    </a>
+                    <a
+                      x-show="plugin.documentation_url"
+                      :href="plugin.documentation_url"
+                      target="_blank"
+                      class="text-xs text-gray-500 hover:text-purple-600"
+                      title="Documentation"
+                    >
+                      <svg
+                        class="w-4 h-4"
+                        fill="currentColor"
+                        viewBox="0 0 20 20"
+                      >
+                        <path
+                          fill-rule="evenodd"
+                          d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
+                          clip-rule="evenodd"
+                        ></path>
+                      </svg>
+                    </a>
+                  </div>
+                </div>
+              </div>
+            </template>
+          </div>
+
+          <!-- Empty Plugins State -->
+          <div
+            x-show="sectionsOpen.settingsPlugins && availablePlugins.length === 0"
+            class="text-center py-12"
+          >
+            <div
+              class="mx-auto h-24 w-24 bg-gradient-to-br from-gray-100 to-gray-200 rounded-full flex items-center justify-center mb-6"
+            >
+              <svg
+                class="h-12 w-12 text-gray-400"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="1"
+                  d="M11 4a2 2 0 114 0v1a1 1 0 001 1h3a1 1 0 011 1v3a1 1 0 01-1 1h-1a2 2 0 100 4h1a1 1 0 011 1v3a1 1 0 01-1 1h-3a1 1 0 01-1-1v-1a2 2 0 10-4 0v1a1 1 0 01-1 1H7a1 1 0 01-1-1v-3a1 1 0 00-1-1H4a2 2 0 110-4h1a1 1 0 001-1V7a1 1 0 011-1h3a1 1 0 001-1V4z"
+                ></path>
+              </svg>
+            </div>
+            <h3 class="text-lg font-medium text-gray-900 mb-2">
+              No plugins available
+            </h3>
+            <p class="text-gray-500 mb-6">
+              Add your first Vagrant plugin to enhance functionality.
+            </p>
+            <button @click="openAddPluginModal()" class="btn btn-primary">
+              <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                <path
+                  fill-rule="evenodd"
+                  d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z"
+                  clip-rule="evenodd"
+                ></path>
+              </svg>
+              Add First Plugin
+            </button>
+          </div>
+        </div>
+
+        <!-- Global Provisioners Section -->
+        <div class="card">
+          <div class="flex justify-between items-center mb-6">
+            <div class="flex items-center space-x-4">
+              <button
+                @click="sectionsOpen.settingsProvisioners = !sectionsOpen.settingsProvisioners"
+                class="text-gray-500 hover:text-gray-700 transition-colors p-1"
+              >
+                <svg
+                  class="w-5 h-5 transition-transform"
+                  :class="{ 'rotate-180': !sectionsOpen.settingsProvisioners }"
+                  fill="currentColor"
+                  viewBox="0 0 20 20"
+                >
+                  <path
+                    fill-rule="evenodd"
+                    d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
+                    clip-rule="evenodd"
+                  ></path>
+                </svg>
+              </button>
+              <div
+                @click="sectionsOpen.settingsProvisioners = !sectionsOpen.settingsProvisioners"
+                class="cursor-pointer"
+              >
+                <h3
+                  class="text-2xl font-bold text-gray-900 hover:text-gray-700 transition-colors"
+                >
+                  Global Provisioners
+                </h3>
+                <p class="text-gray-600 mt-1">
+                  Configure provisioners that run on all VMs
+                </p>
+              </div>
+            </div>
+            <div
+              x-show="sectionsOpen.settingsProvisioners"
+              class="flex items-center space-x-3"
+            >
+              <span
+                class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800"
+              >
+                <span
+                  x-text="`${availableProvisioners.length} provisioners configured`"
+                ></span>
+              </span>
+              <button @click="loadProvisioners()" class="btn btn-secondary">
+                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                  <path
+                    fill-rule="evenodd"
+                    d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z"
+                    clip-rule="evenodd"
+                  ></path>
+                </svg>
+                Refresh
+              </button>
+              <button
+                @click="openAddProvisionerModal()"
+                class="btn btn-primary"
+              >
+                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                  <path
+                    fill-rule="evenodd"
+                    d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z"
+                    clip-rule="evenodd"
+                  ></path>
+                </svg>
+                Add Provisioner
+              </button>
+            </div>
+          </div>
+
+          <!-- Provisioners Grid -->
+          <div
+            x-show="sectionsOpen.settingsProvisioners && availableProvisioners.length > 0"
+            class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"
+          >
+            <template
+              x-for="provisioner in availableProvisioners"
+              :key="provisioner.id"
+            >
+              <div
+                class="border border-gray-200 rounded-lg p-4 hover:border-blue-300 transition-colors"
+                :class="provisioner.is_shared ? 'border-amber-200 bg-amber-50/20' : ''"
+              >
+                <div class="flex items-start justify-between mb-3">
+                  <div class="flex items-center space-x-3 flex-1">
+                    <div
+                      class="w-10 h-10 bg-gradient-to-br from-blue-500 to-cyan-600 rounded-lg flex items-center justify-center"
+                    >
+                      <svg
+                        class="w-5 h-5 text-white"
+                        fill="currentColor"
+                        viewBox="0 0 20 20"
+                      >
+                        <path
+                          d="M3 12v3c0 1.657 3.134 3 7 3s7-1.343 7-3v-3c0 1.657-3.134 3-7 3s-7-1.343-7-3z"
+                        ></path>
+                        <path
+                          d="M3 7v3c0 1.657 3.134 3 7 3s7-1.343 7-3V7c0 1.657-3.134 3-7 3S3 8.657 3 7z"
+                        ></path>
+                        <path
+                          d="M17 5c0 1.657-3.134 3-7 3S3 6.657 3 5s3.134-3 7-3 7 1.343 7 3z"
+                        ></path>
+                      </svg>
+                    </div>
+                    <div class="flex-1 min-w-0">
+                      <div class="flex items-center gap-2 flex-wrap">
+                        <h4
+                          class="text-lg font-semibold text-gray-900"
+                          x-text="provisioner.name"
+                        ></h4>
+                        <span
+                          x-show="provisioner.is_shared"
+                          class="shared-resource-badge"
+                          title="This is a shared provisioner. You can use it in your projects, but cannot edit or delete it."
+                        >
+                          <svg
+                            class="w-3 h-3"
+                            fill="currentColor"
+                            viewBox="0 0 20 20"
+                          >
+                            <path
+                              d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v3h8v-3zM6 8a2 2 0 11-4 0 2 2 0 014 0zM16 18v-3a5.972 5.972 0 00-.75-2.906A3.005 3.005 0 0119 15v3h-3zM4.75 12.094A5.973 5.973 0 004 15v3H1v-3a3 3 0 013.75-2.906z"
+                            ></path>
+                          </svg>
+                          Shared
+                        </span>
+                      </div>
+                      <p
+                        class="text-xs text-gray-500"
+                        x-text="provisioner.type"
+                      ></p>
+                    </div>
+                  </div>
+                  <div class="flex space-x-1">
+                    <!-- Star button (for shared resources) -->
+                    <button
+                      x-show="provisioner.is_shared"
+                      @click="toggleFavorite('provisioners', provisioner.id)"
+                      :class="isFavorite('provisioners', provisioner.id) ? 'text-yellow-500' : 'text-gray-400'"
+                      class="p-1 hover:text-yellow-500 transition-colors"
+                      :title="isFavorite('provisioners', provisioner.id) ? 'Remove from favorites' : 'Add to favorites'"
+                    >
+                      <svg
+                        class="w-4 h-4"
+                        :fill="isFavorite('provisioners', provisioner.id) ? 'currentColor' : 'none'"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          stroke-width="2"
+                          d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"
+                        ></path>
+                      </svg>
+                    </button>
+                    <!-- Copy button (for shared resources) -->
+                    <button
+                      x-show="provisioner.is_shared"
+                      @click="copySharedResource('provisioners', provisioner.id)"
+                      class="p-1 text-gray-400 hover:text-blue-600 transition-colors"
+                      title="Copy to My Resources"
+                    >
+                      <svg
+                        class="w-4 h-4"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          stroke-width="2"
+                          d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"
+                        ></path>
+                      </svg>
+                    </button>
+                    <!-- Edit/Delete buttons (for user's own resources) -->
+                    <button
+                      x-show="!provisioner.is_shared"
+                      @click="openEditProvisionerModal(provisioner)"
+                      class="p-1 text-gray-400 hover:text-blue-600 transition-colors"
+                    >
+                      <svg
+                        class="w-4 h-4"
+                        fill="currentColor"
+                        viewBox="0 0 20 20"
+                      >
+                        <path
+                          d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z"
+                        ></path>
+                      </svg>
+                    </button>
+                    <button
+                      x-show="!provisioner.is_shared"
+                      @click="confirmDeleteProvisioner(provisioner)"
+                      class="p-1 text-gray-400 hover:text-red-600 transition-colors"
+                    >
+                      <svg
+                        class="w-4 h-4"
+                        fill="currentColor"
+                        viewBox="0 0 20 20"
+                      >
+                        <path
+                          fill-rule="evenodd"
+                          d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z"
+                          clip-rule="evenodd"
+                        ></path>
+                        <path
+                          fill-rule="evenodd"
+                          d="M10 18a8 8 0 100-16 8 8 0 000 16zM8 7a1 1 0 012 0v4a1 1 0 11-2 0V7zM12 7a1 1 0 012 0v4a1 1 0 11-2 0V7z"
+                          clip-rule="evenodd"
+                        ></path>
+                      </svg>
+                    </button>
+                  </div>
+                </div>
+                <p
+                  class="text-gray-600 text-sm mb-3"
+                  x-text="provisioner.description || 'No description provided'"
+                ></p>
+                <div class="flex items-center justify-between">
+                  <span
+                    class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800"
+                  >
+                    <span x-text="provisioner.scope"></span>
+                  </span>
+                </div>
+              </div>
+            </template>
+          </div>
+
+          <!-- Empty State -->
+          <div
+            x-show="sectionsOpen.settingsProvisioners && availableProvisioners.length === 0"
+            class="text-center py-12"
+          >
+            <div
+              class="mx-auto w-24 h-24 bg-gradient-to-br from-blue-100 to-cyan-100 rounded-full flex items-center justify-center mb-4"
+            >
+              <svg
+                class="w-12 h-12 text-blue-500"
+                fill="currentColor"
+                viewBox="0 0 20 20"
+              >
+                <path
+                  d="M3 12v3c0 1.657 3.134 3 7 3s7-1.343 7-3v-3c0 1.657-3.134 3-7 3s-7-1.343-7-3z"
+                ></path>
+                <path
+                  d="M3 7v3c0 1.657 3.134 3 7 3s7-1.343 7-3V7c0 1.657-3.134 3-7 3S3 8.657 3 7z"
+                ></path>
+                <path
+                  d="M17 5c0 1.657-3.134 3-7 3S3 6.657 3 5s3.134-3 7-3 7 1.343 7 3z"
+                ></path>
+              </svg>
+            </div>
+            <h3 class="text-lg font-medium text-gray-900 mb-2">
+              No Provisioners Configured
+            </h3>
+            <p class="text-gray-600 mb-6">
+              Get started by creating your first global provisioner.
+            </p>
+            <button @click="openAddProvisionerModal()" class="btn btn-primary">
+              <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                <path
+                  fill-rule="evenodd"
+                  d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z"
+                  clip-rule="evenodd"
+                ></path>
+              </svg>
+              Add Your First Provisioner
+            </button>
+          </div>
+        </div>
+
+        <!-- Global Triggers Section -->
+        <div class="card">
+          <div class="flex justify-between items-center mb-6">
+            <div class="flex items-center space-x-4">
+              <button
+                @click="sectionsOpen.settingsTriggers = !sectionsOpen.settingsTriggers"
+                class="text-gray-500 hover:text-gray-700 transition-colors p-1"
+              >
+                <svg
+                  class="w-5 h-5 transition-transform"
+                  :class="{ 'rotate-180': !sectionsOpen.settingsTriggers }"
+                  fill="currentColor"
+                  viewBox="0 0 20 20"
+                >
+                  <path
+                    fill-rule="evenodd"
+                    d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
+                    clip-rule="evenodd"
+                  ></path>
+                </svg>
+              </button>
+              <div
+                @click="sectionsOpen.settingsTriggers = !sectionsOpen.settingsTriggers"
+                class="cursor-pointer"
+              >
+                <h3
+                  class="text-2xl font-bold text-gray-900 hover:text-gray-700 transition-colors"
+                >
+                  Global Triggers
+                </h3>
+                <p class="text-gray-600 mt-1">
+                  Configure triggers that execute before/after Vagrant commands
+                </p>
+              </div>
+            </div>
+            <div
+              x-show="sectionsOpen.settingsTriggers"
+              class="flex items-center space-x-3"
+            >
+              <span
+                class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-orange-100 text-orange-800"
+              >
+                <span
+                  x-text="`${availableTriggers.length} triggers configured`"
+                ></span>
+              </span>
+              <button @click="loadTriggers()" class="btn btn-secondary">
+                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                  <path
+                    fill-rule="evenodd"
+                    d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z"
+                    clip-rule="evenodd"
+                  ></path>
+                </svg>
+                Refresh
+              </button>
+              <button @click="openCreateTriggerModal()" class="btn btn-primary">
+                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                  <path
+                    fill-rule="evenodd"
+                    d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z"
+                    clip-rule="evenodd"
+                  ></path>
+                </svg>
+                Add Trigger
+              </button>
+            </div>
+          </div>
+
+          <!-- Triggers Grid -->
+          <div
+            x-show="sectionsOpen.settingsTriggers && availableTriggers.length > 0"
+            class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"
+          >
+            <template x-for="trigger in availableTriggers" :key="trigger.id">
+              <div
+                class="border border-gray-200 rounded-lg p-4 hover:border-orange-300 transition-colors"
+                :class="trigger.is_shared ? 'border-amber-200 bg-amber-50/20' : ''"
+              >
+                <div class="flex items-start justify-between mb-3">
+                  <div class="flex items-center space-x-3 flex-1">
+                    <div
+                      class="w-10 h-10 bg-gradient-to-br from-orange-500 to-red-600 rounded-lg flex items-center justify-center"
+                    >
+                      <svg
+                        class="w-5 h-5 text-white"
+                        fill="currentColor"
+                        viewBox="0 0 20 20"
+                      >
+                        <path
+                          fill-rule="evenodd"
+                          d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z"
+                          clip-rule="evenodd"
+                        ></path>
+                      </svg>
+                    </div>
+                    <div class="flex-1 min-w-0">
+                      <div class="flex items-center gap-2 flex-wrap">
+                        <h4
+                          class="text-lg font-semibold text-gray-900"
+                          x-text="trigger.name"
+                        ></h4>
+                        <span
+                          x-show="trigger.is_shared"
+                          class="shared-resource-badge"
+                          title="This is a shared trigger. You can use it in your projects, but cannot edit or delete it."
+                        >
+                          <svg
+                            class="w-3 h-3"
+                            fill="currentColor"
+                            viewBox="0 0 20 20"
+                          >
+                            <path
+                              d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v3h8v-3zM6 8a2 2 0 11-4 0 2 2 0 014 0zM16 18v-3a5.972 5.972 0 00-.75-2.906A3.005 3.005 0 0119 15v3h-3zM4.75 12.094A5.973 5.973 0 004 15v3H1v-3a3 3 0 013.75-2.906z"
+                            ></path>
+                          </svg>
+                          Shared
+                        </span>
+                      </div>
+                      <div class="flex items-center space-x-1 text-xs">
+                        <span
+                          class="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium"
+                          :class="trigger.timing === 'before' ? 'bg-yellow-100 text-yellow-800' : 'bg-green-100 text-green-800'"
+                          x-text="trigger.timing"
+                        ></span>
+                        <span class="text-gray-500">:</span>
+                        <span
+                          class="text-gray-600 font-medium"
+                          x-text="trigger.stage"
+                        ></span>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="flex space-x-1">
+                    <!-- Star button (for shared resources) -->
+                    <button
+                      x-show="trigger.is_shared"
+                      @click="toggleFavorite('triggers', trigger.id)"
+                      :class="isFavorite('triggers', trigger.id) ? 'text-yellow-500' : 'text-gray-400'"
+                      class="p-1 hover:text-yellow-500 transition-colors"
+                      :title="isFavorite('triggers', trigger.id) ? 'Remove from favorites' : 'Add to favorites'"
+                    >
+                      <svg
+                        class="w-4 h-4"
+                        :fill="isFavorite('triggers', trigger.id) ? 'currentColor' : 'none'"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          stroke-width="2"
+                          d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"
+                        ></path>
+                      </svg>
+                    </button>
+                    <!-- Copy button (for shared resources) -->
+                    <button
+                      x-show="trigger.is_shared"
+                      @click="copySharedResource('triggers', trigger.id)"
+                      class="p-1 text-gray-400 hover:text-orange-600 transition-colors"
+                      title="Copy to My Resources"
+                    >
+                      <svg
+                        class="w-4 h-4"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          stroke-width="2"
+                          d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"
+                        ></path>
+                      </svg>
+                    </button>
+                    <!-- Edit/Delete buttons (for user's own resources) -->
+                    <button
+                      x-show="!trigger.is_shared"
+                      @click="openEditTriggerModal(trigger)"
+                      class="p-1 text-gray-400 hover:text-orange-600 transition-colors"
+                    >
+                      <svg
+                        class="w-4 h-4"
+                        fill="currentColor"
+                        viewBox="0 0 20 20"
+                      >
+                        <path
+                          d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z"
+                        ></path>
+                      </svg>
+                    </button>
+                    <button
+                      x-show="!trigger.is_shared"
+                      @click="confirmDeleteTrigger(trigger)"
+                      class="p-1 text-gray-400 hover:text-red-600 transition-colors"
+                    >
+                      <svg
+                        class="w-4 h-4"
+                        fill="currentColor"
+                        viewBox="0 0 20 20"
+                      >
+                        <path
+                          fill-rule="evenodd"
+                          d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z"
+                          clip-rule="evenodd"
+                        ></path>
+                        <path
+                          fill-rule="evenodd"
+                          d="M10 18a8 8 0 100-16 8 8 0 000 16zM8 7a1 1 0 012 0v4a1 1 0 11-2 0V7zM12 7a1 1 0 012 0v4a1 1 0 11-2 0V7z"
+                          clip-rule="evenodd"
+                        ></path>
+                      </svg>
+                    </button>
+                  </div>
+                </div>
+                <p
+                  class="text-gray-600 text-sm mb-3"
+                  x-text="trigger.description || 'No description provided'"
+                ></p>
+              </div>
+            </template>
+          </div>
+
+          <!-- Empty State -->
+          <div
+            x-show="sectionsOpen.settingsTriggers && availableTriggers.length === 0"
+            class="text-center py-12"
+          >
+            <div
+              class="mx-auto w-24 h-24 bg-gradient-to-br from-orange-100 to-red-100 rounded-full flex items-center justify-center mb-4"
+            >
+              <svg
+                class="w-12 h-12 text-orange-500"
+                fill="currentColor"
+                viewBox="0 0 20 20"
+              >
+                <path
+                  fill-rule="evenodd"
+                  d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z"
+                  clip-rule="evenodd"
+                ></path>
+              </svg>
+            </div>
+            <h3 class="text-lg font-medium text-gray-900 mb-2">
+              No Triggers Configured
+            </h3>
+            <p class="text-gray-600 mb-6">
+              Get started by creating your first global trigger.
+            </p>
+            <button @click="openCreateTriggerModal()" class="btn btn-primary">
+              <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                <path
+                  fill-rule="evenodd"
+                  d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z"
+                  clip-rule="evenodd"
+                ></path>
+              </svg>
+              Add Your First Trigger
+            </button>
+          </div>
+        </div>
+
+        <!-- Network Validation Settings -->
+        <div class="card">
+          <h3 class="text-xl font-bold text-gray-900 mb-6">
+            Network Validation Settings
+          </h3>
+          <p class="text-gray-600 mb-6">
+            Configure how IP addresses are validated for private networks. These
+            settings affect both frontend validation and user experience.
+          </p>
+
+          <div class="space-y-6">
+            <div class="flex items-start">
+              <div class="flex items-center h-5">
+                <input
+                  type="checkbox"
+                  x-model="config.allowPublicIPsInPrivateNetworks"
+                  @change="saveConfiguration()"
+                  id="allowPublicIPs"
+                  class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 focus:ring-2"
+                />
+              </div>
+              <div class="ml-3">
+                <label
+                  for="allowPublicIPs"
+                  class="text-sm font-medium text-gray-700"
+                >
+                  Allow public IP addresses in private networks
+                </label>
+                <p class="text-sm text-gray-500 mt-1">
+                  When enabled, allows any valid IPv4 address in private network
+                  configurations. When disabled (recommended), only private IP
+                  ranges (192.168.x.x, 10.x.x.x, 172.16-31.x.x) are allowed.
+                </p>
+              </div>
+            </div>
+
+            <div
+              x-show="config.allowPublicIPsInPrivateNetworks"
+              class="bg-yellow-50 border border-yellow-200 rounded-lg p-4"
+            >
+              <div class="flex">
+                <div class="flex-shrink-0">
+                  <svg
+                    class="h-5 w-5 text-yellow-400"
+                    viewBox="0 0 20 20"
+                    fill="currentColor"
+                  >
+                    <path
+                      fill-rule="evenodd"
+                      d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z"
+                      clip-rule="evenodd"
+                    ></path>
+                  </svg>
+                </div>
+                <div class="ml-3">
+                  <h4 class="text-sm font-medium text-yellow-800">
+                    Security Warning
+                  </h4>
+                  <p class="text-sm text-yellow-700 mt-1">
+                    Allowing public IP addresses in private networks may create
+                    connectivity issues and security concerns. This option is
+                    intended for advanced users with specific network
+                    requirements.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- VM Configuration Limits -->
+        <div class="card">
+          <h3 class="text-xl font-bold text-gray-900 mb-6">
+            VM Configuration Limits
+          </h3>
+          <p class="text-gray-600 mb-6">
+            Configure the default limits for virtual machine resources. These
+            limits apply to VM creation and validation.
+          </p>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <label class="form-label">Maximum CPUs</label>
+              <input
+                type="number"
+                x-model="config.maxCpus"
+                min="1"
+                max="64"
+                class="form-input"
+                placeholder="8"
+              />
+              <p class="text-sm text-gray-500 mt-1">
+                Maximum number of CPUs allowed per VM
+              </p>
+            </div>
+
+            <div>
+              <label class="form-label">Maximum Memory (MB)</label>
+              <input
+                type="number"
+                x-model="config.maxMemoryMB"
+                min="512"
+                max="131072"
+                step="256"
+                class="form-input"
+                placeholder="16384"
+              />
+              <p class="text-sm text-gray-500 mt-1">
+                Maximum memory allowed per VM (in MB)
+              </p>
+            </div>
+
+            <div>
+              <label class="form-label">Minimum Memory (MB)</label>
+              <input
+                type="number"
+                x-model="config.minMemoryMB"
+                min="128"
+                max="8192"
+                step="128"
+                class="form-input"
+                placeholder="512"
+              />
+              <p class="text-sm text-gray-500 mt-1">
+                Minimum memory required per VM (in MB)
+              </p>
+            </div>
+
+            <div>
+              <label class="form-label">Memory Step Size (MB)</label>
+              <input
+                type="number"
+                x-model="config.memoryStep"
+                min="1"
+                max="1024"
+                class="form-input"
+                placeholder="256"
+              />
+              <p class="text-sm text-gray-500 mt-1">
+                Memory increment size for input controls
+              </p>
+            </div>
+          </div>
+
+          <div
+            class="flex justify-between items-center pt-6 border-t border-gray-200 mt-6"
+          >
+            <div class="text-sm text-gray-600">
+              <p><strong>Current Limits:</strong></p>
+              <p>CPUs: 1 - <span x-text="config.maxCpus"></span></p>
+              <p>
+                Memory: <span x-text="config.minMemoryMB"></span> -
+                <span x-text="config.maxMemoryMB"></span> MB (<span
+                  x-text="Math.round(config.maxMemoryMB / 1024)"
+                ></span>
+                GB)
+              </p>
+            </div>
+            <button @click="saveConfiguration()" class="btn btn-primary">
+              <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                <path
+                  d="M7.707 10.293a1 1 0 10-1.414 1.414l3 3a1 1 0 001.414 0l3-3a1 1 0 00-1.414-1.414L11 11.586V6h5a2 2 0 012 2v6a2 2 0 01-2 2H4a2 2 0 01-2-2V8a2 2 0 012-2h5v5.586l-1.293-1.293zM9 4a1 1 0 012 0v2H9V4z"
+                ></path>
+              </svg>
+              Save VM Limits
+            </button>
+          </div>
+        </div>
+      </div>
     </main>
 
     <!-- Modals -->
@@ -616,10 +1461,10 @@
 
     <!-- Create VM Modal -->
     <div data-include-html="/modals/create-vm.html"></div>
-    
+
     <!-- Edit VM Modal -->
     <div data-include-html="/modals/edit-vm.html"></div>
-    
+
     <!-- View Vagrantfile Modal -->
     <div data-include-html="/modals/view-vagrantfile.html"></div>
 
@@ -631,551 +1476,779 @@
 
     <!-- Bulk Delete VMs Modal -->
     <div data-include-html="/modals/bulk-delete-vms.html"></div>
-    
+
     <!-- Project Plugin Modals -->
     <div data-include-html="/modals/add-project-plugin.html"></div>
     <div data-include-html="/modals/delete-project-plugin.html"></div>
     <div data-include-html="/modals/bulk-delete-plugins.html"></div>
-    
+
     <!-- Project Provisioner Modals -->
     <div data-include-html="/modals/add-project-provisioner.html"></div>
     <div data-include-html="/modals/delete-project-provisioner.html"></div>
     <div data-include-html="/modals/bulk-delete-provisioners.html"></div>
-    
+
     <!-- Trigger Modals -->
     <div data-include-html="/modals/edit-trigger.html"></div>
     <div data-include-html="/modals/add-project-trigger.html"></div>
     <div data-include-html="/modals/delete-project-trigger.html"></div>
     <div data-include-html="/modals/bulk-delete-triggers.html"></div>
-    
+
     <!-- Box Add/Edit Modal -->
-    <div x-show="showBoxModal" 
-         x-transition:enter="transition ease-out duration-200"
-         x-transition:enter-start="opacity-0"
-         x-transition:enter-end="opacity-100"
-         x-transition:leave="transition ease-in duration-200"
-         x-transition:leave-start="opacity-100"
-         x-transition:leave-end="opacity-0"
-         class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-        <div x-show="showBoxModal"
-             x-transition:enter="transition ease-out duration-200"
-             x-transition:enter-start="opacity-0 scale-95"
-             x-transition:enter-end="opacity-100 scale-100"
-             x-transition:leave="transition ease-in duration-200"
-             x-transition:leave-start="opacity-100 scale-100"
-             x-transition:leave-end="opacity-0 scale-95"
-             class="bg-white rounded-lg p-6 w-full max-w-md max-h-screen overflow-y-auto">
-            <div class="flex justify-between items-center mb-6">
-                <h3 class="text-xl font-bold text-gray-900" x-text="editingBox ? 'Edit Box' : 'Add New Box'"></h3>
-                <button @click="closeBoxModal()" class="text-gray-400 hover:text-gray-600">
-                    <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
-                        <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"></path>
-                    </svg>
-                </button>
-            </div>
-            
-            <form @submit.prevent="saveBox()" class="space-y-4">
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">
-                        Box Name <span class="text-red-500">*</span>
-                    </label>
-                    <input type="text" 
-                           x-model="boxForm.name"
-                           placeholder="e.g., generic/ubuntu2204"
-                           class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                           required>
-                </div>
-                
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">
-                        Description <span class="text-red-500">*</span>
-                    </label>
-                    <textarea x-model="boxForm.description"
-                              placeholder="Brief description of the box"
-                              rows="3"
-                              class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                              required></textarea>
-                </div>
-                
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">
-                        Provider
-                    </label>
-                    <select x-model="boxForm.provider" 
-                            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
-                        <option value="libvirt">libvirt</option>
-                        <option value="virtualbox">VirtualBox</option>
-                        <option value="vmware">VMware</option>
-                        <option value="hyperv">Hyper-V</option>
-                    </select>
-                </div>
-                
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">
-                        Version (optional)
-                    </label>
-                    <input type="text" 
-                           x-model="boxForm.version"
-                           placeholder="e.g., 20230616.0.0"
-                           class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
-                </div>
-                
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">
-                        Custom URL (optional)
-                    </label>
-                    <input type="url" 
-                           x-model="boxForm.url"
-                           placeholder="https://example.com/custom-box.box"
-                           class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
-                </div>
-                
-                <div class="flex justify-end space-x-3 pt-4">
-                    <button type="button" @click="closeBoxModal()" 
-                            class="btn btn-secondary">
-                        Cancel
-                    </button>
-                    <button type="submit" 
-                            class="btn btn-primary">
-                        <span x-text="editingBox ? 'Update Box' : 'Add Box'"></span>
-                    </button>
-                </div>
-            </form>
+    <div
+      x-show="showBoxModal"
+      x-transition:enter="transition ease-out duration-200"
+      x-transition:enter-start="opacity-0"
+      x-transition:enter-end="opacity-100"
+      x-transition:leave="transition ease-in duration-200"
+      x-transition:leave-start="opacity-100"
+      x-transition:leave-end="opacity-0"
+      class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+    >
+      <div
+        x-show="showBoxModal"
+        x-transition:enter="transition ease-out duration-200"
+        x-transition:enter-start="opacity-0 scale-95"
+        x-transition:enter-end="opacity-100 scale-100"
+        x-transition:leave="transition ease-in duration-200"
+        x-transition:leave-start="opacity-100 scale-100"
+        x-transition:leave-end="opacity-0 scale-95"
+        class="bg-white rounded-lg p-6 w-full max-w-md max-h-screen overflow-y-auto"
+      >
+        <div class="flex justify-between items-center mb-6">
+          <h3
+            class="text-xl font-bold text-gray-900"
+            x-text="editingBox ? 'Edit Box' : 'Add New Box'"
+          ></h3>
+          <button
+            @click="closeBoxModal()"
+            class="text-gray-400 hover:text-gray-600"
+          >
+            <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+              <path
+                fill-rule="evenodd"
+                d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
+                clip-rule="evenodd"
+              ></path>
+            </svg>
+          </button>
         </div>
+
+        <form @submit.prevent="saveBox()" class="space-y-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">
+              Box Name <span class="text-red-500">*</span>
+            </label>
+            <input
+              type="text"
+              x-model="boxForm.name"
+              placeholder="e.g., generic/ubuntu2204"
+              class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              required
+            />
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">
+              Description <span class="text-red-500">*</span>
+            </label>
+            <textarea
+              x-model="boxForm.description"
+              placeholder="Brief description of the box"
+              rows="3"
+              class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              required
+            ></textarea>
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">
+              Provider
+            </label>
+            <select
+              x-model="boxForm.provider"
+              class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              <option value="libvirt">libvirt</option>
+              <option value="virtualbox">VirtualBox</option>
+              <option value="vmware">VMware</option>
+              <option value="hyperv">Hyper-V</option>
+            </select>
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">
+              Version (optional)
+            </label>
+            <input
+              type="text"
+              x-model="boxForm.version"
+              placeholder="e.g., 20230616.0.0"
+              class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">
+              Custom URL (optional)
+            </label>
+            <input
+              type="url"
+              x-model="boxForm.url"
+              placeholder="https://example.com/custom-box.box"
+              class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+          </div>
+
+          <div class="flex justify-end space-x-3 pt-4">
+            <button
+              type="button"
+              @click="closeBoxModal()"
+              class="btn btn-secondary"
+            >
+              Cancel
+            </button>
+            <button type="submit" class="btn btn-primary">
+              <span x-text="editingBox ? 'Update Box' : 'Add Box'"></span>
+            </button>
+          </div>
+        </form>
+      </div>
     </div>
 
     <!-- Delete Box Confirmation Modal -->
-    <div x-show="showDeleteBoxConfirmModal" 
-         x-transition:enter="transition ease-out duration-200"
-         x-transition:enter-start="opacity-0"
-         x-transition:enter-end="opacity-100"
-         x-transition:leave="transition ease-in duration-200"
-         x-transition:leave-start="opacity-100"
-         x-transition:leave-end="opacity-0"
-         class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-        <div x-show="showDeleteBoxConfirmModal"
-             x-transition:enter="transition ease-out duration-200"
-             x-transition:enter-start="opacity-0 scale-95"
-             x-transition:enter-end="opacity-100 scale-100"
-             x-transition:leave="transition ease-in duration-200"
-             x-transition:leave-start="opacity-100 scale-100"
-             x-transition:leave-end="opacity-0 scale-95"
-             class="bg-white rounded-lg p-6 w-full max-w-md">
-            <div class="flex items-center mb-4">
-                <div class="flex-shrink-0 w-10 h-10 bg-red-100 rounded-full flex items-center justify-center">
-                    <svg class="w-6 h-6 text-red-600" fill="currentColor" viewBox="0 0 20 20">
-                        <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"></path>
-                    </svg>
-                </div>
-                <div class="ml-4">
-                    <h3 class="text-lg font-medium text-gray-900">Delete Box</h3>
-                    <p class="text-sm text-gray-500">This action cannot be undone.</p>
-                </div>
-            </div>
-            
-            <div class="mb-6">
-                <p class="text-gray-700">
-                    Are you sure you want to delete the box 
-                    <span class="font-medium" x-text="boxToDelete?.name"></span>?
-                </p>
-            </div>
-            
-            <div class="flex justify-end space-x-3">
-                <button @click="closeDeleteBoxModal()" 
-                        class="px-4 py-2 text-gray-700 bg-gray-200 rounded-md hover:bg-gray-300 transition-colors">
-                    Cancel
-                </button>
-                <button @click="deleteBox()" 
-                        class="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors">
-                    Delete Box
-                </button>
-            </div>
+    <div
+      x-show="showDeleteBoxConfirmModal"
+      x-transition:enter="transition ease-out duration-200"
+      x-transition:enter-start="opacity-0"
+      x-transition:enter-end="opacity-100"
+      x-transition:leave="transition ease-in duration-200"
+      x-transition:leave-start="opacity-100"
+      x-transition:leave-end="opacity-0"
+      class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+    >
+      <div
+        x-show="showDeleteBoxConfirmModal"
+        x-transition:enter="transition ease-out duration-200"
+        x-transition:enter-start="opacity-0 scale-95"
+        x-transition:enter-end="opacity-100 scale-100"
+        x-transition:leave="transition ease-in duration-200"
+        x-transition:leave-start="opacity-100 scale-100"
+        x-transition:leave-end="opacity-0 scale-95"
+        class="bg-white rounded-lg p-6 w-full max-w-md"
+      >
+        <div class="flex items-center mb-4">
+          <div
+            class="flex-shrink-0 w-10 h-10 bg-red-100 rounded-full flex items-center justify-center"
+          >
+            <svg
+              class="w-6 h-6 text-red-600"
+              fill="currentColor"
+              viewBox="0 0 20 20"
+            >
+              <path
+                fill-rule="evenodd"
+                d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z"
+                clip-rule="evenodd"
+              ></path>
+            </svg>
+          </div>
+          <div class="ml-4">
+            <h3 class="text-lg font-medium text-gray-900">Delete Box</h3>
+            <p class="text-sm text-gray-500">This action cannot be undone.</p>
+          </div>
         </div>
+
+        <div class="mb-6">
+          <p class="text-gray-700">
+            Are you sure you want to delete the box
+            <span class="font-medium" x-text="boxToDelete?.name"></span>?
+          </p>
+        </div>
+
+        <div class="flex justify-end space-x-3">
+          <button
+            @click="closeDeleteBoxModal()"
+            class="px-4 py-2 text-gray-700 bg-gray-200 rounded-md hover:bg-gray-300 transition-colors"
+          >
+            Cancel
+          </button>
+          <button
+            @click="deleteBox()"
+            class="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors"
+          >
+            Delete Box
+          </button>
+        </div>
+      </div>
     </div>
 
     <!-- Add/Edit Plugin Modal -->
-    <div x-show="showPluginModal" 
-         x-transition:enter="transition ease-out duration-200"
-         x-transition:enter-start="opacity-0"
-         x-transition:enter-end="opacity-100"
-         x-transition:leave="transition ease-in duration-200"
-         x-transition:leave-start="opacity-100"
-         x-transition:leave-end="opacity-0"
-         class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-        <div x-show="showPluginModal"
-             x-transition:enter="transition ease-out duration-200"
-             x-transition:enter-start="opacity-0 scale-95"
-             x-transition:enter-end="opacity-100 scale-100"
-             x-transition:leave="transition ease-in duration-200"
-             x-transition:leave-start="opacity-100 scale-100"
-             x-transition:leave-end="opacity-0 scale-95"
-             class="bg-white rounded-lg p-6 w-full max-w-md max-h-screen overflow-y-auto">
-            <div class="flex justify-between items-center mb-6">
-                <h3 class="text-xl font-bold text-gray-900" x-text="editingPlugin ? 'Edit Plugin' : 'Add New Plugin'"></h3>
-                <button @click="closePluginModal()" class="text-gray-400 hover:text-gray-600">
-                    <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
-                        <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"></path>
-                    </svg>
-                </button>
-            </div>
-            
-            <form @submit.prevent="savePlugin()" class="space-y-4">
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">
-                        Plugin Name <span class="text-red-500">*</span>
-                    </label>
-                    <input type="text" 
-                           x-model="pluginForm.name"
-                           placeholder="e.g., vagrant-vbguest"
-                           class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
-                           required>
-                </div>
-                
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">
-                        Description
-                    </label>
-                    <textarea x-model="pluginForm.description"
-                              placeholder="Brief description of the plugin"
-                              rows="3"
-                              class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"></textarea>
-                </div>
-                
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">
-                        Source URL
-                    </label>
-                    <input type="url" 
-                           x-model="pluginForm.source_url"
-                           placeholder="https://github.com/..."
-                           class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500">
-                </div>
-                
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">
-                        Documentation URL
-                    </label>
-                    <input type="url" 
-                           x-model="pluginForm.documentation_url"
-                           placeholder="https://..."
-                           class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500">
-                </div>
-                
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">
-                        Default Version
-                    </label>
-                    <input type="text" 
-                           x-model="pluginForm.default_version"
-                           placeholder="e.g., 0.31.0 or ~> 0.32.0"
-                           class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500">
-                </div>
-                
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">
-                        Plugin Configuration
-                        <span class="text-gray-500 text-xs ml-2">(Optional)</span>
-                    </label>
-                    <textarea x-model="pluginForm.configuration"
-                              placeholder="config.plugin_name.option = value&#10;config.plugin_name.another_option = true"
-                              rows="8"
-                              class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 font-mono text-sm"></textarea>
-                    <p class="text-xs text-gray-500 mt-1">Ruby code to be inserted into the Vagrantfile for plugin-specific configuration</p>
-                </div>
-                
-                <div class="flex items-center">
-                    <input type="checkbox" 
-                           x-model="pluginForm.is_deprecated"
-                           id="is_deprecated"
-                           class="w-4 h-4 text-purple-600 bg-gray-100 border-gray-300 rounded focus:ring-purple-500 focus:ring-2">
-                    <label for="is_deprecated" class="ml-2 text-sm font-medium text-gray-700">
-                        Mark as deprecated
-                    </label>
-                </div>
-                
-                <div class="flex justify-end space-x-3 pt-4">
-                    <button type="button" @click="closePluginModal()" 
-                            class="btn btn-secondary">
-                        Cancel
-                    </button>
-                    <button type="submit" 
-                            class="btn btn-primary">
-                        <span x-text="editingPlugin ? 'Update Plugin' : 'Add Plugin'"></span>
-                    </button>
-                </div>
-            </form>
+    <div
+      x-show="showPluginModal"
+      x-transition:enter="transition ease-out duration-200"
+      x-transition:enter-start="opacity-0"
+      x-transition:enter-end="opacity-100"
+      x-transition:leave="transition ease-in duration-200"
+      x-transition:leave-start="opacity-100"
+      x-transition:leave-end="opacity-0"
+      class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+    >
+      <div
+        x-show="showPluginModal"
+        x-transition:enter="transition ease-out duration-200"
+        x-transition:enter-start="opacity-0 scale-95"
+        x-transition:enter-end="opacity-100 scale-100"
+        x-transition:leave="transition ease-in duration-200"
+        x-transition:leave-start="opacity-100 scale-100"
+        x-transition:leave-end="opacity-0 scale-95"
+        class="bg-white rounded-lg p-6 w-full max-w-md max-h-screen overflow-y-auto"
+      >
+        <div class="flex justify-between items-center mb-6">
+          <h3
+            class="text-xl font-bold text-gray-900"
+            x-text="editingPlugin ? 'Edit Plugin' : 'Add New Plugin'"
+          ></h3>
+          <button
+            @click="closePluginModal()"
+            class="text-gray-400 hover:text-gray-600"
+          >
+            <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+              <path
+                fill-rule="evenodd"
+                d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
+                clip-rule="evenodd"
+              ></path>
+            </svg>
+          </button>
         </div>
+
+        <!-- Phase 1: Info Banner for Copied Resources -->
+        <div
+          x-show="editContext.isCopiedFromShared"
+          class="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg"
+        >
+          <div class="flex items-start">
+            <svg
+              class="w-5 h-5 text-blue-600 mr-2 flex-shrink-0 mt-0.5"
+              fill="currentColor"
+              viewBox="0 0 20 20"
+            >
+              <path
+                fill-rule="evenodd"
+                d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
+                clip-rule="evenodd"
+              ></path>
+            </svg>
+            <p class="text-sm text-blue-800">
+              This is your copy of a shared resource. Changes will only affect
+              your projects.
+            </p>
+          </div>
+        </div>
+
+        <form @submit.prevent="savePlugin()" class="space-y-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">
+              Plugin Name <span class="text-red-500">*</span>
+            </label>
+            <input
+              type="text"
+              x-model="pluginForm.name"
+              placeholder="e.g., vagrant-vbguest"
+              class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+              required
+            />
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">
+              Description
+            </label>
+            <textarea
+              x-model="pluginForm.description"
+              placeholder="Brief description of the plugin"
+              rows="3"
+              class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+            ></textarea>
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">
+              Source URL
+            </label>
+            <input
+              type="url"
+              x-model="pluginForm.source_url"
+              placeholder="https://github.com/..."
+              class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+            />
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">
+              Documentation URL
+            </label>
+            <input
+              type="url"
+              x-model="pluginForm.documentation_url"
+              placeholder="https://..."
+              class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+            />
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">
+              Default Version
+            </label>
+            <input
+              type="text"
+              x-model="pluginForm.default_version"
+              placeholder="e.g., 0.31.0 or ~> 0.32.0"
+              class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+            />
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">
+              Plugin Configuration
+              <span class="text-gray-500 text-xs ml-2">(Optional)</span>
+            </label>
+            <textarea
+              x-model="pluginForm.configuration"
+              placeholder="config.plugin_name.option = value&#10;config.plugin_name.another_option = true"
+              rows="8"
+              class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 font-mono text-sm"
+            ></textarea>
+            <p class="text-xs text-gray-500 mt-1">
+              Ruby code to be inserted into the Vagrantfile for plugin-specific
+              configuration
+            </p>
+          </div>
+
+          <div class="flex items-center">
+            <input
+              type="checkbox"
+              x-model="pluginForm.is_deprecated"
+              id="is_deprecated"
+              class="w-4 h-4 text-purple-600 bg-gray-100 border-gray-300 rounded focus:ring-purple-500 focus:ring-2"
+            />
+            <label
+              for="is_deprecated"
+              class="ml-2 text-sm font-medium text-gray-700"
+            >
+              Mark as deprecated
+            </label>
+          </div>
+
+          <div class="flex justify-end space-x-3 pt-4">
+            <button
+              type="button"
+              @click="closePluginModal()"
+              class="btn btn-secondary"
+            >
+              Cancel
+            </button>
+            <button type="submit" class="btn btn-primary">
+              <span
+                x-text="editingPlugin ? 'Update Plugin' : 'Add Plugin'"
+              ></span>
+            </button>
+          </div>
+        </form>
+      </div>
     </div>
 
     <!-- Delete Plugin Confirmation Modal -->
-    <div x-show="showDeletePluginConfirmModal" 
-         x-transition:enter="transition ease-out duration-200"
-         x-transition:enter-start="opacity-0"
-         x-transition:enter-end="opacity-100"
-         x-transition:leave="transition ease-in duration-200"
-         x-transition:leave-start="opacity-100"
-         x-transition:leave-end="opacity-0"
-         class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-        <div x-show="showDeletePluginConfirmModal"
-             x-transition:enter="transition ease-out duration-200"
-             x-transition:enter-start="opacity-0 scale-95"
-             x-transition:enter-end="opacity-100 scale-100"
-             x-transition:leave="transition ease-in duration-200"
-             x-transition:leave-start="opacity-100 scale-100"
-             x-transition:leave-end="opacity-0 scale-95"
-             class="bg-white rounded-lg p-6 w-full max-w-md">
-            <div class="flex items-center mb-4">
-                <div class="flex-shrink-0 w-10 h-10 bg-red-100 rounded-full flex items-center justify-center">
-                    <svg class="w-6 h-6 text-red-600" fill="currentColor" viewBox="0 0 20 20">
-                        <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"></path>
-                    </svg>
-                </div>
-                <div class="ml-4">
-                    <h3 class="text-lg font-medium text-gray-900">Delete Plugin</h3>
-                    <p class="text-sm text-gray-500">This action cannot be undone.</p>
-                </div>
-            </div>
-            
-            <div class="mb-6">
-                <p class="text-gray-700">
-                    Are you sure you want to delete the plugin 
-                    <span class="font-medium" x-text="pluginToDelete?.name"></span>?
-                </p>
-                <p class="text-sm text-gray-500 mt-2">
-                    This will also remove all associations with projects.
-                </p>
-            </div>
-            
-            <div class="flex justify-end space-x-3">
-                <button @click="closeDeletePluginModal()" 
-                        class="px-4 py-2 text-gray-700 bg-gray-200 rounded-md hover:bg-gray-300 transition-colors">
-                    Cancel
-                </button>
-                <button @click="deletePlugin()" 
-                        class="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors">
-                    Delete Plugin
-                </button>
-            </div>
+    <div
+      x-show="showDeletePluginConfirmModal"
+      x-transition:enter="transition ease-out duration-200"
+      x-transition:enter-start="opacity-0"
+      x-transition:enter-end="opacity-100"
+      x-transition:leave="transition ease-in duration-200"
+      x-transition:leave-start="opacity-100"
+      x-transition:leave-end="opacity-0"
+      class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+    >
+      <div
+        x-show="showDeletePluginConfirmModal"
+        x-transition:enter="transition ease-out duration-200"
+        x-transition:enter-start="opacity-0 scale-95"
+        x-transition:enter-end="opacity-100 scale-100"
+        x-transition:leave="transition ease-in duration-200"
+        x-transition:leave-start="opacity-100 scale-100"
+        x-transition:leave-end="opacity-0 scale-95"
+        class="bg-white rounded-lg p-6 w-full max-w-md"
+      >
+        <div class="flex items-center mb-4">
+          <div
+            class="flex-shrink-0 w-10 h-10 bg-red-100 rounded-full flex items-center justify-center"
+          >
+            <svg
+              class="w-6 h-6 text-red-600"
+              fill="currentColor"
+              viewBox="0 0 20 20"
+            >
+              <path
+                fill-rule="evenodd"
+                d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z"
+                clip-rule="evenodd"
+              ></path>
+            </svg>
+          </div>
+          <div class="ml-4">
+            <h3 class="text-lg font-medium text-gray-900">Delete Plugin</h3>
+            <p class="text-sm text-gray-500">This action cannot be undone.</p>
+          </div>
         </div>
+
+        <div class="mb-6">
+          <p class="text-gray-700">
+            Are you sure you want to delete the plugin
+            <span class="font-medium" x-text="pluginToDelete?.name"></span>?
+          </p>
+          <p class="text-sm text-gray-500 mt-2">
+            This will also remove all associations with projects.
+          </p>
+        </div>
+
+        <div class="flex justify-end space-x-3">
+          <button
+            @click="closeDeletePluginModal()"
+            class="px-4 py-2 text-gray-700 bg-gray-200 rounded-md hover:bg-gray-300 transition-colors"
+          >
+            Cancel
+          </button>
+          <button
+            @click="deletePlugin()"
+            class="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors"
+          >
+            Delete Plugin
+          </button>
+        </div>
+      </div>
     </div>
 
     <!-- Add/Edit Provisioner Modal -->
-    <div x-show="showProvisionerModal" 
-         x-transition:enter="transition ease-out duration-200"
-         x-transition:enter-start="opacity-0"
-         x-transition:enter-end="opacity-100"
-         x-transition:leave="transition ease-in duration-200"
-         x-transition:leave-start="opacity-100"
-         x-transition:leave-end="opacity-0"
-         class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-        <div x-show="showProvisionerModal"
-             x-transition:enter="transition ease-out duration-200"
-             x-transition:enter-start="opacity-0 scale-95"
-             x-transition:enter-end="opacity-100 scale-100"
-             x-transition:leave="transition ease-in duration-200"
-             x-transition:leave-start="opacity-100 scale-100"
-             x-transition:leave-end="opacity-0 scale-95"
-             class="bg-white rounded-lg p-6 w-full max-w-2xl max-h-screen overflow-y-auto">
-            <div class="flex justify-between items-center mb-6">
-                <h3 class="text-xl font-bold text-gray-900" x-text="editingProvisioner ? 'Edit Provisioner' : 'Add New Provisioner'"></h3>
-                <button @click="closeProvisionerModal()" class="text-gray-400 hover:text-gray-600">
-                    <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
-                        <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"></path>
-                    </svg>
-                </button>
-            </div>
-            
-            <form @submit.prevent="saveProvisioner()" class="space-y-4">
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">
-                        Provisioner Name <span class="text-red-500">*</span>
-                    </label>
-                    <input type="text" 
-                           x-model="provisionerForm.name"
-                           placeholder="e.g., Common Setup"
-                           class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                           required>
-                </div>
-                
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">
-                        Description
-                    </label>
-                    <textarea x-model="provisionerForm.description"
-                              placeholder="What does this provisioner do?"
-                              rows="2"
-                              class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"></textarea>
-                </div>
-                
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">
-                        Shell Script <span class="text-red-500">*</span>
-                    </label>
-                    <textarea x-model="provisionerForm.shell_config.script"
-                              placeholder="#!/bin/bash&#10;echo 'Hello from provisioner'"
-                              rows="10"
-                              class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono text-sm"
-                              required></textarea>
-                    <p class="text-xs text-gray-500 mt-1">Shell script that will run on all VMs (heredoc syntax will be used)</p>
-                </div>
-                
-                <div class="grid grid-cols-2 gap-4">
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">
-                            Run As
-                        </label>
-                        <div class="flex items-center space-x-4">
-                            <label class="flex items-center">
-                                <input type="radio" 
-                                       x-model="provisionerForm.shell_config.privileged" 
-                                       :value="true"
-                                       class="w-4 h-4 text-blue-600">
-                                <span class="ml-2 text-sm">Root (sudo)</span>
-                            </label>
-                            <label class="flex items-center">
-                                <input type="radio" 
-                                       x-model="provisionerForm.shell_config.privileged" 
-                                       :value="false"
-                                       class="w-4 h-4 text-blue-600">
-                                <span class="ml-2 text-sm">User</span>
-                            </label>
-                        </div>
-                    </div>
-                    
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">
-                            Run
-                        </label>
-                        <select x-model="provisionerForm.shell_config.run"
-                                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
-                            <option value="once">Once</option>
-                            <option value="always">Always</option>
-                            <option value="never">Never</option>
-                        </select>
-                    </div>
-                </div>
-                
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">
-                        External Script Path <span class="text-gray-500 text-xs">(Optional - overrides inline script)</span>
-                    </label>
-                    <input type="text" 
-                           x-model="provisionerForm.shell_config.path"
-                           placeholder="scripts/bootstrap.sh"
-                           class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
-                    <p class="text-xs text-gray-500 mt-1">If set, Vagrant will use this file instead of the inline script above</p>
-                </div>
-                
-                <div class="flex justify-end space-x-3 pt-4">
-                    <button type="button" @click="closeProvisionerModal()" 
-                            class="btn btn-secondary">
-                        Cancel
-                    </button>
-                    <button type="submit" 
-                            class="btn btn-primary">
-                        <span x-text="editingProvisioner ? 'Update Provisioner' : 'Add Provisioner'"></span>
-                    </button>
-                </div>
-            </form>
+    <div
+      x-show="showProvisionerModal"
+      x-transition:enter="transition ease-out duration-200"
+      x-transition:enter-start="opacity-0"
+      x-transition:enter-end="opacity-100"
+      x-transition:leave="transition ease-in duration-200"
+      x-transition:leave-start="opacity-100"
+      x-transition:leave-end="opacity-0"
+      class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+    >
+      <div
+        x-show="showProvisionerModal"
+        x-transition:enter="transition ease-out duration-200"
+        x-transition:enter-start="opacity-0 scale-95"
+        x-transition:enter-end="opacity-100 scale-100"
+        x-transition:leave="transition ease-in duration-200"
+        x-transition:leave-start="opacity-100 scale-100"
+        x-transition:leave-end="opacity-0 scale-95"
+        class="bg-white rounded-lg p-6 w-full max-w-2xl max-h-screen overflow-y-auto"
+      >
+        <div class="flex justify-between items-center mb-6">
+          <h3
+            class="text-xl font-bold text-gray-900"
+            x-text="editingProvisioner ? 'Edit Provisioner' : 'Add New Provisioner'"
+          ></h3>
+          <button
+            @click="closeProvisionerModal()"
+            class="text-gray-400 hover:text-gray-600"
+          >
+            <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+              <path
+                fill-rule="evenodd"
+                d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
+                clip-rule="evenodd"
+              ></path>
+            </svg>
+          </button>
         </div>
+
+        <!-- Phase 1: Info Banner for Copied Resources -->
+        <div
+          x-show="editContext.isCopiedFromShared"
+          class="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg"
+        >
+          <div class="flex items-start">
+            <svg
+              class="w-5 h-5 text-blue-600 mr-2 flex-shrink-0 mt-0.5"
+              fill="currentColor"
+              viewBox="0 0 20 20"
+            >
+              <path
+                fill-rule="evenodd"
+                d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
+                clip-rule="evenodd"
+              ></path>
+            </svg>
+            <p class="text-sm text-blue-800">
+              This is your copy of a shared resource. Changes will only affect
+              your projects.
+            </p>
+          </div>
+        </div>
+
+        <form @submit.prevent="saveProvisioner()" class="space-y-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">
+              Provisioner Name <span class="text-red-500">*</span>
+            </label>
+            <input
+              type="text"
+              x-model="provisionerForm.name"
+              placeholder="e.g., Common Setup"
+              class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              required
+            />
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">
+              Description
+            </label>
+            <textarea
+              x-model="provisionerForm.description"
+              placeholder="What does this provisioner do?"
+              rows="2"
+              class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            ></textarea>
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">
+              Shell Script <span class="text-red-500">*</span>
+            </label>
+            <textarea
+              x-model="provisionerForm.shell_config.script"
+              placeholder="#!/bin/bash&#10;echo 'Hello from provisioner'"
+              rows="10"
+              class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono text-sm"
+              required
+            ></textarea>
+            <p class="text-xs text-gray-500 mt-1">
+              Shell script that will run on all VMs (heredoc syntax will be
+              used)
+            </p>
+          </div>
+
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">
+                Run As
+              </label>
+              <div class="flex items-center space-x-4">
+                <label class="flex items-center">
+                  <input
+                    type="radio"
+                    x-model="provisionerForm.shell_config.privileged"
+                    :value="true"
+                    class="w-4 h-4 text-blue-600"
+                  />
+                  <span class="ml-2 text-sm">Root (sudo)</span>
+                </label>
+                <label class="flex items-center">
+                  <input
+                    type="radio"
+                    x-model="provisionerForm.shell_config.privileged"
+                    :value="false"
+                    class="w-4 h-4 text-blue-600"
+                  />
+                  <span class="ml-2 text-sm">User</span>
+                </label>
+              </div>
+            </div>
+
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">
+                Run
+              </label>
+              <select
+                x-model="provisionerForm.shell_config.run"
+                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                <option value="once">Once</option>
+                <option value="always">Always</option>
+                <option value="never">Never</option>
+              </select>
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">
+              External Script Path
+              <span class="text-gray-500 text-xs"
+                >(Optional - overrides inline script)</span
+              >
+            </label>
+            <input
+              type="text"
+              x-model="provisionerForm.shell_config.path"
+              placeholder="scripts/bootstrap.sh"
+              class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+            <p class="text-xs text-gray-500 mt-1">
+              If set, Vagrant will use this file instead of the inline script
+              above
+            </p>
+          </div>
+
+          <div class="flex justify-end space-x-3 pt-4">
+            <button
+              type="button"
+              @click="closeProvisionerModal()"
+              class="btn btn-secondary"
+            >
+              Cancel
+            </button>
+            <button type="submit" class="btn btn-primary">
+              <span
+                x-text="editingProvisioner ? 'Update Provisioner' : 'Add Provisioner'"
+              ></span>
+            </button>
+          </div>
+        </form>
+      </div>
     </div>
 
     <!-- Delete Provisioner Confirmation Modal -->
-    <div x-show="showDeleteProvisionerConfirmModal" 
-         x-transition:enter="transition ease-out duration-200"
-         x-transition:enter-start="opacity-0"
-         x-transition:enter-end="opacity-100"
-         x-transition:leave="transition ease-in duration-200"
-         x-transition:leave-start="opacity-100"
-         x-transition:leave-end="opacity-0"
-         class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-        <div x-show="showDeleteProvisionerConfirmModal"
-             x-transition:enter="transition ease-out duration-200"
-             x-transition:enter-start="opacity-0 scale-95"
-             x-transition:enter-end="opacity-100 scale-100"
-             x-transition:leave="transition ease-in duration-200"
-             x-transition:leave-start="opacity-100 scale-100"
-             x-transition:leave-end="opacity-0 scale-95"
-             class="bg-white rounded-lg p-6 w-full max-w-md">
-            <div class="flex items-center mb-4">
-                <div class="flex-shrink-0 w-10 h-10 bg-red-100 rounded-full flex items-center justify-center">
-                    <svg class="w-6 h-6 text-red-600" fill="currentColor" viewBox="0 0 20 20">
-                        <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"></path>
-                    </svg>
-                </div>
-                <div class="ml-4">
-                    <h3 class="text-lg font-medium text-gray-900">Delete Provisioner</h3>
-                    <p class="text-sm text-gray-500">This action cannot be undone.</p>
-                </div>
-            </div>
-            
-            <div class="mb-6">
-                <p class="text-gray-700">
-                    Are you sure you want to delete the provisioner 
-                    <span class="font-medium" x-text="provisionerToDelete?.name"></span>?
-                </p>
-            </div>
-            
-            <div class="flex justify-end space-x-3">
-                <button @click="closeDeleteProvisionerModal()" 
-                        class="px-4 py-2 text-gray-700 bg-gray-200 rounded-md hover:bg-gray-300 transition-colors">
-                    Cancel
-                </button>
-                <button @click="deleteProvisioner()" 
-                        class="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors">
-                    Delete Provisioner
-                </button>
-            </div>
+    <div
+      x-show="showDeleteProvisionerConfirmModal"
+      x-transition:enter="transition ease-out duration-200"
+      x-transition:enter-start="opacity-0"
+      x-transition:enter-end="opacity-100"
+      x-transition:leave="transition ease-in duration-200"
+      x-transition:leave-start="opacity-100"
+      x-transition:leave-end="opacity-0"
+      class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+    >
+      <div
+        x-show="showDeleteProvisionerConfirmModal"
+        x-transition:enter="transition ease-out duration-200"
+        x-transition:enter-start="opacity-0 scale-95"
+        x-transition:enter-end="opacity-100 scale-100"
+        x-transition:leave="transition ease-in duration-200"
+        x-transition:leave-start="opacity-100 scale-100"
+        x-transition:leave-end="opacity-0 scale-95"
+        class="bg-white rounded-lg p-6 w-full max-w-md"
+      >
+        <div class="flex items-center mb-4">
+          <div
+            class="flex-shrink-0 w-10 h-10 bg-red-100 rounded-full flex items-center justify-center"
+          >
+            <svg
+              class="w-6 h-6 text-red-600"
+              fill="currentColor"
+              viewBox="0 0 20 20"
+            >
+              <path
+                fill-rule="evenodd"
+                d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z"
+                clip-rule="evenodd"
+              ></path>
+            </svg>
+          </div>
+          <div class="ml-4">
+            <h3 class="text-lg font-medium text-gray-900">
+              Delete Provisioner
+            </h3>
+            <p class="text-sm text-gray-500">This action cannot be undone.</p>
+          </div>
         </div>
+
+        <div class="mb-6">
+          <p class="text-gray-700">
+            Are you sure you want to delete the provisioner
+            <span class="font-medium" x-text="provisionerToDelete?.name"></span
+            >?
+          </p>
+        </div>
+
+        <div class="flex justify-end space-x-3">
+          <button
+            @click="closeDeleteProvisionerModal()"
+            class="px-4 py-2 text-gray-700 bg-gray-200 rounded-md hover:bg-gray-300 transition-colors"
+          >
+            Cancel
+          </button>
+          <button
+            @click="deleteProvisioner()"
+            class="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors"
+          >
+            Delete Provisioner
+          </button>
+        </div>
+      </div>
     </div>
 
     <!-- Delete Trigger Confirmation Modal -->
-    <div x-show="showDeleteTriggerConfirmModal" 
-         x-transition:enter="transition ease-out duration-200"
-         x-transition:enter-start="opacity-0"
-         x-transition:enter-end="opacity-100"
-         x-transition:leave="transition ease-in duration-200"
-         x-transition:leave-start="opacity-100"
-         x-transition:leave-end="opacity-0"
-         class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-        <div x-show="showDeleteTriggerConfirmModal"
-             x-transition:enter="transition ease-out duration-200"
-             x-transition:enter-start="opacity-0 scale-95"
-             x-transition:enter-end="opacity-100 scale-100"
-             x-transition:leave="transition ease-in duration-200"
-             x-transition:leave-start="opacity-100 scale-100"
-             x-transition:leave-end="opacity-0 scale-95"
-             class="bg-white rounded-lg p-6 w-full max-w-md">
-            <div class="flex items-center mb-4">
-                <div class="flex-shrink-0 w-10 h-10 bg-red-100 rounded-full flex items-center justify-center">
-                    <svg class="w-6 h-6 text-red-600" fill="currentColor" viewBox="0 0 20 20">
-                        <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"></path>
-                    </svg>
-                </div>
-                <div class="ml-4">
-                    <h3 class="text-lg font-medium text-gray-900">Delete Trigger</h3>
-                    <p class="text-sm text-gray-500">This action cannot be undone.</p>
-                </div>
-            </div>
-            
-            <div class="mb-6">
-                <p class="text-gray-700">
-                    Are you sure you want to delete the trigger 
-                    <span class="font-medium" x-text="triggerToDelete?.name"></span>?
-                </p>
-            </div>
-            
-            <div class="flex justify-end space-x-3">
-                <button @click="closeDeleteTriggerModal()" 
-                        class="px-4 py-2 text-gray-700 bg-gray-200 rounded-md hover:bg-gray-300 transition-colors">
-                    Cancel
-                </button>
-                <button @click="deleteTrigger()" 
-                        class="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors">
-                    Delete Trigger
-                </button>
-            </div>
+    <div
+      x-show="showDeleteTriggerConfirmModal"
+      x-transition:enter="transition ease-out duration-200"
+      x-transition:enter-start="opacity-0"
+      x-transition:enter-end="opacity-100"
+      x-transition:leave="transition ease-in duration-200"
+      x-transition:leave-start="opacity-100"
+      x-transition:leave-end="opacity-0"
+      class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+    >
+      <div
+        x-show="showDeleteTriggerConfirmModal"
+        x-transition:enter="transition ease-out duration-200"
+        x-transition:enter-start="opacity-0 scale-95"
+        x-transition:enter-end="opacity-100 scale-100"
+        x-transition:leave="transition ease-in duration-200"
+        x-transition:leave-start="opacity-100 scale-100"
+        x-transition:leave-end="opacity-0 scale-95"
+        class="bg-white rounded-lg p-6 w-full max-w-md"
+      >
+        <div class="flex items-center mb-4">
+          <div
+            class="flex-shrink-0 w-10 h-10 bg-red-100 rounded-full flex items-center justify-center"
+          >
+            <svg
+              class="w-6 h-6 text-red-600"
+              fill="currentColor"
+              viewBox="0 0 20 20"
+            >
+              <path
+                fill-rule="evenodd"
+                d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z"
+                clip-rule="evenodd"
+              ></path>
+            </svg>
+          </div>
+          <div class="ml-4">
+            <h3 class="text-lg font-medium text-gray-900">Delete Trigger</h3>
+            <p class="text-sm text-gray-500">This action cannot be undone.</p>
+          </div>
         </div>
+
+        <div class="mb-6">
+          <p class="text-gray-700">
+            Are you sure you want to delete the trigger
+            <span class="font-medium" x-text="triggerToDelete?.name"></span>?
+          </p>
+        </div>
+
+        <div class="flex justify-end space-x-3">
+          <button
+            @click="closeDeleteTriggerModal()"
+            class="px-4 py-2 text-gray-700 bg-gray-200 rounded-md hover:bg-gray-300 transition-colors"
+          >
+            Cancel
+          </button>
+          <button
+            @click="deleteTrigger()"
+            class="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors"
+          >
+            Delete Trigger
+          </button>
+        </div>
+      </div>
     </div>
 
     <!-- Footer Component -->
@@ -1186,26 +2259,40 @@
 
     <!-- Footer & Error Page JavaScript -->
     <script>
-        // Components are now loaded via script tags in the head
-        // No ES6 modules needed since we removed the module versions
-        console.log('Footer and error page components loaded via script tags');
+      // Components are now loaded via script tags in the head
+      // No ES6 modules needed since we removed the module versions
+      console.log('Footer and error page components loaded via script tags')
 
-        // Handle component loading errors
-        window.addEventListener('error', (event) => {
-            if (event.filename && event.filename.includes('FooterComponent')) {
-                console.warn('Footer component failed to load, using fallback');
-                // Could show a simple footer fallback here
-            }
-        });
+      // Handle component loading errors
+      window.addEventListener('error', event => {
+        if (event.filename && event.filename.includes('FooterComponent')) {
+          console.warn('Footer component failed to load, using fallback')
+          // Could show a simple footer fallback here
+        }
+      })
     </script>
 
     <!-- Loading indicator for page navigation -->
-    <div id="page-loading" style="display: none;" class="fixed top-0 left-0 w-full h-1 bg-blue-600 z-50">
-        <div class="h-full bg-blue-400 animate-pulse"></div>
+    <div
+      id="page-loading"
+      style="display: none"
+      class="fixed top-0 left-0 w-full h-1 bg-blue-600 z-50"
+    >
+      <div class="h-full bg-blue-400 animate-pulse"></div>
     </div>
 
     <!-- Screen reader announcements -->
-    <div id="page-announcer" aria-live="polite" aria-atomic="true" class="sr-only"></div>
-    <div id="error-announcer" aria-live="assertive" aria-atomic="true" class="sr-only"></div>
-</body>
+    <div
+      id="page-announcer"
+      aria-live="polite"
+      aria-atomic="true"
+      class="sr-only"
+    ></div>
+    <div
+      id="error-announcer"
+      aria-live="assertive"
+      aria-atomic="true"
+      class="sr-only"
+    ></div>
+  </body>
 </html>

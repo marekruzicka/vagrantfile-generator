@@ -13,7 +13,12 @@
 
 .footer-component .internal-link:hover {
   color: #111827; /* text-gray-900 */
-  background-color: rgba(107, 114, 128, 0.1); /* Gray background instead of blue */
+  background-color: rgba(
+    107,
+    114,
+    128,
+    0.1
+  ); /* Gray background instead of blue */
   transform: translateY(-1px);
 }
 
@@ -61,7 +66,7 @@
     /* Better mobile spacing */
     padding-bottom: env(safe-area-inset-bottom, 0);
   }
-  
+
   /* Larger touch targets for mobile */
   .footer-component a {
     min-height: 44px; /* iOS recommended minimum */
@@ -71,20 +76,28 @@
     align-items: center;
     justify-content: center;
   }
-  
+
   /* Mobile navigation improvements */
+  .footer-component .footer-nav {
+    width: 100%;
+    display: flex;
+    justify-content: flex-end; /* ensure nav sits on the right */
+    padding-right: 0.5rem;
+  }
+
   .footer-component .footer-nav ul {
     flex-direction: column;
     gap: 0.5rem;
-    align-items: center;
+    /* Right-align links on small screens */
+    align-items: flex-end;
     width: 100%;
   }
-  
+
   .footer-component .footer-nav li {
     width: 100%;
-    text-align: center;
+    text-align: right; /* Start links from the right on small screens */
   }
-  
+
   /* Improved mobile text readability */
   .footer-component .footer-text {
     text-align: center;
@@ -100,7 +113,7 @@
     /* Tablet: Restore horizontal layout */
     margin-top: 2rem;
   }
-  
+
   /* Reset mobile-specific styles */
   .footer-component a {
     min-height: auto;
@@ -109,19 +122,21 @@
     display: inline-flex;
     justify-content: flex-start;
   }
-  
+
   .footer-component .footer-nav ul {
     flex-direction: row;
     gap: 1.5rem;
     align-items: center;
     width: auto;
+    /* Ensure links are aligned to the right on larger screens */
+    justify-content: flex-end;
   }
-  
+
   .footer-component .footer-nav li {
     width: auto;
     text-align: left;
   }
-  
+
   .footer-component .footer-text {
     text-align: left;
     font-size: 0.875rem;
@@ -267,10 +282,14 @@
 
 /* Active internal link - Keep subtle blue for active state only */
 .footer-component .internal-link.active,
-.footer-component .internal-link[aria-current="page"] {
+.footer-component .internal-link[aria-current='page'] {
   color: #374151; /* text-gray-700 - darker but not blue */
   font-weight: 500;
-  background: linear-gradient(135deg, rgba(107, 114, 128, 0.15) 0%, rgba(75, 85, 99, 0.1) 100%);
+  background: linear-gradient(
+    135deg,
+    rgba(107, 114, 128, 0.15) 0%,
+    rgba(75, 85, 99, 0.1) 100%
+  );
 }
 
 /* External link styles - Neutral with subtle gray accent */
@@ -303,7 +322,7 @@
 }
 
 /* Disabled link styles */
-.footer-component a[aria-disabled="true"],
+.footer-component a[aria-disabled='true'],
 .footer-component a.disabled {
   color: #d1d5db; /* text-gray-300 */
   cursor: not-allowed;
@@ -501,7 +520,7 @@
 
   /* Show URLs for external links in print */
   .footer-component .external-link::after {
-    content: " (" attr(href) ")";
+    content: ' (' attr(href) ')';
     font-size: 0.75rem;
     font-style: italic;
   }
@@ -515,7 +534,7 @@
 }
 
 .footer-component.debug::before {
-  content: "Footer Component Debug Mode";
+  content: 'Footer Component Debug Mode';
   display: block;
   padding: 0.25rem;
   background-color: #f59e0b;
@@ -594,7 +613,8 @@
   display: inline-block;
   background-color: #f3f4f6; /* bg-gray-100 - matches JS styling */
   color: #1f2937; /* text-gray-800 - better contrast */
-  font-family: ui-monospace, SFMono-Regular, "SF Mono", Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  font-family: ui-monospace, SFMono-Regular, 'SF Mono', Monaco, Consolas,
+    'Liberation Mono', 'Courier New', monospace;
   font-size: 0.875em;
   font-weight: 500;
   padding: 0.25rem 0.5rem;
@@ -609,13 +629,18 @@
   border-radius: 1rem; /* rounded-2xl to match design system */
   padding: 1.5rem;
   overflow-x: auto;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1),
+    0 2px 4px -1px rgba(0, 0, 0, 0.06);
 }
 
 /* Blockquote styling - Neutral color scheme aligned with design system */
 .footer-component .prose blockquote {
   border-left: 4px solid #6b7280; /* Gray border instead of blue */
-  background: linear-gradient(135deg, rgba(107, 114, 128, 0.05) 0%, rgba(75, 85, 99, 0.05) 100%);
+  background: linear-gradient(
+    135deg,
+    rgba(107, 114, 128, 0.05) 0%,
+    rgba(75, 85, 99, 0.05) 100%
+  );
   border-radius: 0 1rem 1rem 0; /* rounded-2xl */
   padding: 1.5rem 2rem;
   margin: 2rem 0;
@@ -629,11 +654,16 @@
   border-radius: 1rem; /* rounded-2xl */
   overflow: hidden;
   border: 1px solid rgb(229 231 235); /* border-gray-200 */
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1),
+    0 2px 4px -1px rgba(0, 0, 0, 0.06);
 }
 
 .footer-component .prose table th {
-  background: linear-gradient(135deg, rgb(248 250 252) 0%, rgb(241 245 249) 100%);
+  background: linear-gradient(
+    135deg,
+    rgb(248 250 252) 0%,
+    rgb(241 245 249) 100%
+  );
   font-weight: 600;
   color: rgb(51 65 85); /* text-slate-700 */
   padding: 1rem 1.25rem;
@@ -646,7 +676,12 @@
 }
 
 .footer-component .prose table tr:hover {
-  background-color: rgba(107, 114, 128, 0.05); /* Neutral gray hover instead of blue */
+  background-color: rgba(
+    107,
+    114,
+    128,
+    0.05
+  ); /* Neutral gray hover instead of blue */
 }
 
 /* Responsive modal adjustments - Updated to match design system */
@@ -657,24 +692,24 @@
     margin: 2rem 1rem;
     border-radius: 1.5rem; /* Slightly smaller on mobile */
   }
-  
+
   .footer-component .prose {
     font-size: 0.875rem;
     line-height: 1.6;
   }
-  
+
   .footer-component .prose h1 {
     font-size: 1.5rem;
   }
-  
+
   .footer-component .prose h2 {
     font-size: 1.25rem;
   }
-  
+
   .footer-component .prose h3 {
     font-size: 1.125rem;
   }
-  
+
   /* Enhanced mobile touch targets */
   .footer-component .prose a {
     padding: 0.5rem 0.75rem;

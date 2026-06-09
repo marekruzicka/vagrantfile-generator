@@ -1,0 +1,101 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "vagrantfile-generator.backend.name" . }}
+  namespace: {{ include "vagrantfile-generator.namespace" . }}
+  labels:
+    {{- include "vagrantfile-generator.backend.labels" . | nindent 4 }}
+spec:
+  # Backend is NOT horizontally scalable (file-based storage)
+  replicas: 1
+  strategy:
+    {{- toYaml .Values.backend.strategy | nindent 4 }}
+  selector:
+    matchLabels:
+      {{- include "vagrantfile-generator.backend.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      annotations:
+        checksum/secret: {{ include (print $.Template.BasePath "/backend-secret.yaml") . | sha256sum }}
+        {{- with .Values.backend.podAnnotations }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+      labels:
+        {{- include "vagrantfile-generator.backend.selectorLabels" . | nindent 8 }}
+    spec:
+      {{- include "vagrantfile-generator.imagePullSecrets" . | nindent 6 }}
+      securityContext:
+        {{- toYaml .Values.backend.podSecurityContext | nindent 8 }}
+      containers:
+        - name: backend
+          image: "{{ .Values.backend.image.repository }}:{{ .Values.backend.image.tag }}"
+          imagePullPolicy: {{ .Values.backend.image.pullPolicy }}
+          securityContext:
+            {{- toYaml .Values.backend.securityContext | nindent 12 }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.backend.port }}
+              protocol: TCP
+          envFrom:
+            - secretRef:
+                name: {{ include "vagrantfile-generator.secretName" . }}
+          env:
+            - name: DEPLOYMENT_MODE
+              value: {{ .Values.backend.deploymentMode | quote }}
+            - name: API_HOST
+              value: "0.0.0.0"
+            - name: API_PORT
+              value: {{ .Values.backend.port | quote }}
+            - name: BASE_URL
+              value: {{ include "vagrantfile-generator.backend.externalUrl" . | quote }}
+            - name: FRONTEND_URL
+              value: {{ include "vagrantfile-generator.frontend.externalUrl" . | quote }}
+            - name: CORS_ORIGINS
+              value: {{ include "vagrantfile-generator.frontend.externalUrl" . | quote }}
+            {{- with .Values.backend.env }}
+            {{- range $name, $value := . }}
+            - name: {{ $name }}
+              value: {{ $value | quote }}
+            {{- end }}
+            {{- end }}
+          livenessProbe:
+            httpGet:
+              path: {{ .Values.backend.healthCheck.path }}
+              port: http
+            initialDelaySeconds: {{ .Values.backend.healthCheck.initialDelaySeconds }}
+            periodSeconds: {{ .Values.backend.healthCheck.periodSeconds }}
+            timeoutSeconds: {{ .Values.backend.healthCheck.timeoutSeconds }}
+            failureThreshold: {{ .Values.backend.healthCheck.failureThreshold }}
+          readinessProbe:
+            httpGet:
+              path: {{ .Values.backend.healthCheck.path }}
+              port: http
+            initialDelaySeconds: 5
+            periodSeconds: 5
+            timeoutSeconds: {{ .Values.backend.healthCheck.timeoutSeconds }}
+            failureThreshold: 3
+          resources:
+            {{- toYaml .Values.backend.resources | nindent 12 }}
+          volumeMounts:
+            - name: data
+              mountPath: /app/data
+      volumes:
+        - name: data
+          {{- if .Values.backend.persistence.enabled }}
+          persistentVolumeClaim:
+            claimName: {{ include "vagrantfile-generator.backend.name" . }}-data
+          {{- else }}
+          emptyDir: {}
+          {{- end }}
+      {{- with .Values.backend.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.backend.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.backend.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}

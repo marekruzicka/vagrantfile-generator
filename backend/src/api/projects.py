@@ -11,20 +11,19 @@ from fastapi import APIRouter, HTTPException, Depends
 from fastapi.responses import JSONResponse
 
 from ..models import Project, ProjectCreate, ProjectUpdate, ProjectSummary, DeploymentStatus
+from ..models.user_profile import UserProfile
 from ..services import ProjectService, ProjectNotFoundError
-from ..services.plugin_service import PluginService
+from ..middleware.auth_middleware import get_optional_user
 
 router = APIRouter()
 
 # Dependency to get ProjectService instance
-def get_project_service() -> ProjectService:
-    """Get ProjectService instance."""
-    return ProjectService()
-
-# Dependency to get PluginService instance
-def get_plugin_service() -> PluginService:
-    """Get PluginService instance."""
-    return PluginService()
+def get_project_service(
+    current_user: Optional[UserProfile] = Depends(get_optional_user)
+) -> ProjectService:
+    """Get ProjectService instance with user context."""
+    user_id = current_user.user_id if current_user else None
+    return ProjectService(user_id=user_id)
 
 @router.get("/projects/stats", response_model=dict)
 async def get_project_stats(
@@ -57,22 +56,11 @@ async def create_project(
 @router.get("/projects/{project_id}", response_model=Project)
 async def get_project(
     project_id: UUID,
-    project_service: ProjectService = Depends(get_project_service),
-    plugin_service: PluginService = Depends(get_plugin_service)
+    project_service: ProjectService = Depends(get_project_service)
 ):
     """Get a specific project by ID."""
     try:
         project = project_service.get_project(project_id)
-        
-        # Enrich plugins with deprecation status from master plugins list
-        for plugin_config in project.global_plugins:
-            try:
-                master_plugin = plugin_service.get_plugin_by_name(plugin_config.name)
-                if master_plugin:
-                    plugin_config.is_deprecated = master_plugin.is_deprecated
-            except:
-                pass
-        
         return project
     except ProjectNotFoundError as e:
         raise HTTPException(status_code=404, detail=str(e))
@@ -90,6 +78,18 @@ async def update_project(
         if existing_project.deployment_status == DeploymentStatus.READY:
             raise HTTPException(status_code=400, detail="Cannot modify project - project is locked in ready status")
         
+        # Check if project is shared (read-only)
+        if project_service.user_id is not None:
+            # In public mode, check if resource is in shared directory
+            from ..services.file_service import FileService
+            file_service = FileService()
+            shared_path = file_service.get_shared_data_path("projects") / f"{project_id}.json"
+            if shared_path.exists():
+                raise HTTPException(
+                    status_code=403,
+                    detail="Cannot modify shared resource - shared resources are read-only"
+                )
+        
         project = project_service.update_project(project_id, project_data)
         return project
     except ProjectNotFoundError as e:
@@ -103,6 +103,18 @@ async def delete_project(
     project_service: ProjectService = Depends(get_project_service)
 ):
     """Delete a project."""
+    # Check if project is shared (read-only)
+    if project_service.user_id is not None:
+        # In public mode, check if resource is in shared directory
+        from ..services.file_service import FileService
+        file_service = FileService()
+        shared_path = file_service.get_shared_data_path("projects") / f"{project_id}.json"
+        if shared_path.exists():
+            raise HTTPException(
+                status_code=403,
+                detail="Cannot delete shared resource - shared resources are read-only"
+            )
+    
     success = project_service.delete_project(project_id)
     if not success:
         raise HTTPException(status_code=404, detail=f"Project {project_id} not found")

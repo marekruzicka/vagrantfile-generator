@@ -1,20 +1,17 @@
 """
 FileService for Vagrantfile Generator.
 
-This service handles file I/O operations for project persistence.
+This service handles file I/O operations for multi-user data storage.
 """
 
-import os
 import json
-import shutil
+import os
+import time
+import fcntl
+import tempfile
 from typing import Dict, List, Any, Optional
 from pathlib import Path
-from datetime import datetime
-import uuid
-
-from ..models.project import Project
-from ..models.virtual_machine import VirtualMachine
-from ..models.network_interface import NetworkInterface
+from contextlib import contextmanager
 
 
 class FileServiceError(Exception):
@@ -33,9 +30,9 @@ class FileService:
             base_directory: Base directory for storing project files
         """
         self.base_directory = Path(base_directory)
-        self.projects_directory = self.base_directory / "projects"
-        self.exports_directory = self.base_directory / "exports"
-        self.templates_directory = self.base_directory / "templates"
+        self.shared_directory = self.base_directory / "shared"
+        self.users_directory = self.base_directory / "users"
+        self.auth_directory = self.base_directory / "auth"
         
         # Create directories if they don't exist
         self._ensure_directories()
@@ -44,340 +41,109 @@ class FileService:
         """Ensure all required directories exist."""
         directories = [
             self.base_directory,
-            self.projects_directory,
-            self.exports_directory,
-            self.templates_directory
+            self.shared_directory,
+            self.users_directory,
+            self.auth_directory
         ]
         
         for directory in directories:
             directory.mkdir(parents=True, exist_ok=True)
     
-    def save_project(self, project: Project, create_backup: bool = True) -> str:
+    def get_user_data_path(self, user_id: str, resource_type: str = "") -> Path:
         """
-        Save a project to disk.
+        Get the data directory path for a specific user.
         
         Args:
-            project: The project to save
-            create_backup: Whether to create a backup of existing file
+            user_id: User identifier (UUID)
+            resource_type: Optional resource type subdirectory (e.g., "projects", "boxes")
             
         Returns:
-            Path to the saved file
+            Path: Path to user's data directory
         """
-        try:
-            project_dir = self.projects_directory / str(project.id)
-            project_dir.mkdir(parents=True, exist_ok=True)
-            
-            project_file = project_dir / "project.json"
-            
-            # Create backup if file exists and backup is requested
-            if create_backup and project_file.exists():
-                self._create_backup(project_file)
-            
-            # Convert project to dict and save
-            project_data = project.model_dump()
-            project_data["last_saved"] = datetime.now().isoformat()
-            
-            with open(project_file, 'w', encoding='utf-8') as f:
-                json.dump(project_data, f, indent=2, ensure_ascii=False)
-            
-            return str(project_file)
-            
-        except Exception as e:
-            raise FileServiceError(f"Failed to save project {project.id}: {str(e)}")
+        user_path = self.users_directory / user_id
+        
+        if resource_type:
+            user_path = user_path / resource_type
+        
+        # Ensure directory exists
+        user_path.mkdir(parents=True, exist_ok=True)
+        
+        return user_path
     
-    def load_project(self, project_id: str) -> Project:
+    def get_shared_data_path(self, resource_type: str = "") -> Path:
         """
-        Load a project from disk.
+        Get the shared data directory path.
         
         Args:
-            project_id: The ID of the project to load
+            resource_type: Optional resource type subdirectory (e.g., "projects", "boxes")
             
         Returns:
-            The loaded project
+            Path: Path to shared data directory
         """
-        try:
-            project_file = self.projects_directory / project_id / "project.json"
-            
-            if not project_file.exists():
-                raise FileServiceError(f"Project file not found: {project_file}")
-            
-            with open(project_file, 'r', encoding='utf-8') as f:
-                project_data = json.load(f)
-            
-            # Remove metadata fields that aren't part of the model
-            project_data.pop("last_saved", None)
-            
-            return Project(**project_data)
-            
-        except json.JSONDecodeError as e:
-            raise FileServiceError(f"Invalid project file format: {str(e)}")
-        except Exception as e:
-            raise FileServiceError(f"Failed to load project {project_id}: {str(e)}")
+        shared_path = self.shared_directory
+        
+        if resource_type:
+            shared_path = shared_path / resource_type
+        
+        # Ensure directory exists
+        shared_path.mkdir(parents=True, exist_ok=True)
+        
+        return shared_path
     
-    def delete_project(self, project_id: str) -> bool:
+    def merge_resources(
+        self,
+        user_id: Optional[str],
+        resource_type: str,
+        loader_func
+    ) -> List[Dict[str, Any]]:
         """
-        Delete a project from disk.
+        Merge shared and user-specific resources.
+        
+        Loads resources from shared directory and user directory (if user_id provided),
+        adding an is_shared flag to each resource.
         
         Args:
-            project_id: The ID of the project to delete
+            user_id: User identifier (None for self-hosted mode)
+            resource_type: Resource type subdirectory (e.g., "projects", "boxes")
+            loader_func: Function to load individual resource files (takes Path, returns dict)
             
         Returns:
-            True if deleted successfully
+            List of resources with is_shared and owner_id fields added
         """
-        try:
-            project_dir = self.projects_directory / project_id
-            
-            if project_dir.exists():
-                shutil.rmtree(project_dir)
-                return True
-            
-            return False
-            
-        except Exception as e:
-            raise FileServiceError(f"Failed to delete project {project_id}: {str(e)}")
-    
-    def list_projects(self) -> List[Dict[str, Any]]:
-        """
-        List all projects with basic metadata.
+        resources = []
         
-        Returns:
-            List of project metadata dictionaries
-        """
-        projects = []
+        # Load shared resources
+        shared_path = self.get_shared_data_path(resource_type)
+        if shared_path.exists():
+            for file_path in shared_path.glob("*.json"):
+                try:
+                    resource = loader_func(file_path)
+                    # In self-hosted mode (user_id=None): is_shared=False (everything is editable)
+                    # In public mode (user_id set): is_shared=True (shared resources are read-only)
+                    resource["is_shared"] = user_id is not None
+                    # Set owner_id to None for shared resources
+                    resource["owner_id"] = None
+                    resources.append(resource)
+                except Exception as e:
+                    # Log error but continue with other resources
+                    import logging
+                    logging.warning(f"Failed to load shared resource {file_path}: {str(e)}")
         
-        try:
-            for project_dir in self.projects_directory.iterdir():
-                if project_dir.is_dir():
-                    project_file = project_dir / "project.json"
-                    
-                    if project_file.exists():
-                        try:
-                            with open(project_file, 'r', encoding='utf-8') as f:
-                                project_data = json.load(f)
-                            
-                            # Extract metadata
-                            metadata = {
-                                "id": project_data.get("id"),
-                                "name": project_data.get("name"),
-                                "description": project_data.get("description", ""),
-                                "created_at": project_data.get("created_at"),
-                                "updated_at": project_data.get("updated_at"),
-                                "last_saved": project_data.get("last_saved"),
-                                "vm_count": len(project_data.get("vms", [])),
-                                "file_size": project_file.stat().st_size
-                            }
-                            
-                            projects.append(metadata)
-                            
-                        except (json.JSONDecodeError, KeyError) as e:
-                            # Skip corrupted project files
-                            continue
-            
-            # Sort by updated_at or created_at
-            projects.sort(key=lambda p: p.get("updated_at") or p.get("created_at"), reverse=True)
-            
-            return projects
-            
-        except Exception as e:
-            raise FileServiceError(f"Failed to list projects: {str(e)}")
-    
-    def export_project(self, project: Project, format: str = "json") -> str:
-        """
-        Export a project to a specific format.
+        # Load user-specific resources (if in public mode)
+        if user_id:
+            user_path = self.get_user_data_path(user_id, resource_type)
+            if user_path.exists():
+                for file_path in user_path.glob("*.json"):
+                    try:
+                        resource = loader_func(file_path)
+                        resource["is_shared"] = False
+                        resource["owner_id"] = user_id
+                        resources.append(resource)
+                    except Exception as e:
+                        import logging
+                        logging.warning(f"Failed to load user resource {file_path}: {str(e)}")
         
-        Args:
-            project: The project to export
-            format: Export format ("json", "yaml", "vagrantfile")
-            
-        Returns:
-            Path to the exported file
-        """
-        try:
-            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-            export_dir = self.exports_directory / f"{project.name}_{timestamp}"
-            export_dir.mkdir(parents=True, exist_ok=True)
-            
-            if format == "json":
-                return self._export_json(project, export_dir)
-            elif format == "yaml":
-                return self._export_yaml(project, export_dir)
-            elif format == "vagrantfile":
-                return self._export_vagrantfile(project, export_dir)
-            else:
-                raise FileServiceError(f"Unsupported export format: {format}")
-                
-        except Exception as e:
-            raise FileServiceError(f"Failed to export project: {str(e)}")
-    
-    def _export_json(self, project: Project, export_dir: Path) -> str:
-        """Export project as JSON."""
-        export_file = export_dir / f"{project.name}.json"
-        
-        project_data = project.model_dump()
-        project_data["exported_at"] = datetime.now().isoformat()
-        
-        with open(export_file, 'w', encoding='utf-8') as f:
-            json.dump(project_data, f, indent=2, ensure_ascii=False)
-        
-        return str(export_file)
-    
-    def _export_yaml(self, project: Project, export_dir: Path) -> str:
-        """Export project as YAML."""
-        try:
-            import yaml  # type: ignore
-        except ImportError:
-            raise FileServiceError("YAML export requires PyYAML package")
-        
-        export_file = export_dir / f"{project.name}.yaml"
-        
-        project_data = project.model_dump()
-        project_data["exported_at"] = datetime.now().isoformat()
-        
-        with open(export_file, 'w', encoding='utf-8') as f:
-            yaml.dump(project_data, f, default_flow_style=False, allow_unicode=True)
-        
-        return str(export_file)
-    
-    def _export_vagrantfile(self, project: Project, export_dir: Path) -> str:
-        """Export project as Vagrantfile."""
-        from ..services.vagrantfile_generator import VagrantfileGenerator
-        
-        generator = VagrantfileGenerator()
-        result = generator.generate(project)
-        
-        # Extract content from the result dictionary
-        vagrantfile_content = result.get("content", "")
-        
-        export_file = export_dir / "Vagrantfile"
-        
-        with open(export_file, 'w', encoding='utf-8') as f:
-            f.write(vagrantfile_content)
-        
-        return str(export_file)
-    
-    def import_project(self, file_path: str) -> Project:
-        """
-        Import a project from a file.
-        
-        Args:
-            file_path: Path to the file to import
-            
-        Returns:
-            The imported project
-        """
-        try:
-            file_path_obj = Path(file_path)
-            
-            if not file_path_obj.exists():
-                raise FileServiceError(f"Import file not found: {file_path_obj}")
-            
-            if file_path_obj.suffix.lower() == '.json':
-                return self._import_json(file_path_obj)
-            elif file_path_obj.suffix.lower() in ['.yaml', '.yml']:
-                return self._import_yaml(file_path_obj)
-            else:
-                raise FileServiceError(f"Unsupported import format: {file_path_obj.suffix}")
-                
-        except Exception as e:
-            raise FileServiceError(f"Failed to import project: {str(e)}")
-    
-    def _import_json(self, file_path: Path) -> Project:
-        """Import project from JSON file."""
-        with open(file_path, 'r', encoding='utf-8') as f:
-            project_data = json.load(f)
-        
-        # Remove export metadata
-        project_data.pop("exported_at", None)
-        project_data.pop("last_saved", None)
-        
-        # Generate new ID if needed
-        if "id" not in project_data:
-            project_data["id"] = str(uuid.uuid4())
-        
-        return Project(**project_data)
-    
-    def _import_yaml(self, file_path: Path) -> Project:
-        """Import project from YAML file."""
-        try:
-            import yaml  # type: ignore
-        except ImportError:
-            raise FileServiceError("YAML import requires PyYAML package")
-        
-        with open(file_path, 'r', encoding='utf-8') as f:
-            project_data = yaml.safe_load(f)
-        
-        # Remove export metadata
-        project_data.pop("exported_at", None)
-        project_data.pop("last_saved", None)
-        
-        # Generate new ID if needed
-        if "id" not in project_data:
-            project_data["id"] = str(uuid.uuid4())
-        
-        return Project(**project_data)
-    
-    def _create_backup(self, file_path: Path):
-        """Create a backup of an existing file."""
-        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        backup_path = file_path.with_suffix(f".backup_{timestamp}.json")
-        shutil.copy2(file_path, backup_path)
-    
-    def cleanup_backups(self, keep_count: int = 5):
-        """
-        Clean up old backup files, keeping only the most recent ones.
-        
-        Args:
-            keep_count: Number of backups to keep per project
-        """
-        try:
-            for project_dir in self.projects_directory.iterdir():
-                if project_dir.is_dir():
-                    # Find all backup files
-                    backup_files = list(project_dir.glob("*.backup_*.json"))
-                    
-                    if len(backup_files) > keep_count:
-                        # Sort by modification time (oldest first)
-                        backup_files.sort(key=lambda f: f.stat().st_mtime)
-                        
-                        # Remove oldest backups
-                        for backup_file in backup_files[:-keep_count]:
-                            backup_file.unlink()
-                            
-        except Exception as e:
-            raise FileServiceError(f"Failed to cleanup backups: {str(e)}")
-    
-    def get_project_stats(self) -> Dict[str, Any]:
-        """
-        Get statistics about stored projects.
-        
-        Returns:
-            Dictionary with statistics
-        """
-        try:
-            stats = {
-                "total_projects": 0,
-                "total_vms": 0,
-                "total_size_bytes": 0,
-                "oldest_project": None,
-                "newest_project": None
-            }
-            
-            projects = self.list_projects()
-            
-            if projects:
-                stats["total_projects"] = len(projects)
-                stats["total_vms"] = sum(p["vm_count"] for p in projects)
-                stats["total_size_bytes"] = sum(p["file_size"] for p in projects)
-                
-                # Find oldest and newest
-                sorted_by_created = sorted(projects, key=lambda p: p.get("created_at", ""))
-                stats["oldest_project"] = sorted_by_created[0]["name"] if sorted_by_created else None
-                stats["newest_project"] = sorted_by_created[-1]["name"] if sorted_by_created else None
-            
-            return stats
-            
-        except Exception as e:
-            raise FileServiceError(f"Failed to get project stats: {str(e)}")
+        return resources
     
     def health_check(self) -> Dict[str, Any]:
         """
@@ -395,7 +161,7 @@ class FileService:
         
         try:
             # Check directories exist
-            for directory in [self.base_directory, self.projects_directory, self.exports_directory]:
+            for directory in [self.base_directory, self.shared_directory, self.users_directory, self.auth_directory]:
                 if not directory.exists():
                     health["issues"].append(f"Directory missing: {directory}")
                     health["directories_exist"] = False
@@ -422,3 +188,168 @@ class FileService:
                 "directories_exist": False,
                 "writable": False
             }
+    
+    def apply_shared_metadata(
+        self,
+        resource_data: Dict[str, Any],
+        resource_id: str,
+        resource_type: str,
+        user_id: Optional[str]
+    ) -> Dict[str, Any]:
+        """
+        Apply is_shared and owner_id metadata to a resource based on deployment mode.
+        
+        This ensures consistent behavior across all resource types:
+        - Self-hosted mode: is_shared=False (all resources editable)
+        - Public mode: is_shared based on storage location
+        
+        Args:
+            resource_data: The resource data dict to modify
+            resource_id: ID of the resource
+            resource_type: Type of resource (plugins, boxes, etc.)
+            user_id: User ID (None for self-hosted mode)
+            
+        Returns:
+            Modified resource_data with is_shared and owner_id fields set
+        """
+        if user_id is None:
+            # Self-hosted mode: all resources are editable
+            resource_data["is_shared"] = False
+            resource_data["owner_id"] = None
+        else:
+            # Public mode: check if resource is in shared directory
+            shared_path = self.get_shared_data_path(resource_type) / f"{resource_id}.json"
+            user_path = self.get_user_data_path(user_id, resource_type) / f"{resource_id}.json"
+            
+            if user_path.exists():
+                # User's own resource
+                resource_data["is_shared"] = False
+                resource_data["owner_id"] = user_id
+            elif shared_path.exists():
+                # Shared resource
+                resource_data["is_shared"] = True
+                resource_data["owner_id"] = None
+        
+        return resource_data        
+        return resource_data
+    
+    def atomic_write_json(self, file_path: Path, data: dict) -> None:
+        """
+        Write JSON data atomically using temp file + rename.
+        
+        On Unix systems, os.replace() is atomic, ensuring readers never
+        see partial/corrupted data.
+        
+        Args:
+            file_path: Path to file to write
+            data: Dictionary to serialize as JSON
+            
+        Raises:
+            FileServiceError: If write operation fails
+        """
+        # Ensure parent directory exists
+        file_path.parent.mkdir(parents=True, exist_ok=True)
+        
+        # Create temp file in same directory (same filesystem for atomic rename)
+        fd, temp_path = tempfile.mkstemp(
+            dir=file_path.parent,
+            prefix=f".tmp_{file_path.name}_",
+            suffix='.json'
+        )
+        
+        try:
+            # Write to temp file
+            with os.fdopen(fd, 'w', encoding='utf-8') as f:
+                json.dump(data, f, indent=2, ensure_ascii=False)
+                f.flush()
+                os.fsync(f.fileno())  # Force write to disk
+            
+            # Atomic rename (on Unix, this is atomic even across processes)
+            os.replace(temp_path, file_path)
+            
+        except Exception as e:
+            # Cleanup temp file on error
+            try:
+                os.unlink(temp_path)
+            except:
+                pass
+            raise FileServiceError(f"Atomic write failed for {file_path}: {e}")
+    
+    @contextmanager
+    def locked_file_operation(
+        self, 
+        file_path: Path, 
+        mode: str = 'exclusive',
+        timeout: float = 5.0
+    ):
+        """
+        Context manager for locked file operations.
+        
+        Provides advisory file locking to prevent concurrent modifications.
+        Uses a separate .lock file to avoid interfering with the data file.
+        
+        Args:
+            file_path: Path to file to lock
+            mode: 'exclusive' (write) or 'shared' (read)
+            timeout: Maximum seconds to wait for lock
+            
+        Usage:
+            with file_service.locked_file_operation(path, 'exclusive'):
+                data = load_file(path)
+                modify_data(data)
+                save_file(path, data)
+                
+        Raises:
+            FileServiceError: If lock cannot be acquired within timeout
+        """
+        # Ensure directory exists
+        file_path.parent.mkdir(parents=True, exist_ok=True)
+        
+        # Create lock file (separate from data file)
+        lock_file_path = file_path.parent / f".{file_path.name}.lock"
+        
+        lock_fd = None
+        lock_acquired = False
+        
+        try:
+            # Open lock file
+            lock_fd = os.open(
+                lock_file_path, 
+                os.O_CREAT | os.O_RDWR
+            )
+            
+            # Determine lock type
+            lock_type = fcntl.LOCK_EX if mode == 'exclusive' else fcntl.LOCK_SH
+            
+            # Try to acquire lock with timeout
+            start_time = time.time()
+            while True:
+                try:
+                    fcntl.flock(lock_fd, lock_type | fcntl.LOCK_NB)
+                    lock_acquired = True
+                    break
+                except BlockingIOError:
+                    if time.time() - start_time >= timeout:
+                        raise FileServiceError(
+                            f"Could not acquire lock on {file_path.name} "
+                            f"within {timeout} seconds"
+                        )
+                    time.sleep(0.01)  # Wait 10ms before retry
+            
+            # Yield control to caller (lock is held)
+            yield
+            
+        finally:
+            # Release lock
+            if lock_acquired and lock_fd is not None:
+                try:
+                    fcntl.flock(lock_fd, fcntl.LOCK_UN)
+                except:
+                    pass
+            
+            # Close lock file descriptor
+            if lock_fd is not None:
+                try:
+                    os.close(lock_fd)
+                except:
+                    pass

@@ -1,0 +1,11 @@
+{
+  "id": "84f3a6d2-f485-473c-a180-527d8fc3d22d",
+  "name": "generic/debian12",
+  "description": "Debian 12 (Bookworm)",
+  "provider": "libvirt",
+  "version": null,
+  "url": null,
+  "created_at": "2025-09-25T15:40:00.876930",
+  "updated_at": "2025-09-25T15:40:00.876931",
+  "is_shared": true
+}

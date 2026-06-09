@@ -73,6 +73,18 @@ class GlobalProvisioner(BaseModel):
         default_factory=datetime.now,
         description="Timestamp when provisioner was last updated"
     )
+    is_shared: Optional[bool] = Field(
+        default=False,
+        description="Whether this is a shared resource"
+    )
+    owner_id: Optional[str] = Field(
+        default=None,
+        description="User ID of the owner (None for shared)"
+    )
+    source_id: Optional[str] = Field(
+        default=None,
+        description="ID of the original shared resource this was copied from"
+    )
     
     @field_validator('name')
     @classmethod
@@ -182,3 +194,5 @@ class GlobalProvisionerSummary(BaseModel):
     description: Optional[str] = None
     type: Literal["shell"] = "shell"
     scope: Literal["global"] = "global"
+    is_shared: Optional[bool] = False
+    owner_id: Optional[str] = None

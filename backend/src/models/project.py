@@ -66,7 +66,10 @@ class ProjectUpdate(ProjectBase):
     """Schema for updating an existing project."""
     version: str = Field(default="1.0.0", description="Data model version")
     vms: List['VirtualMachine'] = Field(default_factory=list)
-    global_plugins: List['PluginConfiguration'] = Field(default_factory=list)
+    global_plugins: List[str] = Field(
+        default_factory=list,
+        description="List of global plugin IDs applied to all VMs"
+    )
     global_provisioners: List[str] = Field(
         default_factory=list,
         description="List of global provisioner IDs applied to all VMs"
@@ -75,6 +78,10 @@ class ProjectUpdate(ProjectBase):
         default_factory=list,
         description="List of global trigger IDs applied to the project"
     )
+    # Multi-user metadata
+    is_shared: Optional[bool] = Field(default=False, description="Whether this is a shared resource")
+    owner_id: Optional[str] = Field(default=None, description="User ID of the owner (None for shared)")
+    source_id: Optional[str] = Field(default=None, description="ID of the original shared resource this was copied from")
 
     @validator('vms')
     def validate_vm_names_unique(cls, v):
@@ -97,7 +104,10 @@ class Project(ProjectBase):
     created_at: datetime = Field(default_factory=datetime.utcnow)
     updated_at: datetime = Field(default_factory=datetime.utcnow)
     vms: List['VirtualMachine'] = Field(default_factory=list)
-    global_plugins: List['PluginConfiguration'] = Field(default_factory=list)
+    global_plugins: List[str] = Field(
+        default_factory=list,
+        description="List of global plugin IDs applied to all VMs"
+    )
     global_provisioners: List[str] = Field(
         default_factory=list,
         description="List of global provisioner IDs applied to all VMs"
@@ -106,6 +116,10 @@ class Project(ProjectBase):
         default_factory=list,
         description="List of global trigger IDs applied to the project"
     )
+    # Multi-user metadata
+    is_shared: Optional[bool] = Field(default=False, description="Whether this is a shared resource")
+    owner_id: Optional[str] = Field(default=None, description="User ID of the owner (None for shared)")
+    source_id: Optional[str] = Field(default=None, description="ID of the original shared resource this was copied from")
 
     class Config:
         """Pydantic configuration."""
@@ -152,19 +166,19 @@ class Project(ProjectBase):
         self.vms.append(vm)
         self.update_timestamp()
 
-    def remove_vm(self, vm_name: str) -> bool:
-        """Remove a VM by name. Returns True if found and removed."""
+    def remove_vm(self, vm_id: str) -> bool:
+        """Remove a VM by ID. Returns True if found and removed."""
         for i, vm in enumerate(self.vms):
-            if vm.name == vm_name:
+            if vm.id == vm_id:
                 del self.vms[i]
                 self.update_timestamp()
                 return True
         return False
 
-    def get_vm(self, vm_name: str) -> Optional['VirtualMachine']:
-        """Get a VM by name."""
+    def get_vm(self, vm_id: str) -> Optional['VirtualMachine']:
+        """Get a VM by ID."""
         for vm in self.vms:
-            if vm.name == vm_name:
+            if vm.id == vm_id:
                 return vm
         return None
 
@@ -212,6 +226,8 @@ class ProjectSummary(BaseModel):
     updated_at: datetime
     vm_count: int
     deployment_status: DeploymentStatus
+    is_shared: Optional[bool] = Field(default=False, description="Whether this is a shared resource")
+    owner_id: Optional[str] = Field(default=None, description="User ID of the owner (None for shared)")
 
     class Config:
         """Pydantic configuration."""
@@ -236,7 +252,6 @@ class ProjectSummary(BaseModel):
 
 # Forward references for circular imports
 from .virtual_machine import VirtualMachine
-from .plugin_configuration import PluginConfiguration
 
 # Update forward references
 Project.model_rebuild()

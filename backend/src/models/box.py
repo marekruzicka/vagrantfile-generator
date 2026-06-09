@@ -20,6 +20,9 @@ class Box(BaseModel):
     url: Optional[str] = Field(default=None, description="Custom box URL")
     created_at: str = Field(..., description="Creation timestamp")
     updated_at: str = Field(..., description="Last update timestamp")
+    is_shared: Optional[bool] = Field(default=False, description="Whether this is a shared resource")
+    owner_id: Optional[str] = Field(default=None, description="User ID of the owner (None for shared)")
+    source_id: Optional[str] = Field(default=None, description="ID of the original shared resource this was copied from")
     
     class Config:
         """Pydantic configuration."""
@@ -63,6 +66,8 @@ class BoxSummary(BaseModel):
     name: str = Field(..., description="Box name")
     description: str = Field(..., description="Human-readable description")
     provider: str = Field(..., description="Vagrant provider")
+    is_shared: Optional[bool] = Field(default=False, description="Whether this is a shared resource")
+    owner_id: Optional[str] = Field(default=None, description="User ID of the owner (None for shared)")
     
     class Config:
         """Pydantic configuration."""

@@ -4,8 +4,11 @@ Global Provisioner API endpoints for Vagrantfile Generator.
 This module provides REST API endpoints for managing global provisioners.
 """
 
-from typing import List
-from fastapi import APIRouter, HTTPException, status
+from typing import List, Optional
+from fastapi import APIRouter, HTTPException, status, Depends
+
+from ..models.user_profile import UserProfile
+from ..middleware.auth_middleware import get_optional_user
 
 from ..models.global_provisioner import (
     GlobalProvisioner,
@@ -17,11 +20,21 @@ from ..services.global_provisioner_service import GlobalProvisionerService, Glob
 
 
 router = APIRouter()
-provisioner_service = GlobalProvisionerService()
+
+# Dependency to get GlobalProvisionerService instance
+def get_provisioner_service(
+    current_user: Optional[UserProfile] = Depends(get_optional_user)
+) -> GlobalProvisionerService:
+    """Get GlobalProvisionerService instance with user context."""
+    user_id = current_user.user_id if current_user else None
+    return GlobalProvisionerService(user_id=user_id)
 
 
 @router.post("/provisioners", response_model=GlobalProvisioner, status_code=status.HTTP_201_CREATED)
-async def create_provisioner(provisioner_data: GlobalProvisionerCreate):
+async def create_provisioner(
+    provisioner_data: GlobalProvisionerCreate,
+    provisioner_service: GlobalProvisionerService = Depends(get_provisioner_service)
+):
     """
     Create a new global provisioner.
     
@@ -50,7 +63,9 @@ async def create_provisioner(provisioner_data: GlobalProvisionerCreate):
 
 
 @router.get("/provisioners", response_model=List[GlobalProvisionerSummary])
-async def list_provisioners():
+async def list_provisioners(
+    provisioner_service: GlobalProvisionerService = Depends(get_provisioner_service)
+):
     """
     List all global provisioners.
     
@@ -68,7 +83,10 @@ async def list_provisioners():
 
 
 @router.get("/provisioners/{provisioner_id}", response_model=GlobalProvisioner)
-async def get_provisioner(provisioner_id: str):
+async def get_provisioner(
+    provisioner_id: str,
+    provisioner_service: GlobalProvisionerService = Depends(get_provisioner_service)
+):
     """
     Get a specific provisioner by ID.
     
@@ -101,7 +119,11 @@ async def get_provisioner(provisioner_id: str):
 
 
 @router.put("/provisioners/{provisioner_id}", response_model=GlobalProvisioner)
-async def update_provisioner(provisioner_id: str, provisioner_data: GlobalProvisionerUpdate):
+async def update_provisioner(
+    provisioner_id: str,
+    provisioner_data: GlobalProvisionerUpdate,
+    provisioner_service: GlobalProvisionerService = Depends(get_provisioner_service)
+):
     """
     Update an existing provisioner.
     
@@ -116,6 +138,17 @@ async def update_provisioner(provisioner_id: str, provisioner_data: GlobalProvis
         HTTPException: If provisioner not found or update fails
     """
     try:
+        # Check if provisioner is shared (read-only)
+        if provisioner_service.user_id is not None:
+            from ..services.file_service import FileService
+            file_service = FileService()
+            shared_path = file_service.get_shared_data_path("provisioners") / f"{provisioner_id}.json"
+            if shared_path.exists():
+                raise HTTPException(
+                    status_code=status.HTTP_403_FORBIDDEN,
+                    detail="Cannot modify shared resource - shared resources are read-only"
+                )
+        
         provisioner = provisioner_service.update_provisioner(provisioner_id, provisioner_data)
         
         if not provisioner:
@@ -140,28 +173,91 @@ async def update_provisioner(provisioner_id: str, provisioner_data: GlobalProvis
 
 
 @router.delete("/provisioners/{provisioner_id}", status_code=status.HTTP_204_NO_CONTENT)
-async def delete_provisioner(provisioner_id: str):
+async def delete_provisioner(
+    provisioner_id: str,
+    provisioner_service: GlobalProvisionerService = Depends(get_provisioner_service)
+):
     """
     Delete a provisioner.
     
     Args:
-        provisioner_id: Provisioner ID
+        provisioner_id: Provisioner ID to delete
+        
+    Returns:
+        None (204 No Content)
         
     Raises:
         HTTPException: If provisioner not found
     """
     try:
-        deleted = provisioner_service.delete_provisioner(provisioner_id)
+        # Check if provisioner is shared (read-only)
+        if provisioner_service.user_id is not None:
+            from ..services.file_service import FileService
+            file_service = FileService()
+            shared_path = file_service.get_shared_data_path("provisioners") / f"{provisioner_id}.json"
+            if shared_path.exists():
+                raise HTTPException(
+                    status_code=status.HTTP_403_FORBIDDEN,
+                    detail="Cannot delete shared resource - shared resources are read-only"
+                )
         
-        if not deleted:
+        success = provisioner_service.delete_provisioner(provisioner_id)
+        if not success:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail=f"Provisioner with ID {provisioner_id} not found"
             )
-        
         return None
     except HTTPException:
         raise
+    except GlobalProvisionerServiceError as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=str(e)
+        )
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to delete provisioner: {str(e)}"
+        )
+
+
+@router.post("/provisioners/{provisioner_id}/copy", response_model=GlobalProvisioner)
+async def copy_shared_provisioner(
+    provisioner_id: str,
+    provisioner_service: GlobalProvisionerService = Depends(get_provisioner_service)
+):
+    """
+    Copy a shared provisioner to user's directory.
+    User can then edit/customize their copy.
+    """
+    try:
+        copied_provisioner = provisioner_service.copy_shared_provisioner(provisioner_id)
+        return copied_provisioner
+    except GlobalProvisionerServiceError as e:
+        if "not found" in str(e):
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=str(e)
+            )
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(e)
+        )
+
+
+@router.get("/provisioners/copies-of/{source_id}", response_model=List[GlobalProvisioner])
+async def get_copies_of_shared_provisioner(
+    source_id: str,
+    provisioner_service: GlobalProvisionerService = Depends(get_provisioner_service)
+):
+    """
+    Get all user's copies of a specific shared provisioner.
+    Useful for showing existing copies before creating a new one.
+    """
+    try:
+        copies = provisioner_service.get_copies_of_shared_resource(source_id)
+        return copies
     except GlobalProvisionerServiceError as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,

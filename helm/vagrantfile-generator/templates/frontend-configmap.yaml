@@ -1,0 +1,46 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "vagrantfile-generator.frontend.configMapName" . }}
+  namespace: {{ include "vagrantfile-generator.namespace" . }}
+  labels:
+    {{- include "vagrantfile-generator.frontend.labels" . | nindent 4 }}
+data:
+  default.conf: |
+    server {
+        listen {{ .Values.frontend.port }} default_server;
+        server_name {{ .Values.gatewayAPI.hostname }} localhost 127.0.0.1 _;
+
+        root /usr/share/nginx/html;
+        index index.html;
+
+        # Serve runtime config with no cache so updates are picked up immediately
+        location = /config.json {
+            add_header Cache-Control "no-store";
+            try_files /config.json =404;
+        }
+
+        # Static assets can be aggressively cached when fingerprinted
+        location ~* \.(?:css|js|woff2?|ttf|png|jpg|jpeg|svg|gif)$ {
+            expires 30d;
+            add_header Cache-Control "public, max-age=2592000, immutable";
+            try_files $uri =404;
+        }
+
+        # Proxy all API requests to backend service
+        location /api/ {
+            proxy_pass http://{{ include "vagrantfile-generator.backend.name" . }}:{{ .Values.backend.port }};
+            proxy_http_version 1.1;
+            proxy_set_header Host $host;
+            proxy_set_header X-Real-IP $remote_addr;
+            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+            proxy_set_header X-Forwarded-Proto $scheme;
+            proxy_set_header Connection "";
+            proxy_redirect off;
+        }
+
+        # Default fallback for SPA routes and HTML partials
+        location / {
+            try_files $uri $uri/ /index.html;
+        }
+    }

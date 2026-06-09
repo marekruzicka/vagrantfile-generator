@@ -1,63 +1,94 @@
-# Vagrantfile Generator - Development with Podman
+# Vagrantfile Generator - Podman Compose Commands
 # 
-# This Makefile provides convenient commands for development using Podman containers
+# This Makefile provides convenient commands for running containerized environments
 
-.PHONY: help dev build up down logs clean restart backend-logs frontend-logs
+.PHONY: help setup-local build up down restart logs backend-logs frontend-logs clean user-up user-down user-logs user-clean
 
 # Default target
 help:
-	@echo "Vagrantfile Generator - Podman Development Commands"
-	@echo "======================================================="
+	@echo "Vagrantfile Generator - Environment Commands"
+	@echo "=============================================="
 	@echo ""
-	@echo "Commands:"
-	@echo "	 make dev						 - Build and run all containers"
-	@echo "  make build          - Build all containers"
-	@echo "  make up             - Start all services"
-	@echo "  make down           - Stop all services"
-	@echo "  make restart        - Restart all services"
-	@echo "  make logs           - Show logs from all services"
-	@echo "  make backend-logs   - Show backend logs"
-	@echo "  make frontend-logs  - Show frontend logs"
-	@echo "  make clean          - Remove containers and volumes"
+	@echo "LOCAL DEVELOPMENT (no containers):"
+	@echo "  make setup-local         - Set up local development environment"
+	@echo "  After setup, use VS Code tasks or debugger to run the app"
 	@echo ""
-	@echo "Configuration"
-	@echo "URLs:"
+	@echo "PRODUCTION BUILD (local build for testing):"
+	@echo "  make build          - Build production images locally"
+	@echo "  make up             			- Start production-like stack"
+	@echo "  make down           			- Stop production stack"
+	@echo "  make restart			        - Restart production stack"
+	@echo "  make logs           - Show logs from production stack"
+	@echo "  make backend-logs   - Show backend logs (production)"
+	@echo "  make frontend-logs  - Show frontend logs (production)"
+	@echo "  make clean          - Clean production containers and volumes"
+	@echo ""
+	@echo "USER DISTRIBUTION (prebuilt images):"
+	@echo "  make user-up             - Start using prebuilt images"
+	@echo "  make user-down           - Stop user environment"
+	@echo "  make user-logs           - Show logs from user environment"
+	@echo "  make user-clean          - Clean user containers and volumes"
+	@echo ""
+	@echo "Development URLs (local):"
 	@echo "  Frontend: http://localhost:5173"
 	@echo "  Backend:  http://localhost:8000"
 	@echo "  API Docs: http://localhost:8000/docs"
+	@echo ""
+	@echo "Production URLs (containerized):"
+	@echo "  Frontend: http://localhost:8080"
+	@echo "  Backend:  http://localhost:8000 (internal)"
+	@echo "  API:      http://localhost:8080/api"
 
-# Build and run all containers
-dev:
-	podman-compose -f compose-dev.yml up -d --build
+# =============================================================================
+# LOCAL DEVELOPMENT (runs outside containers)
+# =============================================================================
 
-# Build all containers
+setup-local:
+	@echo "Setting up local development environment..."
+	./setup-local-dev.sh
+
+# =============================================================================
+# PRODUCTION BUILD (compose-prod.yml - local builds for testing)
+# =============================================================================
+
 build:
-	podman-compose -f compose-dev.yml build
+	podman-compose -f compose-prod.yml build --no-cache
 
-# Start all services
 up:
-	podman-compose -f compose-dev.yml up -d
+	podman-compose -f compose-prod.yml up -d --build
 
-# Stop all services
 down:
-	podman-compose -f compose-dev.yml down
+	podman-compose -f compose-prod.yml down -v
 
-# Restart services
+
 restart: down up
 
-# Show logs from all services
 logs:
-	podman-compose -f compose-dev.yml logs
+	podman-compose -f compose-prod.yml logs
 
-# Show backend logs
 backend-logs:
-	podman-compose -f compose-dev.yml logs backend
+	podman-compose -f compose-prod.yml logs backend
 
-# Show frontend logs
 frontend-logs:
-	podman-compose -f compose-dev.yml logs frontend
+	podman-compose -f compose-prod.yml logs frontend
 
-# Clean up containers and volumes
 clean:
-	podman-compose -f compose-dev.yml down -v
+	podman-compose -f compose-prod.yml down -v
+	podman system prune -f
+
+# =============================================================================
+# USER DISTRIBUTION (compose.yml - prebuilt images)
+# =============================================================================
+
+user-up:
+	podman-compose up -d
+
+user-down:
+	podman-compose down
+
+user-logs:
+	podman-compose logs
+
+user-clean:
+	podman-compose down -v
 	podman system prune -f

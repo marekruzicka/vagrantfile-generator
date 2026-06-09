@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "vagrantfile-generator.backend.name" . }}
+  namespace: {{ include "vagrantfile-generator.namespace" . }}
+  labels:
+    {{- include "vagrantfile-generator.backend.labels" . | nindent 4 }}
+spec:
+  type: ClusterIP
+  ports:
+    - port: {{ .Values.backend.port }}
+      targetPort: http
+      protocol: TCP
+      name: http
+  selector:
+    {{- include "vagrantfile-generator.backend.selectorLabels" . | nindent 4 }}

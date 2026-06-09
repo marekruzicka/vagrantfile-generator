@@ -1,0 +1,11 @@
+{
+  "id": "e724b9a6-88dc-4348-bfe5-554b3d33aa8a",
+  "name": "generic/ubuntu2204",
+  "description": "Ubuntu 22.04 LTS (Jammy Jellyfish)",
+  "provider": "libvirt",
+  "version": null,
+  "url": null,
+  "created_at": "2025-09-25T15:40:00.876903",
+  "updated_at": "2025-09-25T15:40:00.876911",
+  "is_shared": true
+}

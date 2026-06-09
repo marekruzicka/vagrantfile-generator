@@ -8,7 +8,7 @@ using Jinja2 templates.
 from typing import Dict, Any, List, Tuple
 from jinja2 import Environment, BaseLoader, Template
 
-from ..models import Project, VirtualMachine, NetworkInterface, SyncedFolder, Provisioner, PluginConfiguration
+from ..models import Project, VirtualMachine, NetworkInterface, SyncedFolder, Provisioner
 
 
 class StringTemplateLoader(BaseLoader):
@@ -132,14 +132,16 @@ Vagrant.configure("2") do |config|
 end
 '''
 
-    def __init__(self, template_string: str | None = None):
+    def __init__(self, template_string: str | None = None, user_id: str | None = None):
         """
         Initialize the VagrantfileGenerator.
         
         Args:
             template_string: Custom Jinja2 template (optional)
+            user_id: User ID for loading user-specific resources (optional)
         """
         template_str = template_string or self.VAGRANTFILE_TEMPLATE
+        self.user_id = user_id
         
         # Setup Jinja2 environment
         self.env = Environment(
@@ -185,42 +187,29 @@ end
         is_valid, errors, warnings = project.validate_for_generation()
         
         # Enrich global_plugins with full plugin details (including configuration)
-        plugin_service = PluginService()
+        plugin_service = PluginService(user_id=self.user_id)
         enriched_plugins = []
         
-        for plugin_config in project.global_plugins:
+        for plugin_id in project.global_plugins:
             try:
-                # Try to get full plugin details by name
-                full_plugin = plugin_service.get_plugin_by_name(plugin_config.name)
+                # Get full plugin details by ID
+                full_plugin = plugin_service.get_plugin(plugin_id)
                 if full_plugin:
                     # Create enriched plugin object with configuration
                     enriched_plugin = {
-                        'name': plugin_config.name,
-                        'version': plugin_config.version,
+                        'name': full_plugin.name,
+                        'version': full_plugin.default_version,  # Fixed: was full_plugin.version, should be default_version
                         'configuration': full_plugin.configuration,
-                        'is_deprecated': plugin_config.is_deprecated
+                        'is_deprecated': full_plugin.is_deprecated
                     }
                     enriched_plugins.append(enriched_plugin)
-                else:
-                    # Fallback to basic info if plugin not found
-                    enriched_plugins.append({
-                        'name': plugin_config.name,
-                        'version': plugin_config.version,
-                        'configuration': None,
-                        'is_deprecated': plugin_config.is_deprecated
-                    })
             except Exception as e:
-                # If fetching fails, use basic info
-                enriched_plugins.append({
-                    'name': plugin_config.name,
-                    'version': plugin_config.version,
-                    'configuration': None,
-                    'is_deprecated': plugin_config.is_deprecated
-                })
+                # If fetching fails, skip this plugin
+                pass
         
         # Load global provisioners for this project
         from .global_provisioner_service import GlobalProvisionerService
-        provisioner_service = GlobalProvisionerService()
+        provisioner_service = GlobalProvisionerService(user_id=self.user_id)
         
         global_provisioners = []
         if project.global_provisioners:
@@ -236,7 +225,7 @@ end
         
         # Load global triggers for this project
         from .global_trigger_service import GlobalTriggerService
-        trigger_service = GlobalTriggerService()
+        trigger_service = GlobalTriggerService(user_id=self.user_id)
         
         global_triggers = []
         if project.global_triggers:

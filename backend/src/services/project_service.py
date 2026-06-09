@@ -12,7 +12,8 @@ from pathlib import Path
 from typing import List, Optional, Dict, Any
 from uuid import UUID
 
-from ..models import Project, ProjectCreate, ProjectUpdate, ProjectSummary, VirtualMachine, NetworkInterface, DeploymentStatus, PluginConfiguration
+from ..models import Project, ProjectCreate, ProjectUpdate, ProjectSummary, VirtualMachine, NetworkInterface, DeploymentStatus
+from .file_service import FileService
 
 
 class ProjectNotFoundError(Exception):
@@ -23,15 +24,24 @@ class ProjectNotFoundError(Exception):
 class ProjectService:
     """Service class for managing Project entities."""
 
-    def __init__(self, data_dir: str = "data/projects"):
+    def __init__(self, user_id: Optional[str] = None):
         """
         Initialize the ProjectService.
         
         Args:
-            data_dir: Directory where project JSON files are stored
+            user_id: User ID for user-specific storage. If None, uses shared directory (self-hosted mode).
         """
-        self.data_dir = Path(data_dir)
+        file_service = FileService()
+        
+        if user_id:
+            # Public mode: user-specific directory
+            self.data_dir = file_service.get_user_data_path(user_id, "projects")
+        else:
+            # Self-hosted mode: shared directory
+            self.data_dir = file_service.get_shared_data_path("projects")
+        
         self.data_dir.mkdir(parents=True, exist_ok=True)
+        self.user_id = user_id
 
     def _get_project_file_path(self, project_id: UUID) -> Path:
         """Get the file path for a project's JSON file."""
@@ -52,6 +62,8 @@ class ProjectService:
         """Load a project from its JSON file with minimal validation for backward compatibility."""
         file_path = self._get_project_file_path(project_id)
         
+        # In public mode, only load from user directory (no fallback to shared)
+        # In self-hosted mode, load from shared directory
         if not file_path.exists():
             raise ProjectNotFoundError(f"Project {project_id} not found")
         
@@ -72,12 +84,8 @@ class ProjectService:
                     vms.append(self._construct_vm_without_validation(vm_data))
                 data = {**data, 'vms': vms}
             
-            # Handle global_plugins separately to avoid validation issues
-            plugins = []
-            if 'global_plugins' in data:
-                for plugin_data in data['global_plugins']:
-                    plugins.append(PluginConfiguration.construct(**plugin_data))
-                data = {**data, 'global_plugins': plugins}
+            # global_plugins, global_provisioners, and global_triggers are now just lists of IDs (strings)
+            # No special handling needed - they're already in the correct format
             
             # Use construct() to create model without validation for existing data
             # This maintains backward compatibility with legacy projects
@@ -86,14 +94,22 @@ class ProjectService:
             raise ValueError(f"Invalid project data in {file_path}: {e}")
 
     def _save_project_to_file(self, project: Project) -> None:
-        """Save a project to its JSON file."""
+        """Save a project to its JSON file using atomic write."""
         file_path = self._get_project_file_path(project.id)
+        file_service = FileService()
         
-        # Ensure directory exists
-        file_path.parent.mkdir(parents=True, exist_ok=True)
-        
-        # Convert to dict and save
+        # Convert to dict
         data = project.dict()
+
+        # Ensure metadata fields are present in stored JSON for multi-user public mode
+        # In public mode (user_id set) we want explicit ownership recorded
+        if self.user_id:
+            data["is_shared"] = False
+            data["owner_id"] = self.user_id
+        else:
+            # Self-hosted mode: no explicit owner and resource is editable
+            data["is_shared"] = False
+            data["owner_id"] = None
         
         # Custom JSON encoder for datetime and UUID
         def json_encoder(obj):
@@ -103,8 +119,12 @@ class ProjectService:
                 return str(obj)
             raise TypeError(f"Object of type {type(obj)} is not JSON serializable")
         
-        with open(file_path, 'w', encoding='utf-8') as f:
-            json.dump(data, f, indent=2, default=json_encoder, ensure_ascii=False)
+        # Convert to JSON-serializable format
+        import json as json_module
+        json_data = json_module.loads(json_module.dumps(data, default=json_encoder))
+        
+        # Use atomic write
+        file_service.atomic_write_json(file_path, json_data)
 
     def create_project(self, project_data: ProjectCreate) -> Project:
         """
@@ -132,6 +152,9 @@ class ProjectService:
             created_at=datetime.utcnow(),
             updated_at=datetime.utcnow()
         )
+        # Set multi-user metadata for API responses and stored JSON
+        project.is_shared = False
+        project.owner_id = self.user_id if self.user_id else None
         
         # Save to file
         self._save_project_to_file(project)
@@ -149,9 +172,19 @@ class ProjectService:
             Project instance
             
         Raises:
-            ProjectNotFoundError: If project doesn't exist
+            ProjectNotFoundError: If project doesn't exist or user doesn't have access
         """
-        return self._load_project_from_file(project_id)
+        project = self._load_project_from_file(project_id)
+        
+        # In public mode (user_id set), verify ownership
+        # Shared resources are accessible to all users, but users can only access their own private resources
+        if self.user_id:
+            # Check if resource exists in user's directory (already loaded from there)
+            # If we got here, it means the file was found in the user's directory,
+            # so access is allowed. If it wasn't found, ProjectNotFoundError would be raised.
+            pass
+        
+        return project
 
     def update_project(self, project_id: UUID, project_data: ProjectUpdate) -> Project:
         """
@@ -251,35 +284,98 @@ class ProjectService:
 
     def list_projects(self) -> List[ProjectSummary]:
         """
-        List all projects.
+        List projects.
+        - Public mode (user_id set): Only user's own projects
+        - Self-hosted mode (user_id=None): Projects from shared directory
         
         Returns:
-            List of ProjectSummary instances
+            List of ProjectSummary instances with is_shared and owner_id fields
         """
         projects = []
+        file_service = FileService()
         
-        # Scan for JSON files in data directory
-        for file_path in self.data_dir.glob("*.json"):
-            try:
-                with open(file_path, 'r', encoding='utf-8') as f:
-                    data = json.load(f)
-                
-                # Create ProjectSummary from the data
-                project_summary = ProjectSummary(
-                    id=data['id'],
-                    name=data['name'],
-                    description=data['description'],
-                    created_at=datetime.fromisoformat(data['created_at'].replace('Z', '+00:00')),
-                    updated_at=datetime.fromisoformat(data['updated_at'].replace('Z', '+00:00')),
-                    vm_count=len(data.get('vms', [])),
-                    deployment_status=DeploymentStatus(data.get('deployment_status', 'draft'))
-                )
-                
-                projects.append(project_summary)
-                
-            except (json.JSONDecodeError, KeyError, ValueError):
-                # Skip invalid files
-                continue
+        # Loader function to extract project summary data
+        def load_project_summary(file_path: Path) -> dict:
+            with open(file_path, 'r', encoding='utf-8') as f:
+                data = json.load(f)
+            return {
+                'id': data['id'],
+                'name': data['name'],
+                'description': data['description'],
+                'created_at': data['created_at'],
+                'updated_at': data['updated_at'],
+                'vm_count': len(data.get('vms', [])),
+                'deployment_status': data.get('deployment_status', 'draft')
+            }
+        
+        if self.user_id:
+            # PUBLIC MODE: Only load user's own projects
+            user_dir = file_service.get_user_data_path(self.user_id, "projects")
+            if user_dir.exists():
+                for file_path in user_dir.glob("*.json"):
+                    try:
+                        data = load_project_summary(file_path)
+                        data['is_shared'] = False
+                        data['owner_id'] = self.user_id
+                        
+                        # Parse datetime strings
+                        created_at = datetime.fromisoformat(data['created_at'].replace('Z', '+00:00'))
+                        updated_at = datetime.fromisoformat(data['updated_at'].replace('Z', '+00:00'))
+                        
+                        project_summary = ProjectSummary(
+                            id=data['id'],
+                            name=data['name'],
+                            description=data['description'],
+                            created_at=created_at,
+                            updated_at=updated_at,
+                            vm_count=data['vm_count'],
+                            deployment_status=DeploymentStatus(data['deployment_status'])
+                        )
+                        
+                        # Add multi-user fields
+                        project_summary.is_shared = False
+                        project_summary.owner_id = self.user_id
+                        
+                        projects.append(project_summary)
+                        
+                    except (KeyError, ValueError) as e:
+                        import logging
+                        logging.warning(f"Skipping invalid project {file_path}: {str(e)}")
+                        continue
+        else:
+            # SELF-HOSTED MODE: Load from shared directory
+            shared_dir = file_service.get_shared_data_path("projects")
+            if shared_dir.exists():
+                for file_path in shared_dir.glob("*.json"):
+                    try:
+                        data = load_project_summary(file_path)
+                        data['is_shared'] = False  # In self-hosted, no concept of shared
+                        data['owner_id'] = None
+                        
+                        # Parse datetime strings
+                        created_at = datetime.fromisoformat(data['created_at'].replace('Z', '+00:00'))
+                        updated_at = datetime.fromisoformat(data['updated_at'].replace('Z', '+00:00'))
+                        
+                        project_summary = ProjectSummary(
+                            id=data['id'],
+                            name=data['name'],
+                            description=data['description'],
+                            created_at=created_at,
+                            updated_at=updated_at,
+                            vm_count=data['vm_count'],
+                            deployment_status=DeploymentStatus(data['deployment_status'])
+                        )
+                        
+                        # Add multi-user fields
+                        project_summary.is_shared = False
+                        project_summary.owner_id = None
+                        
+                        projects.append(project_summary)
+                        
+                    except (KeyError, ValueError) as e:
+                        import logging
+                        logging.warning(f"Skipping invalid project {file_path}: {str(e)}")
+                        continue
         
         # Sort by creation date (newest first)
         projects.sort(key=lambda p: p.created_at, reverse=True)
@@ -319,13 +415,13 @@ class ProjectService:
         self._save_project_to_file(project)
         return project
 
-    def update_vm_in_project(self, project_id: UUID, vm_name: str, vm_data: Dict[str, Any]) -> Project:
+    def update_vm_in_project(self, project_id: UUID, vm_id: str, vm_data: Dict[str, Any]) -> Project:
         """
         Update a VM in a project.
         
         Args:
             project_id: Project UUID
-            vm_name: Name of VM to update
+            vm_id: ID of VM to update
             vm_data: Updated VM data
             
         Returns:
@@ -335,29 +431,33 @@ class ProjectService:
             ProjectNotFoundError: If project doesn't exist
             ValueError: If VM not found in project
         """
-        project = self._load_project_from_file(project_id)
+        file_path = self._get_project_file_path(project_id)
+        file_service = FileService()
         
-        vm = project.get_vm(vm_name)
-        if not vm:
-            raise ValueError(f"VM '{vm_name}' not found in project")
-        
-        # Update VM fields
-        for field, value in vm_data.items():
-            if hasattr(vm, field):
-                setattr(vm, field, value)
-        
-        project.update_timestamp()
-        self._save_project_to_file(project)
+        with file_service.locked_file_operation(file_path, 'exclusive'):
+            project = self._load_project_from_file(project_id)
+            
+            vm = project.get_vm(vm_id)
+            if not vm:
+                raise ValueError(f"VM with ID '{vm_id}' not found in project")
+            
+            # Update VM fields
+            for field, value in vm_data.items():
+                if hasattr(vm, field):
+                    setattr(vm, field, value)
+            
+            project.update_timestamp()
+            self._save_project_to_file(project)
         
         return project
 
-    def remove_vm_from_project(self, project_id: UUID, vm_name: str) -> Project:
+    def remove_vm_from_project(self, project_id: UUID, vm_id: str) -> Project:
         """
         Remove a VM from a project.
         
         Args:
             project_id: Project UUID
-            vm_name: Name of VM to remove
+            vm_id: ID of VM to remove
             
         Returns:
             Updated Project instance
@@ -366,12 +466,18 @@ class ProjectService:
             ProjectNotFoundError: If project doesn't exist
             ValueError: If VM not found in project
         """
-        project = self._load_project_from_file(project_id)
+        file_path = self._get_project_file_path(project_id)
+        file_service = FileService()
         
-        if not project.remove_vm(vm_name):
-            raise ValueError(f"VM '{vm_name}' not found in project")
+        with file_service.locked_file_operation(file_path, 'exclusive'):
+            project = self._load_project_from_file(project_id)
+            
+            if not project.remove_vm(vm_id):
+                raise ValueError(f"VM with ID '{vm_id}' not found in project")
+            
+            project.update_timestamp()
+            self._save_project_to_file(project)
         
-        self._save_project_to_file(project)
         return project
 
     def validate_project(self, project_id: UUID) -> Dict[str, Any]:
@@ -416,40 +522,40 @@ class ProjectService:
         """Get the total number of projects."""
         return len(list(self.data_dir.glob("*.json")))
 
-    def add_plugin_to_project(self, project_id: UUID, plugin: 'PluginConfiguration') -> Project:
+    def add_plugin_to_project(self, project_id: UUID, plugin_id: str) -> Project:
         """
         Add a plugin to a project's global plugins.
         
         Args:
             project_id: Project UUID
-            plugin: PluginConfiguration instance to add
+            plugin_id: Plugin ID to add to project
             
         Returns:
             Updated Project instance
             
         Raises:
             ProjectNotFoundError: If project doesn't exist
-            ValueError: If plugin name conflicts
+            ValueError: If plugin ID already exists in project
         """
         project = self._load_project_from_file(project_id)
         
         # Check if plugin already exists
-        if any(p.name == plugin.name for p in project.global_plugins):
-            raise ValueError(f"Plugin '{plugin.name}' already exists in project")
+        if plugin_id in project.global_plugins:
+            raise ValueError(f"Plugin with ID '{plugin_id}' already exists in project")
         
-        project.global_plugins.append(plugin)
+        project.global_plugins.append(plugin_id)
         project.update_timestamp()
         self._save_project_to_file(project)
         return project
 
-    def update_plugin_in_project(self, project_id: UUID, plugin_name: str, plugin: 'PluginConfiguration') -> Project:
+    def update_plugin_in_project(self, project_id: UUID, old_plugin_id: str, new_plugin_id: str) -> Project:
         """
-        Update a plugin in a project's global plugins.
+        Update (replace) a plugin in a project's global plugins.
         
         Args:
             project_id: Project UUID
-            plugin_name: Name of plugin to update
-            plugin: Updated PluginConfiguration instance
+            old_plugin_id: ID of plugin to replace
+            new_plugin_id: ID of new plugin
             
         Returns:
             Updated Project instance
@@ -461,29 +567,25 @@ class ProjectService:
         project = self._load_project_from_file(project_id)
         
         # Find the plugin index
-        plugin_index = None
-        for i, p in enumerate(project.global_plugins):
-            if p.name == plugin_name:
-                plugin_index = i
-                break
-        
-        if plugin_index is None:
-            raise ValueError(f"Plugin '{plugin_name}' not found in project")
+        try:
+            plugin_index = project.global_plugins.index(old_plugin_id)
+        except ValueError:
+            raise ValueError(f"Plugin '{old_plugin_id}' not found in project")
         
         # Update the plugin
-        project.global_plugins[plugin_index] = plugin
+        project.global_plugins[plugin_index] = new_plugin_id
         project.update_timestamp()
         self._save_project_to_file(project)
         
         return project
 
-    def remove_plugin_from_project(self, project_id: UUID, plugin_name: str) -> Project:
+    def remove_plugin_from_project(self, project_id: UUID, plugin_id: str) -> Project:
         """
         Remove a plugin from a project's global plugins.
         
         Args:
             project_id: Project UUID
-            plugin_name: Name of plugin to remove
+            plugin_id: ID of plugin to remove
             
         Returns:
             Updated Project instance
@@ -492,16 +594,23 @@ class ProjectService:
             ProjectNotFoundError: If project doesn't exist
             ValueError: If plugin not found in project
         """
-        project = self._load_project_from_file(project_id)
+        file_path = self._get_project_file_path(project_id)
+        file_service = FileService()
         
-        # Find and remove the plugin
-        original_count = len(project.global_plugins)
-        project.global_plugins = [p for p in project.global_plugins if p.name != plugin_name]
+        with file_service.locked_file_operation(file_path, 'exclusive'):
+            project = self._load_project_from_file(project_id)
+            
+            # Find and remove the plugin
+            original_count = len(project.global_plugins)
+            project.global_plugins = [p for p in project.global_plugins if p != plugin_id]
+            
+            if len(project.global_plugins) == original_count:
+                raise ValueError(f"Plugin '{plugin_id}' not found in project")
+            
+            project.update_timestamp()
+            self._save_project_to_file(project)
         
-        if len(project.global_plugins) == original_count:
-            raise ValueError(f"Plugin '{plugin_name}' not found in project")
-        
-        project.update_timestamp()
+        return project
         self._save_project_to_file(project)
         return project
 
@@ -546,12 +655,45 @@ class ProjectService:
             ProjectNotFoundError: If project doesn't exist
             ValueError: If provisioner not found in project
         """
+        file_path = self._get_project_file_path(project_id)
+        file_service = FileService()
+        
+        with file_service.locked_file_operation(file_path, 'exclusive'):
+            project = self._load_project_from_file(project_id)
+            
+            if provisioner_id not in project.global_provisioners:
+                raise ValueError(f"Provisioner '{provisioner_id}' not found in project")
+            
+            project.global_provisioners.remove(provisioner_id)
+            project.update_timestamp()
+            self._save_project_to_file(project)
+        
+        return project
+
+    def update_provisioner_in_project(self, project_id: UUID, old_provisioner_id: str, new_provisioner_id: str) -> Project:
+        """
+        Update (replace) a provisioner in a project's global provisioners.
+        
+        Args:
+            project_id: Project UUID
+            old_provisioner_id: ID of provisioner to replace
+            new_provisioner_id: ID of new provisioner
+            
+        Returns:
+            Updated Project instance
+            
+        Raises:
+            ProjectNotFoundError: If project doesn't exist
+            ValueError: If provisioner not found in project
+        """
         project = self._load_project_from_file(project_id)
         
-        if provisioner_id not in project.global_provisioners:
-            raise ValueError(f"Provisioner '{provisioner_id}' not found in project")
+        try:
+            provisioner_index = project.global_provisioners.index(old_provisioner_id)
+        except ValueError:
+            raise ValueError(f"Provisioner '{old_provisioner_id}' not found in project")
         
-        project.global_provisioners.remove(provisioner_id)
+        project.global_provisioners[provisioner_index] = new_provisioner_id
         project.update_timestamp()
         self._save_project_to_file(project)
         return project
@@ -582,6 +724,34 @@ class ProjectService:
         self._save_project_to_file(project)
         return project
 
+    def update_trigger_in_project(self, project_id: UUID, old_trigger_id: str, new_trigger_id: str) -> Project:
+        """
+        Update (replace) a trigger in a project's global triggers.
+        
+        Args:
+            project_id: Project UUID
+            old_trigger_id: ID of trigger to replace
+            new_trigger_id: ID of new trigger
+            
+        Returns:
+            Updated Project instance
+            
+        Raises:
+            ProjectNotFoundError: If project doesn't exist
+            ValueError: If trigger not found in project
+        """
+        project = self._load_project_from_file(project_id)
+        
+        try:
+            trigger_index = project.global_triggers.index(old_trigger_id)
+        except ValueError:
+            raise ValueError(f"Trigger '{old_trigger_id}' not found in project")
+        
+        project.global_triggers[trigger_index] = new_trigger_id
+        project.update_timestamp()
+        self._save_project_to_file(project)
+        return project
+
     def remove_trigger_from_project(self, project_id: UUID, trigger_id: str) -> Project:
         """
         Remove a trigger from a project's global triggers.
@@ -597,12 +767,18 @@ class ProjectService:
             ProjectNotFoundError: If project doesn't exist
             ValueError: If trigger not found in project
         """
-        project = self._load_project_from_file(project_id)
+        file_path = self._get_project_file_path(project_id)
+        file_service = FileService()
         
-        if trigger_id not in project.global_triggers:
-            raise ValueError(f"Trigger '{trigger_id}' not found in project")
+        with file_service.locked_file_operation(file_path, 'exclusive'):
+            project = self._load_project_from_file(project_id)
+            
+            if trigger_id not in project.global_triggers:
+                raise ValueError(f"Trigger '{trigger_id}' not found in project")
+            
+            project.global_triggers.remove(trigger_id)
+            project.update_timestamp()
+            self._save_project_to_file(project)
         
-        project.global_triggers.remove(trigger_id)
-        project.update_timestamp()
-        self._save_project_to_file(project)
+        return project
         return project

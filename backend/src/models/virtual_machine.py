@@ -7,6 +7,7 @@ a single VM configuration within a Vagrant project.
 
 from typing import List, Optional, Tuple
 import re
+from uuid import uuid4
 
 from pydantic import BaseModel, Field, validator
 
@@ -128,6 +129,10 @@ class VirtualMachineCreate(VirtualMachineBase):
 class VirtualMachine(VirtualMachineBase):
     """Complete VirtualMachine model with all relationships."""
     
+    id: str = Field(
+        default_factory=lambda: str(uuid4()),
+        description="Unique VM identifier (UUID)"
+    )
     network_interfaces: List['NetworkInterface'] = Field(
         default_factory=list,
         description="Network interface configurations"
