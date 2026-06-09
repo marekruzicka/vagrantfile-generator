@@ -2,6 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: {{ include "vagrantfile-generator.backend.name" . }}
+  namespace: {{ include "vagrantfile-generator.namespace" . }}
   labels:
     {{- include "vagrantfile-generator.backend.labels" . | nindent 4 }}
 spec:
@@ -40,7 +41,7 @@ spec:
                 name: {{ include "vagrantfile-generator.secretName" . }}
           env:
             - name: DEPLOYMENT_MODE
-              value: "public"
+              value: {{ .Values.backend.deploymentMode | quote }}
             - name: API_HOST
               value: "0.0.0.0"
             - name: API_PORT

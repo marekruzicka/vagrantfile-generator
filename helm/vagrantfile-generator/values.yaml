@@ -6,6 +6,17 @@ global:
   # -- Image pull secrets for private registries
   imagePullSecrets: []
 
+# -- Namespace management
+namespace:
+  # -- Create the target namespace as part of this release
+  create: false
+  # -- Target namespace for all namespaced resources (empty uses .Release.Namespace)
+  name: ""
+  # -- Additional labels for the Namespace when create=true
+  labels: {}
+  # -- Additional annotations for the Namespace when create=true
+  annotations: {}
+
 # -- Backend configuration
 backend:
   # -- Container image settings
@@ -17,6 +28,9 @@ backend:
   # -- Number of replicas (DO NOT CHANGE - backend writes to disk)
   # Backend is not horizontally scalable due to file-based storage
   replicas: 1
+
+  # -- Deployment mode (self-hosted or public)
+  deploymentMode: public
 
   # -- Deployment strategy (Recreate to prevent PVC conflicts)
   strategy:

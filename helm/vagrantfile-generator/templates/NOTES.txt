@@ -9,6 +9,8 @@ Thank you for installing {{ .Chart.Name }}!
 The parent Gateway must allow ListenerSets from this namespace:
   {{ .Values.gatewayAPI.parentGateway.name }} in namespace {{ .Values.gatewayAPI.parentGateway.namespace }}
 
+Target namespace: {{ include "vagrantfile-generator.namespace" . }}
+
 ExternalDNS will configure DNS and cert-manager will populate:
   {{ include "vagrantfile-generator.tlsSecretName" . }}
 
@@ -21,7 +23,7 @@ ExternalDNS will configure DNS and cert-manager will populate:
 
 To check the deployment status:
 
-  kubectl get pods -n {{ .Release.Namespace }} -l "app.kubernetes.io/instance={{ .Release.Name }}"
+  kubectl get pods -n {{ include "vagrantfile-generator.namespace" . }} -l "app.kubernetes.io/instance={{ .Release.Name }}"
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
