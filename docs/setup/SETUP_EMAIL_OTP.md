@@ -61,22 +61,30 @@ OTP_MAX_ATTEMPTS=3
 OTP_RATE_LIMIT_MAX_REQUESTS=5
 OTP_RATE_LIMIT_WINDOW_HOURS=1
 
-# Optional: Test User (for development/testing)
-# When enabled, allows login with a static OTP code
+# Optional: Test Users (for development/testing)
+# When enabled, allows login with static OTP codes
 TEST_USER_ENABLED=false
 TEST_USER_EMAIL=test@example.com
 TEST_USER_OTP=123456
+# Optional additional indexed users for E2E multi-user tests:
+# TEST_USER_EMAIL_1=test@example.com
+# TEST_USER_OTP_1=123456
+# TEST_USER_EMAIL_2=test2@example.com
+# TEST_USER_OTP_2=123456
 ```
 
-### Test User (Development Only)
+### Test Users (Development Only)
 
-For development and testing purposes, you can enable a built-in test user that:
+For development and automated E2E testing, you can enable static OTP test users that:
 
-- Uses a static OTP code (default: `123456`)
-- Bypasses email sending (no Mailgun required)
-- Bypasses rate limiting
+- Use static OTP codes (default legacy user OTP: `123456`)
+- Bypass email sending (no Mailgun required)
+- Bypass rate limiting
+- Support multiple browser users for multi-user isolation tests
 
-**Enable Test User:**
+`TEST_USER_ENABLED` enables or disables **all** static test users.
+
+**Enable a single test user:**
 
 ```bash
 # Add to .env or backend environment
@@ -85,15 +93,33 @@ TEST_USER_EMAIL=test@example.com  # Default
 TEST_USER_OTP=123456              # Default
 ```
 
-**Using Test User:**
+**Enable multiple test users:**
+
+```bash
+TEST_USER_ENABLED=true
+
+# Legacy/default user remains supported
+TEST_USER_EMAIL=test@example.com
+TEST_USER_OTP=123456
+
+# Optional indexed users
+TEST_USER_EMAIL_1=test@example.com
+TEST_USER_OTP_1=123456
+TEST_USER_EMAIL_2=test2@example.com
+TEST_USER_OTP_2=123456
+```
+
+Indexed users use matching numeric suffixes: `TEST_USER_EMAIL_<number>` with `TEST_USER_OTP_<number>`.
+
+**Using Test Users:**
 
 1. Navigate to login page
-2. Enter `test@example.com` (or your configured test email)
+2. Enter a configured test email, such as `test@example.com` or `test2@example.com`
 3. Click "Send Login Code" - no email will be sent
-4. Enter `123456` (or your configured test OTP)
+4. Enter the matching static OTP, such as `123456`
 5. Click "Verify Code"
 
-⚠️ **Security Warning**: Never enable test user in production! The static OTP provides no security.
+⚠️ **Security Warning**: Never enable test users in production! Static OTPs provide no security.
 
 ### 4. Generate JWT Secret
 
