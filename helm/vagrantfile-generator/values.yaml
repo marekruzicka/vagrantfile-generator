@@ -34,6 +34,9 @@ backend:
   # -- Container port
   port: 8000
 
+  # -- Extra backend environment variables
+  env: {}
+
   # -- Health check settings
   healthCheck:
     path: /health

@@ -51,6 +51,12 @@ spec:
               value: {{ include "vagrantfile-generator.frontend.externalUrl" . | quote }}
             - name: CORS_ORIGINS
               value: {{ include "vagrantfile-generator.frontend.externalUrl" . | quote }}
+            {{- with .Values.backend.env }}
+            {{- range $name, $value := . }}
+            - name: {{ $name }}
+              value: {{ $value | quote }}
+            {{- end }}
+            {{- end }}
           livenessProbe:
             httpGet:
               path: {{ .Values.backend.healthCheck.path }}
