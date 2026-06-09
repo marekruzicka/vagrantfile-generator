@@ -134,3 +134,5 @@ backend/data/users/
 helm/**/values-production*.yaml
 helm/**/values-*.local.yaml
 STATUS.md
+.playwright-cli
+cleanup.md
