@@ -120,7 +120,7 @@ export class ProjectDetailPage {
       } else if (options.network.type === 'forwarded-port') {
         await this.fieldAfterLabel(iface, 'Type').selectOption('forwarded_port')
         await iface.getByPlaceholder('8080').fill(String(options.network.host))
-        await iface.getByPlaceholder('80').fill(String(options.network.guest))
+        await iface.getByPlaceholder('80', { exact: true }).fill(String(options.network.guest))
         if (options.network.protocol) {
           await this.fieldAfterLabel(iface, 'Protocol').selectOption(options.network.protocol.toLowerCase())
         }
@@ -146,6 +146,13 @@ export class ProjectDetailPage {
       'xpath=preceding::div[contains(@class, "card")][1]'
     )
     await expect(projectHeader.getByText(`${count} VMs`).first()).toBeVisible()
+  }
+
+  async generateVagrantfile(): Promise<Locator> {
+    await this.page.getByRole('banner').getByRole('button', { name: /generate vagrantfile/i }).click()
+    const dialog = this.modal(/generated vagrantfile/i)
+    await expect(dialog).toBeVisible()
+    return dialog
   }
 
   async deleteVM(name: string, confirm = true) {
