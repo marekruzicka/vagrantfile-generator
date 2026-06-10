@@ -148,6 +148,16 @@ export class ProjectDetailPage {
     await expect(projectHeader.getByText(`${count} VMs`).first()).toBeVisible()
   }
 
+  async addProjectPlugin(pluginName: string) {
+    await this.page.getByRole('main').getByRole('button', { name: /^add plugin$/i }).click()
+    const dialog = this.modal(/add plugins to project/i)
+    await expect(dialog).toBeVisible()
+    await dialog.locator('.flex.items-start').filter({ hasText: pluginName }).first().click()
+    await dialog.getByRole('button', { name: /^add plugin$/i }).click()
+    await expect(dialog).toBeHidden()
+    await expect(this.page.getByRole('main')).toContainText(pluginName)
+  }
+
   async generateVagrantfile(): Promise<Locator> {
     await this.page.getByRole('banner').getByRole('button', { name: /generate vagrantfile/i }).click()
     const dialog = this.modal(/generated vagrantfile/i)

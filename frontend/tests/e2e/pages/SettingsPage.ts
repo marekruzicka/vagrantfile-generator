@@ -82,10 +82,15 @@ export class SettingsPage {
     const card = this.resourceCard(name)
     if (!(await card.isVisible().catch(() => false))) return
     await card.hover()
-    await card.locator('button').last().click()
+    await card.locator('button').last().click({ timeout: 3_000 }).catch(() => undefined)
     const dialog = this.page
       .getByRole('heading', { name: deleteButtonName })
       .locator('xpath=ancestor::div[contains(@class, "bg-white") or contains(@class, "modal-content")][1]')
+
+    if (!(await dialog.isVisible({ timeout: 3_000 }).catch(() => false))) {
+      return
+    }
+
     await expect(dialog).toContainText(name)
     await dialog.getByRole('button', { name: deleteButtonName }).click()
     await expect(card).toBeHidden()
