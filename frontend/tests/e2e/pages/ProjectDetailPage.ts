@@ -168,6 +168,18 @@ export class ProjectDetailPage {
     await expect(this.page.getByRole('main')).toContainText(provisionerName)
   }
 
+  async addProjectTrigger(triggerName: string) {
+    await this.page.getByRole('main').getByRole('button', { name: /^add trigger$/i }).click()
+    const dialog = this.page
+      .getByRole('heading', { name: /add triggers to project/i })
+      .locator('xpath=ancestor::div[contains(@class, "bg-white")][1]')
+    await expect(dialog).toBeVisible()
+    await dialog.locator('.flex.items-start').filter({ hasText: triggerName }).first().click()
+    await dialog.getByRole('button', { name: /add selected triggers/i }).click()
+    await expect(dialog).toBeHidden()
+    await expect(this.page.getByRole('main')).toContainText(triggerName)
+  }
+
   async generateVagrantfile(): Promise<Locator> {
     await this.page.getByRole('banner').getByRole('button', { name: /generate vagrantfile/i }).click()
     const dialog = this.modal(/generated vagrantfile/i)
