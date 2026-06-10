@@ -108,10 +108,23 @@ Recommended defaults:
 ```ts
 use: {
   baseURL: process.env.E2E_BASE_URL || 'http://localhost:8080',
+  ignoreHTTPSErrors: true,
   trace: 'retain-on-failure',
   screenshot: 'only-on-failure',
   video: 'retain-on-failure'
 }
+```
+
+`ignoreHTTPSErrors: true` is useful for internal/test deployments using self-signed or otherwise untrusted TLS certificates. Do not treat it as evidence that production TLS is correctly configured.
+
+The current proof of concept lives under `frontend/`, so run commands from that directory unless a root-level package script is added later:
+
+```bash
+cd frontend
+E2E_BASE_URL=https://vgf.i.glide.sk:443 \
+E2E_USER_EMAIL=test@glide.sk \
+E2E_USER_OTP=123456 \
+npm run test:e2e:dashboard
 ```
 
 ## Authentication Strategy
@@ -140,6 +153,24 @@ await page.getByRole('button', { name: /verify code/i }).click();
 await expect(page.getByRole('heading', { name: /your vagrant projects/i })).toBeVisible();
 await page.context().storageState({ path: '.auth/user.json' });
 ```
+
+In public mode, the app may first load `/`, run deployment/auth checks, and then redirect to `/views/login/login.html`. The setup test should not assume the login form is immediately visible. Wait for either the Projects page or the Login page, then branch:
+
+```ts
+async function waitForEntryState(page, projectsHeading, emailField) {
+  const deadline = Date.now() + 20_000;
+
+  while (Date.now() < deadline) {
+    if (await projectsHeading.isVisible().catch(() => false)) return 'projects';
+    if (await emailField.isVisible().catch(() => false)) return 'login';
+    await page.waitForTimeout(250);
+  }
+
+  throw new Error(`Timed out waiting for Projects or Login page. Current URL: ${page.url()}`);
+}
+```
+
+After OTP verification, wait for the Projects heading with a generous timeout before saving storage state.
 
 For CI and repeatable test runs, prefer a non-production/test deployment with a deterministic OTP such as `123456`. Do not depend on real email delivery for every automated run.
 
@@ -199,6 +230,54 @@ Recommended future improvement: add `data-testid` attributes for complex repeate
 
 Avoid brittle selectors such as long CSS chains or positional selectors unless there is no alternative.
 
+### Selector Lessons from the Projects Dashboard POC
+
+The Alpine frontend keeps some hidden views/modal markup in the DOM. Playwright strict mode still sees hidden or duplicate elements unless locators are scoped carefully. Do not rely on broad `page.getByText(...)` for repeated names, descriptions, statuses, or buttons.
+
+Patterns that worked well in the POC:
+
+- Scope assertions to `main`, `banner`, a specific card, or a modal before matching text.
+- Use exact accessible names when one label is a substring of another.
+- For modals, locate the modal container first, then use scoped assertions/buttons.
+- For repeated project descriptions, scope to the visible project detail header or target project card.
+- For controls that appear in both header and page content, scope to `getByRole('banner')` or `getByRole('main')`.
+
+Examples:
+
+```ts
+// Good: empty-state step heading, not the Create Project submit button.
+await expect(
+  page.getByRole('main').getByRole('heading', { name: 'Create Project' })
+).toBeVisible();
+
+// Good: delete confirmation scoped to the active modal.
+const dialog = page.locator('.modal-content').filter({
+  has: page.getByRole('heading', { name: /confirm deletion/i }),
+});
+await expect(dialog).toContainText(projectName);
+await dialog.getByRole('button', { name: /^delete$/i }).click();
+
+// Good: project detail header found from the visible heading, avoiding hidden dashboard cards.
+const main = page.getByRole('main');
+const projectHeading = main.getByRole('heading', { name: projectName });
+const projectHeader = projectHeading.locator(
+  'xpath=ancestor::div[contains(@class, "card")][1]'
+);
+await expect(projectHeader).toContainText(description);
+
+// Good: distinguish duplicate Add VM controls.
+await expect(
+  page.getByRole('banner').getByRole('button', { name: /^add vm$/i })
+).toBeVisible();
+
+// Good: avoid matching "No virtual machines configured".
+await expect(
+  main.getByRole('heading', { name: 'Virtual Machines', exact: true })
+).toBeVisible();
+```
+
+Use `.first()` only when any visible match is acceptable. If the assertion is about a specific UI region, scope the locator instead.
+
 ## Test Grouping
 
 Start with a small smoke suite, then expand by feature.
@@ -250,6 +329,20 @@ Implement these tests first:
 
 This provides immediate value and validates the main navigation and project lifecycle.
 
+The current proof of concept implements this target in:
+
+```text
+frontend/playwright.config.ts
+frontend/tests/e2e/auth.setup.ts
+frontend/tests/e2e/projects-dashboard.spec.ts
+frontend/tests/e2e/fixtures/test-data.ts
+frontend/tests/e2e/pages/ProjectsPage.ts
+frontend/tests/e2e/pages/ProjectDetailPage.ts
+frontend/tests/e2e/README.md
+```
+
+Build future suites by following the same shape: small spec files mapped to `TESTS.md`, lightweight page objects, unique `E2E`-prefixed test data, and `try/finally` cleanup.
+
 ## CI Recommendations
 
 Run E2E tests against a real running application.
@@ -266,6 +359,12 @@ Suggested CI flow:
 Useful commands:
 
 ```bash
+# From frontend/
+npm run test:e2e
+npm run test:e2e:dashboard
+npm run test:e2e:report
+
+# Direct Playwright commands also work from frontend/
 npx playwright test
 npx playwright test tests/e2e/smoke.spec.ts
 npx playwright show-report
@@ -316,6 +415,8 @@ Tests should clean up resources they create when possible:
 - Delete created projects at the end of each test
 - Delete created boxes/plugins/provisioners/triggers if the test created them
 - Use `try/finally` cleanup blocks
+- Make cleanup locators as robust as the test locators; failed cleanup leaves `E2E` resources behind and can make later selector failures harder to diagnose
+- If a test changes a project to Ready, switch it back to Draft before attempting UI deletion because Ready projects intentionally disable destructive actions
 
 If UI cleanup is unreliable, provide a test-only cleanup endpoint or reset fixture in non-production environments. Do not use test-only cleanup endpoints in production.
 

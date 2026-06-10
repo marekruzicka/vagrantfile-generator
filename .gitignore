@@ -113,6 +113,9 @@ dmypy.json
 node_modules/
 frontend/dist/
 frontend/src/styles/output.css
+frontend/.auth/
+frontend/playwright-report/
+frontend/test-results/
 
 # IDE
 .idea/
