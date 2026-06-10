@@ -60,7 +60,7 @@ export class SettingsPage {
     await this.fieldAfterLabel(dialog, 'Provisioner Name').fill(name)
     await this.fieldAfterLabel(dialog, 'Description').fill('E2E provisioner description')
     await this.fieldAfterLabel(dialog, 'Shell Script').fill(script)
-    await this.fieldAfterLabel(dialog, 'Run').selectOption('always')
+    await dialog.locator('select').last().selectOption('always')
     await dialog.getByRole('button', { name: /^add provisioner$/i }).click()
     await expect(this.resourceCard(name)).toBeVisible()
   }
