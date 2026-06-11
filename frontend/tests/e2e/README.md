@@ -1,6 +1,6 @@
-# E2E test proof of concept
+# E2E tests
 
-This is a Playwright Test proof of concept for `docs/testing/TESTS.md` section **2. Projects Dashboard**.
+This Playwright Test suite automates user-facing workflows from `docs/testing/TESTS.md`.
 
 ## Prerequisites
 
@@ -38,6 +38,58 @@ Open the HTML report after a run:
 
 ```bash
 npm run test:e2e:report
+```
+
+## Run tests selectively
+
+All feature tests reuse the auth setup automatically. Tests that need a project create their own unique `E2E` project and clean it up, so suites are intended to be independently runnable.
+
+Run one spec file:
+
+```bash
+E2E_BASE_URL=https://vgf.i.glide.sk:443 \
+E2E_USER_EMAIL=test@glide.sk \
+E2E_USER_OTP=123456 \
+npx playwright test tests/e2e/vms.spec.ts
+```
+
+Run another suite by file:
+
+```bash
+npx playwright test tests/e2e/networking.spec.ts
+npx playwright test tests/e2e/settings-boxes.spec.ts
+npx playwright test tests/e2e/generated-vagrantfile.spec.ts
+```
+
+Run a single test by title or partial title:
+
+```bash
+npx playwright test -g "3.1 add a single VM"
+npx playwright test -g "Generated Vagrantfile"
+```
+
+List all available tests without running them:
+
+```bash
+npm run test:e2e -- --list
+```
+
+Useful current spec files:
+
+```text
+tests/e2e/projects-dashboard.spec.ts
+tests/e2e/vms.spec.ts
+tests/e2e/networking.spec.ts
+tests/e2e/settings-boxes.spec.ts
+tests/e2e/settings-plugins.spec.ts
+tests/e2e/project-plugins.spec.ts
+tests/e2e/settings-provisioners.spec.ts
+tests/e2e/project-provisioners.spec.ts
+tests/e2e/settings-triggers.spec.ts
+tests/e2e/project-triggers.spec.ts
+tests/e2e/shared-resources.spec.ts
+tests/e2e/generated-vagrantfile.spec.ts
+tests/e2e/application-settings.spec.ts
 ```
 
 ## Public-mode login
