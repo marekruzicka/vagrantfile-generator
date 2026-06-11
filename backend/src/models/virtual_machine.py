@@ -43,6 +43,24 @@ class VirtualMachineBase(BaseModel):
         le=16,
         description="CPU count (minimum 1)"
     )
+    labels: List[str] = Field(
+        default_factory=list,
+        description="Project-specific labels used to organize and bulk-select VMs"
+    )
+
+    @validator('labels')
+    def validate_labels(cls, v):
+        """Normalize and validate VM labels."""
+        labels = []
+        for label in v or []:
+            normalized = str(label).strip()
+            if not normalized:
+                continue
+            if len(normalized) > 50:
+                raise ValueError("Labels must be 50 characters or fewer")
+            if normalized not in labels:
+                labels.append(normalized)
+        return labels
 
     @validator('name')
     def validate_vm_name(cls, v):
@@ -178,6 +196,7 @@ class VirtualMachine(VirtualMachineBase):
                 "hostname": "web",
                 "memory": 2048,
                 "cpus": 2,
+                "labels": ["web"],
                 "network_interfaces": [],
                 "synced_folders": [],
                 "provisioners": [],
@@ -269,6 +288,7 @@ class VirtualMachine(VirtualMachineBase):
             "hostname": self.get_effective_hostname(),
             "memory": self.memory,
             "cpus": self.cpus,
+            "labels": self.labels,
             "network_interfaces": [ni.dict() for ni in self.network_interfaces],
             "synced_folders": [sf.dict() for sf in self.synced_folders],
             "provisioners": [p.dict() for p in self.provisioners],

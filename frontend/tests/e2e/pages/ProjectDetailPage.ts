@@ -99,8 +99,9 @@ export class ProjectDetailPage {
       await this.fieldAfterLabel(dialog, 'CPUs').fill(String(options.cpus))
     }
     for (const label of options.labels || []) {
-      await dialog.getByPlaceholder(/type label and press enter/i).fill(label)
-      await this.page.keyboard.press('Enter')
+      const labelInput = dialog.getByPlaceholder(/type label and press enter/i)
+      await labelInput.pressSequentially(label)
+      await labelInput.press('Enter')
     }
 
     if (options.network) {
@@ -134,6 +135,53 @@ export class ProjectDetailPage {
 
   async expectVMVisible(name: string) {
     await expect(this.vmCard(name)).toBeVisible()
+  }
+
+  async editVM(currentName: string, options: {
+    name?: string
+    hostname?: string
+    memory?: number
+    cpus?: number
+    labels?: string[]
+    network?: { type: 'private-static'; ip: string; netmask?: string }
+  }) {
+    const card = this.vmCard(currentName)
+    await expect(card).toBeVisible()
+    await card.hover()
+    await card.locator('button').first().click()
+    const dialog = this.modal(/edit virtual machine/i)
+    await expect(dialog).toBeVisible()
+
+    if (options.name) await dialog.getByPlaceholder(/web-server/i).fill(options.name)
+    if (options.hostname) await dialog.getByPlaceholder(/optional hostname/i).fill(options.hostname)
+    if (options.memory) await this.fieldAfterLabel(dialog, 'Memory').fill(String(options.memory))
+    if (options.cpus) await this.fieldAfterLabel(dialog, 'CPUs').fill(String(options.cpus))
+    for (const label of options.labels || []) {
+      const labelInput = dialog.getByPlaceholder(/type label and press enter/i)
+      await labelInput.pressSequentially(label)
+      await labelInput.press('Enter')
+    }
+    if (options.network) {
+      await dialog.getByRole('button', { name: /add interface/i }).click()
+      const iface = dialog.locator('.border.border-gray-200.rounded-lg').filter({ hasText: 'Interface 1' }).last()
+      await this.fieldAfterLabel(iface, 'IP Assignment').selectOption('static')
+      await iface.getByPlaceholder('192.168.33.10').fill(options.network.ip)
+      if (options.network.netmask) {
+        await iface.getByPlaceholder('255.255.255.0').fill(options.network.netmask)
+      }
+    }
+
+    await dialog.getByRole('button', { name: /^update vm$/i }).click()
+    await expect(dialog).toBeHidden()
+    await expect(this.vmCard(options.name || currentName)).toBeVisible()
+  }
+
+  async selectVM(name: string) {
+    await this.vmCard(name).locator('input[type="checkbox"]').check()
+  }
+
+  async expectSelectedCount(count: number) {
+    await expect(this.page.getByText(`${count} selected`, { exact: true }).first()).toBeVisible()
   }
 
   async expectVMCount(count: number) {
