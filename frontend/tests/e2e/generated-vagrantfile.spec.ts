@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test'
+import { readFileSync } from 'fs'
 import { projectDescription, uniqueProjectName } from './fixtures/test-data'
 import { ProjectDetailPage } from './pages/ProjectDetailPage'
 import { ProjectsPage } from './pages/ProjectsPage'
@@ -25,6 +26,39 @@ test.describe('13. Generated Vagrantfile', () => {
       await expect(code).toContainText('cpus = 2')
       await expect(code).toContainText('# VM: db-')
       await vagrantfile.locator('button').first().click()
+    } finally {
+      await detail.backToDashboard().catch(() => undefined)
+      await projects.safeDeleteDraftProject(projectName)
+    }
+  })
+
+  test('13.6 download generated Vagrantfile', async ({ page }) => {
+    const projects = new ProjectsPage(page)
+    const detail = new ProjectDetailPage(page)
+    const projectName = uniqueProjectName('Download Vagrantfile')
+    const vmName = `download-vm-${Date.now()}`
+
+    await projects.goto()
+    try {
+      await projects.createProject(projectName, projectDescription)
+      await projects.openProject(projectName)
+      await detail.addVM({ name: vmName })
+
+      const vagrantfile = await detail.generateVagrantfile()
+      const [download] = await Promise.all([
+        page.waitForEvent('download'),
+        vagrantfile.getByRole('button', { name: /^download$/i }).click(),
+      ])
+
+      const suggestedFilename = download.suggestedFilename()
+      const downloadPath = await download.path()
+      expect(downloadPath).toBeTruthy()
+      const content = readFileSync(downloadPath!, 'utf8')
+      await vagrantfile.locator('button').first().click()
+
+      expect(content).toContain('Vagrant.configure')
+      expect(content).toContain(vmName)
+      expect(suggestedFilename).toBe('Vagrantfile')
     } finally {
       await detail.backToDashboard().catch(() => undefined)
       await projects.safeDeleteDraftProject(projectName)

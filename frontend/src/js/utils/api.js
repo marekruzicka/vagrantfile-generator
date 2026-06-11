@@ -301,9 +301,27 @@ class VagrantAPI {
     }
 
     async downloadVagrantfile(projectId) {
-        const response = await fetch(`${this.baseURL}/projects/${projectId}/download`);
+        const headers = {};
+
+        if (this.config.allowPublicIPsInPrivateNetworks) {
+            headers['X-Allow-Public-IPs'] = 'true';
+        }
+
+        if (window.authManager) {
+            const token = window.authManager.getToken();
+            if (token) {
+                headers['Authorization'] = `Bearer ${token}`;
+            }
+        }
+
+        const response = await fetch(`${this.baseURL}/projects/${projectId}/download`, { headers });
+        if (!response.ok) {
+            throw new Error(`Download failed with status ${response.status}`);
+        }
+
         const blob = await response.blob();
-        const url = window.URL.createObjectURL(blob);
+        const downloadBlob = new Blob([blob], { type: 'application/octet-stream' });
+        const url = window.URL.createObjectURL(downloadBlob);
         const a = document.createElement('a');
         a.href = url;
         a.download = 'Vagrantfile';
