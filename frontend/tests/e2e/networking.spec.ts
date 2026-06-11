@@ -49,6 +49,54 @@ test.describe('4. Networking', () => {
     }
   })
 
+  test('4.6 public IP validation setting controls private-network static IP validation', async ({ page }) => {
+    const projects = new ProjectsPage(page)
+    const detail = new ProjectDetailPage(page)
+    const projectName = uniqueProjectName('Networking Public IP')
+    const setAllowPublicIPs = async (checked: boolean) => {
+      await page.evaluate(value => {
+        const key = 'vagrantfile-generator-config'
+        const current = JSON.parse(localStorage.getItem(key) || '{}')
+        localStorage.setItem(key, JSON.stringify({ ...current, allowPublicIPsInPrivateNetworks: value }))
+      }, checked)
+    }
+    let initiallyChecked = false
+
+    await page.goto('/')
+    initiallyChecked = await page.evaluate(() => {
+      const config = JSON.parse(localStorage.getItem('vagrantfile-generator-config') || '{}')
+      return !!config.allowPublicIPsInPrivateNetworks
+    })
+    await setAllowPublicIPs(false)
+
+    await projects.goto()
+    try {
+      await projects.createProject(projectName, projectDescription)
+      await projects.openProject(projectName)
+
+      await page.getByRole('main').getByRole('button', { name: /^add vm$/i }).click()
+      const dialog = page.locator('.modal-content').filter({ has: page.getByRole('heading', { name: /add virtual machine/i }) })
+      await dialog.getByPlaceholder('vm-name').fill(`public-ip-${Date.now()}`)
+      await dialog.getByRole('button', { name: /add interface/i }).click()
+      const iface = dialog.locator('.border.border-gray-200.rounded-lg').filter({ hasText: 'Interface 1' }).last()
+      await iface.locator('xpath=.//label[contains(normalize-space(.), "IP Assignment")]/following::select[1]').selectOption('static')
+      await iface.getByPlaceholder('192.168.33.10').fill('8.8.8.8')
+      await dialog.getByRole('button', { name: /^add vm$/i }).click()
+      await expect(dialog).toContainText(/private ip|public ip|ip address/i)
+      await page.keyboard.press('Escape')
+
+      await setAllowPublicIPs(true)
+      await projects.goto()
+      await projects.openProject(projectName)
+      await detail.addVM({ name: `public-ok-${Date.now()}`, network: { type: 'private-static', ip: '8.8.8.8' } })
+      await expect(page.getByRole('main')).toContainText('8.8.8.8')
+    } finally {
+      await setAllowPublicIPs(initiallyChecked).catch(() => undefined)
+      await projects.goto().catch(() => undefined)
+      await projects.safeDeleteDraftProject(projectName)
+    }
+  })
+
   test('4.5 bulk static IPs increment for bulk-created VMs', async ({ page }) => {
     const projects = new ProjectsPage(page)
     const detail = new ProjectDetailPage(page)
