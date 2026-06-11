@@ -11,7 +11,7 @@ export default defineConfig({
   fullyParallel: false,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 1 : 0,
-  reporter: [['html'], ['list']],
+  reporter: [['html', { host: '0.0.0.0', port: '9323'}], ['list']],
   use: {
     baseURL,
     ignoreHTTPSErrors: true,
