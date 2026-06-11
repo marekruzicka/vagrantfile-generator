@@ -36,6 +36,60 @@ test.describe('7. Project Plugins', () => {
     }
   })
 
+  test('7.3-7.5 edit, remove, and bulk remove project plugins', async ({ page }) => {
+    const settings = new SettingsPage(page)
+    const projects = new ProjectsPage(page)
+    const detail = new ProjectDetailPage(page)
+    const projectName = uniqueProjectName('Project Plugin Manage')
+    const plugins = [0, 1, 2].map(i => `e2e-manage-plugin-${Date.now()}-${i}`)
+    const projectPluginCard = (name: string) => page.getByRole('main').locator('.border').filter({ hasText: name }).first()
+
+    await settings.goto()
+    for (const plugin of plugins) {
+      await settings.addPlugin(plugin)
+    }
+
+    await projects.goto()
+    try {
+      await projects.createProject(projectName, projectDescription)
+      await projects.openProject(projectName)
+      for (const plugin of plugins) {
+        await detail.addProjectPlugin(plugin)
+      }
+      await detail.addVM({ name: `plugin-manage-vm-${Date.now()}` })
+
+      await projectPluginCard(plugins[0]).hover()
+      await projectPluginCard(plugins[0]).locator('button:visible').first().click()
+      const editDialog = page.getByRole('heading', { name: /edit plugin/i }).locator('xpath=ancestor::div[contains(@class, "bg-white")][1]')
+      await expect(editDialog).toBeVisible()
+      await editDialog.locator('xpath=.//label[contains(normalize-space(.), "Default Version")]/following::input[1]').fill('2.3.4')
+      await editDialog.getByRole('button', { name: /^update plugin$/i }).click()
+      await expect(editDialog).toBeHidden()
+      const vagrantfile = await detail.generateVagrantfile()
+      await expect(vagrantfile.locator('code')).toContainText('2.3.4')
+      await vagrantfile.locator('button').first().click()
+
+      await projectPluginCard(plugins[1]).hover()
+      await projectPluginCard(plugins[1]).locator('button:visible').last().click()
+      const removeDialog = page.locator('.modal-content').filter({ has: page.getByRole('heading', { name: /^remove plugin$/i }) })
+      await expect(removeDialog).toBeVisible()
+      await removeDialog.getByRole('button', { name: /^remove plugin$/i }).click()
+      await expect(projectPluginCard(plugins[1])).toBeHidden()
+
+      await projectPluginCard(plugins[0]).locator('input[type="checkbox"]').check()
+      await projectPluginCard(plugins[2]).locator('input[type="checkbox"]').check()
+      await page.getByRole('button', { name: /bulk delete/i }).click()
+      const bulkDialog = page.locator('.modal-content').filter({ has: page.getByRole('heading', { name: /bulk delete plugins/i }) })
+      await expect(bulkDialog).toBeVisible()
+      await bulkDialog.getByRole('button', { name: /remove 2 plugins/i }).click()
+      await expect(projectPluginCard(plugins[0])).toBeHidden()
+      await expect(projectPluginCard(plugins[2])).toBeHidden()
+    } finally {
+      await detail.backToDashboard().catch(() => undefined)
+      await projects.safeDeleteDraftProject(projectName)
+    }
+  })
+
   test('7.2 add-plugin modal filters already assigned plugins', async ({ page }) => {
     const settings = new SettingsPage(page)
     const projects = new ProjectsPage(page)
