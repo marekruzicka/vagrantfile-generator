@@ -58,6 +58,18 @@ test.describe('12. Shared Resources and Multi-User Isolation', () => {
     await expect(page.getByText(initiallyChecked ? 'Showing' : 'Hidden')).toBeVisible()
   })
 
+  test('12.2 shared resources enforce read-only controls with amber styling and tooltip', async ({ page }) => {
+    const settings = new SettingsPage(page)
+    await settings.goto()
+
+    const sharedCard = page.locator('.border-amber-200').first()
+    test.skip(!(await sharedCard.isVisible().catch(() => false)), 'No shared resources available in this environment')
+
+    await expect(sharedCard.locator('.shared-resource-badge')).toBeVisible()
+    await expect(sharedCard.locator('[title*="cannot edit"]')).toBeVisible()
+    await expect(sharedCard.getByRole('button', { name: /copy to my resources/i })).toBeVisible()
+  })
+
   test('12.3 copy a shared resource to personal resources', async ({ page }) => {
     const settings = new SettingsPage(page)
     await settings.goto()
