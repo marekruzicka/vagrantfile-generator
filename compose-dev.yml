@@ -1,0 +1,37 @@
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    environment:
+      DEPLOYMENT_MODE: ${DEPLOYMENT_MODE:-self-hosted}
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:8080}
+      FRONTEND_URL: ${FRONTEND_URL:-http://localhost:8080}
+      BASE_URL: ${BASE_URL:-http://localhost:8000}
+      JWT_SECRET: ${JWT_SECRET:-local-compose-jwt-secret-change-this-min-32-chars}
+      SESSION_COOKIE_SECRET: ${SESSION_COOKIE_SECRET:-local-compose-session-cookie-secret-change-this-min-32-chars}
+      MAILGUN_API_KEY: ${MAILGUN_API_KEY:-}
+      MAILGUN_DOMAIN: ${MAILGUN_DOMAIN:-}
+      MAILGUN_FROM_EMAIL: ${MAILGUN_FROM_EMAIL:-}
+      OIDC_GOOGLE_CLIENT_ID: ${OIDC_GOOGLE_CLIENT_ID:-}
+      OIDC_GOOGLE_CLIENT_SECRET: ${OIDC_GOOGLE_CLIENT_SECRET:-}
+      OIDC_GITHUB_CLIENT_ID: ${OIDC_GITHUB_CLIENT_ID:-}
+      OIDC_GITHUB_CLIENT_SECRET: ${OIDC_GITHUB_CLIENT_SECRET:-}
+      OIDC_GITLAB_CLIENT_ID: ${OIDC_GITLAB_CLIENT_ID:-}
+      OIDC_GITLAB_CLIENT_SECRET: ${OIDC_GITLAB_CLIENT_SECRET:-}
+      OIDC_GITLAB_URL: ${OIDC_GITLAB_URL:-https://gitlab.com}
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./backend/data:/app/data
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    environment:
+      FRONTEND_API_URL: ${FRONTEND_API_URL:-/api}
+    ports:
+      - "8080:8080"
+    depends_on:
+      - backend

@@ -1,67 +1,44 @@
-# Running the project — DEV, PROD, and USER modes
+# Running the project — environment roles
 
-This document explains the three ways to run Vagrantfile Generator:
+Vagrantfile Generator has separate paths for active development, self-hosted quick starts, local container smoke tests, and public production deployments.
 
-- **DEV** — local development running natively (no containers, fastest for development and debugging)
-- **PROD** — production-like containerized setup with local builds (for testing production configuration)
-- **USER** — distribution mode using prebuilt images from registry (for end users)
+| Mode                | File/tool                           | Purpose                        |
+| ------------------- | ----------------------------------- | ------------------------------ |
+| Native dev          | `setup-local-dev.sh`, VS Code tasks | active development             |
+| Self-hosted Compose | `compose.yml`                       | curl-only end-user quick-start |
+| Compose dev build   | `compose-dev.yml` + Makefile        | local image build/smoke test   |
+| Public production   | Helm chart                          | hosted Kubernetes deployment   |
 
 ---
 
-## DEV (Local Development — Recommended for Active Development)
+## Native dev
+
+Use this mode for day-to-day development and debugging.
 
 **What it does:**
 
-- Runs backend and frontend **natively on your machine** (not in containers)
-- Backend runs with `uvicorn --reload` for instant code changes
-- Frontend runs with Vite dev server for hot module replacement
-- Full debugging support in VS Code with breakpoints
-- Fastest iteration cycle for development
+- Runs backend and frontend natively on your machine
+- Backend uses `uvicorn --reload`
+- Frontend uses the Vite dev server with hot module replacement
+- Supports VS Code debugging and tasks
 
-**Prerequisites:**
-
-- Python 3.11+
-- Node.js 18+
-- npm
-
-**Setup (first time only):**
+**Setup:**
 
 ```bash
 ./setup-local-dev.sh
 ```
 
-This script will:
+**Run:**
 
-- Create Python virtual environment in `backend/.venv`
-- Install Python dependencies
-- Install Node.js dependencies
-- Create necessary data directories
-- Build initial Tailwind CSS
-
-**Running the application:**
-
-**Option 1: VS Code Debugger (Recommended)**
-
-1. Open the project in VS Code
-2. Press `F5` or go to "Run and Debug"
-3. Select "Full Stack (Backend + Frontend)"
-4. Set breakpoints and debug normally!
-
-**Option 2: VS Code Tasks**
-
-1. Press `Ctrl+Shift+P` (or `Cmd+Shift+P` on Mac)
-2. Type "Tasks: Run Task"
-3. Select "Start Both Dev Servers"
-
-**Option 3: Manual**
+- VS Code debugger: press `F5` and select the full-stack configuration
+- VS Code tasks: run "Start Both Dev Servers"
+- Manual terminals:
 
 ```bash
-# Terminal 1 - Backend
 cd backend
 source .venv/bin/activate
 uvicorn src.main:app --reload --host 0.0.0.0 --port 8000
 
-# Terminal 2 - Frontend
 cd frontend
 npm run dev
 ```
@@ -70,169 +47,106 @@ npm run dev
 
 - Frontend: http://localhost:5173
 - Backend API: http://localhost:8000
-- API Documentation: http://localhost:8000/docs
-
-**Configuration:**
-
-- Backend: `backend/.env.local`
-- Frontend: `frontend/.env.local`
-- VS Code: `.vscode/settings.json`, `.vscode/launch.json`
-
-**Notes:**
-
-- Changes to Python code reload automatically
-- Changes to frontend code update instantly with HMR
-- Full debugging capabilities with breakpoints
-- Tests can be run directly in VS Code
-- **This is the fastest way to develop and debug**
+- API docs: http://localhost:8000/docs
 
 ---
 
-## PROD (Production Build — For Testing Production Configuration)
+## Self-hosted Compose
+
+Use this mode for the end-user, curl-only quick start.
 
 **What it does:**
 
-- Builds Docker/Podman images locally from source
-- Runs backend with Gunicorn + Uvicorn workers (production-grade)
-- Runs frontend with Nginx serving static files and proxying API
-- Simulates production environment for testing
-
-**Key files:** `compose-prod.yml`, `.env`
-
-**Important environment variables:**
-
-- `FE_LISTEN_URL` — the browser-facing URL (e.g., `http://localhost:8080`)
-- Backend uses Gunicorn for concurrency
-- Frontend Nginx proxies `/api` to backend
+- Pulls prebuilt `latest` images from GHCR
+- Runs in self-hosted mode by default
+- Stores backend data in the named `backend-data` volume
+- Exposes only the frontend on http://localhost:8080
+- Proxies API requests through the frontend at `/api`
 
 **Quick start:**
 
 ```bash
-# Create .env file (or export variables)
-echo "FE_LISTEN_URL=http://localhost:8080" > .env
-
-# Build and run
-make prod-up
-
-# Or manually:
-podman-compose -f compose-prod.yml up -d --build
+curl -fsSLO https://raw.githubusercontent.com/marekruzicka/vagrantfile-generator/refs/heads/master/compose.yml
+podman-compose up -d
+# or: docker compose up -d
 ```
 
-**Other commands:**
+**Stop:**
 
 ```bash
-make prod-build         # Just build images
-make prod-down          # Stop containers
-make prod-logs          # View logs
-make prod-backend-logs  # Backend logs only
-make prod-frontend-logs # Frontend logs only
-make prod-clean         # Remove containers and volumes
+podman-compose down
+# or: docker compose down
 ```
+
+---
+
+## Compose dev build
+
+Use this mode to build local images from the repository and smoke-test the containerized stack.
+
+**What it does:**
+
+- Builds backend and frontend images from local Dockerfiles
+- Runs in self-hosted mode by default
+- Exposes the backend on http://localhost:8000 for developer inspection
+- Exposes the frontend on http://localhost:8080
+- Bind-mounts `./backend/data` to `/app/data`
+- Allows public-mode environment variables to be supplied as optional overrides
+
+**Commands:**
+
+```bash
+make build
+make up
+make logs
+make down
+make clean
+```
+
+The Makefile auto-detects `podman-compose` and falls back to `docker compose`. All Compose targets use `compose-dev.yml`.
 
 **URLs:**
 
 - Frontend: http://localhost:8080
-- Backend: Internal only (accessed via frontend proxy at `/api`)
-
-**Notes:**
-
-- Code changes require rebuilding images (`make prod-up` rebuilds automatically)
-- Use this to test production configuration before deployment
-- Useful for smoke-testing the full stack
-- Requires Podman or Docker installed
+- Backend API: http://localhost:8000
+- API docs: http://localhost:8000/docs
+- Proxied API: http://localhost:8080/api
 
 ---
 
-## USER (Distribution Mode — For End Users)
+## Public production
 
-**What it does:**
+Use the Helm chart for hosted Kubernetes deployments and public multi-user operation.
 
-- Uses **prebuilt images** from container registry
-- No build step required — just pull and run
-- Ideal for distribution and deployment
+Public mode enables authentication and requires production secrets and provider configuration, such as:
 
-**Key file:** `compose.yml`
+- `DEPLOYMENT_MODE=public`
+- `JWT_SECRET`
+- `SESSION_COOKIE_SECRET`
+- `BASE_URL`
+- `FRONTEND_URL`
+- Mailgun settings for email OTP, if enabled
+- OIDC provider client IDs/secrets, if enabled
 
-**Environment variables:**
-
-- `FE_LISTEN_URL` — set this to your public URL (e.g., `http://myapp.example.com:8080`)
-- Images are pulled from registry (defaults to GitHub Container Registry)
-
-**Quick start:**
-
-```bash
-# Edit FE_LISTEN_URL in compose.yml or create .env
-echo "FE_LISTEN_URL=http://localhost:8080" > .env
-
-# Start
-make user-up
-
-# Or manually:
-podman-compose up -d
-```
-
-**Other commands:**
-
-```bash
-make user-down   # Stop containers
-make user-logs   # View logs
-make user-clean  # Remove containers and volumes
-```
-
-**URLs:**
-
-- Frontend: As configured in `FE_LISTEN_URL` (default: http://localhost:8080)
-- Backend: Internal only
-
-**Notes:**
-
-- No build required — images are prebuilt
-- Update `FE_LISTEN_URL` to match your deployment URL
-- For custom domains, ensure DNS/hosts file is configured
-- Data persists in named volume `backend-data`
+See [AUTHENTICATION.md](./AUTHENTICATION.md) for authentication configuration.
 
 ---
 
-## Comparison
-
-| Feature            | DEV (Local)      | PROD (Build)        | USER (Prebuilt)         |
-| ------------------ | ---------------- | ------------------- | ----------------------- |
-| **Container**      | No               | Yes                 | Yes                     |
-| **Build required** | No (native)      | Yes (local build)   | No (uses registry)      |
-| **Code reload**    | Instant          | Requires rebuild    | N/A                     |
-| **Debugging**      | Full breakpoints | Logs only           | Logs only               |
-| **Performance**    | Fastest          | Production-like     | Production-like         |
-| **Use case**       | Development      | Pre-deploy testing  | Distribution/Production |
-| **Setup time**     | Fast (one-time)  | Medium (build time) | Fastest (pull only)     |
-
----
-
-## Common Troubleshooting
+## Troubleshooting
 
 **CORS errors:**
 
-- DEV: Ensure `CORS_ORIGINS=http://localhost:5173` in `backend/.env.local`
-- PROD/USER: Ensure `FE_LISTEN_URL` matches the browser URL you're using
-
-**Backend not starting (DEV):**
-
-- Check Python version: `python3 --version` (need 3.11+)
-- Activate venv: `cd backend && source .venv/bin/activate`
-- Check `.env.local` exists and has correct values
-- Run `./setup-local-dev.sh` again
-
-**Frontend not starting (DEV):**
-
-- Check Node.js version: `node --version` (need 18+)
-- Run `cd frontend && npm install`
-- Check `.env.local` has correct `VITE_BROWSER_API_URL`
-
-**Can't connect to custom domain (PROD/USER):**
-
-- Add domain to `/etc/hosts` pointing to container host IP
-- Verify `FE_LISTEN_URL` in environment matches domain
+- Native dev: ensure `CORS_ORIGINS=http://localhost:5173` in `backend/.env.local`
+- Self-hosted Compose: `compose.yml` sets `CORS_ORIGINS=http://localhost:8080`
+- Compose dev build: override `CORS_ORIGINS` only if you change the frontend URL
 
 **Port already in use:**
 
-- DEV: Check if other services are using 8000 or 5173
-- PROD/USER: Check if other services are using 8080 or 8000
+- Native dev uses ports 5173 and 8000
+- Self-hosted Compose uses port 8080
+- Compose dev build uses ports 8080 and 8000
+
+**Data location:**
+
+- Self-hosted Compose stores data in the named `backend-data` volume
+- Compose dev build stores data under `backend/data`

@@ -1,48 +1,24 @@
-# Update FE_LISTEN_URL to set your frontend URL
-
-x-common-variables: &common-variables
-  FE_LISTEN_URL: http://localhost:8080
-
 services:
   backend:
     image: ghcr.io/marekruzicka/vagrantfile-generator-be:latest
-    container_name: vgf-be
     environment:
-      <<: *common-variables
-      CORS_ORIGINS: ${FE_LISTEN_URL}
+      DEPLOYMENT_MODE: self-hosted
+      CORS_ORIGINS: http://localhost:8080
+      FRONTEND_URL: http://localhost:8080
+      BASE_URL: http://localhost:8000
+      JWT_SECRET: local-compose-jwt-secret-change-this-min-32-chars
+      SESSION_COOKIE_SECRET: local-compose-session-cookie-secret-change-this-min-32-chars
     volumes:
       - backend-data:/app/data
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
-      interval: 3s
-      timeout: 10s
-      retries: 3
-      start_period: 5s
-    restart: unless-stopped
 
   frontend:
     image: ghcr.io/marekruzicka/vagrantfile-generator-fe:latest
-    container_name: vgf-fe
     environment:
-      <<: *common-variables
-      FRONTEND_API_URL: ${FRONTEND_API_URL:-/api}
+      FRONTEND_API_URL: /api
     ports:
       - "8080:8080"
     depends_on:
-      backend:
-        condition: service_healthy
-    healthcheck:
-      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://127.0.0.1:8080"]
-      interval: 3s
-      timeout: 5s
-      retries: 3
-      start_period: 5s
-    restart: unless-stopped
+      - backend
 
 volumes:
   backend-data:
-    driver: local
-
-networks:
-  default:
-    name: vagrantfile-net

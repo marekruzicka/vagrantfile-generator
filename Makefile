@@ -1,46 +1,43 @@
-# Vagrantfile Generator - Podman Compose Commands
-# 
-# This Makefile provides convenient commands for running containerized environments
+# Vagrantfile Generator - Compose Development Commands
+#
+# This Makefile provides developer-only convenience commands for local
+# container builds and smoke tests via compose-dev.yml.
 
-.PHONY: help setup-local build up down restart logs backend-logs frontend-logs clean user-up user-down user-logs user-clean
+.PHONY: help setup-local build up down restart logs backend-logs frontend-logs clean
+
+COMPOSE ?= $(shell command -v podman-compose >/dev/null 2>&1 && echo podman-compose || echo "docker compose")
 
 # Default target
 help:
-	@echo "Vagrantfile Generator - Environment Commands"
-	@echo "=============================================="
+	@echo "Vagrantfile Generator - Development Commands"
+	@echo "============================================="
 	@echo ""
-	@echo "LOCAL DEVELOPMENT (no containers):"
-	@echo "  make setup-local         - Set up local development environment"
+	@echo "NATIVE DEVELOPMENT (no containers):"
+	@echo "  make setup-local    - Set up local development environment"
 	@echo "  After setup, use VS Code tasks or debugger to run the app"
 	@echo ""
-	@echo "PRODUCTION BUILD (local build for testing):"
-	@echo "  make build          - Build production images locally"
-	@echo "  make up             			- Start production-like stack"
-	@echo "  make down           			- Stop production stack"
-	@echo "  make restart			        - Restart production stack"
-	@echo "  make logs           - Show logs from production stack"
-	@echo "  make backend-logs   - Show backend logs (production)"
-	@echo "  make frontend-logs  - Show frontend logs (production)"
-	@echo "  make clean          - Clean production containers and volumes"
+	@echo "COMPOSE DEV BUILD (compose-dev.yml):"
+	@echo "  make build          - Build local images without cache"
+	@echo "  make up             - Start local-build stack"
+	@echo "  make down           - Stop local-build stack"
+	@echo "  make restart        - Restart local-build stack"
+	@echo "  make logs           - Follow logs from local-build stack"
+	@echo "  make backend-logs   - Follow backend logs"
+	@echo "  make frontend-logs  - Follow frontend logs"
+	@echo "  make clean          - Stop stack and remove volumes"
 	@echo ""
-	@echo "USER DISTRIBUTION (prebuilt images):"
-	@echo "  make user-up             - Start using prebuilt images"
-	@echo "  make user-down           - Stop user environment"
-	@echo "  make user-logs           - Show logs from user environment"
-	@echo "  make user-clean          - Clean user containers and volumes"
-	@echo ""
-	@echo "Development URLs (local):"
+	@echo "Native development URLs:"
 	@echo "  Frontend: http://localhost:5173"
 	@echo "  Backend:  http://localhost:8000"
 	@echo "  API Docs: http://localhost:8000/docs"
 	@echo ""
-	@echo "Production URLs (containerized):"
+	@echo "Compose dev URLs:"
 	@echo "  Frontend: http://localhost:8080"
-	@echo "  Backend:  http://localhost:8000 (internal)"
+	@echo "  Backend:  http://localhost:8000"
 	@echo "  API:      http://localhost:8080/api"
 
 # =============================================================================
-# LOCAL DEVELOPMENT (runs outside containers)
+# NATIVE DEVELOPMENT (runs outside containers)
 # =============================================================================
 
 setup-local:
@@ -48,47 +45,28 @@ setup-local:
 	./setup-local-dev.sh
 
 # =============================================================================
-# PRODUCTION BUILD (compose-prod.yml - local builds for testing)
+# COMPOSE DEV BUILD (compose-dev.yml - local builds for smoke testing)
 # =============================================================================
 
 build:
-	podman-compose -f compose-prod.yml build --no-cache
+	$(COMPOSE) -f compose-dev.yml build --no-cache
 
 up:
-	podman-compose -f compose-prod.yml up -d --build
+	$(COMPOSE) -f compose-dev.yml up -d --build
 
 down:
-	podman-compose -f compose-prod.yml down -v
-
+	$(COMPOSE) -f compose-dev.yml down
 
 restart: down up
 
 logs:
-	podman-compose -f compose-prod.yml logs
+	$(COMPOSE) -f compose-dev.yml logs -f
 
 backend-logs:
-	podman-compose -f compose-prod.yml logs backend
+	$(COMPOSE) -f compose-dev.yml logs -f backend
 
 frontend-logs:
-	podman-compose -f compose-prod.yml logs frontend
+	$(COMPOSE) -f compose-dev.yml logs -f frontend
 
 clean:
-	podman-compose -f compose-prod.yml down -v
-	podman system prune -f
-
-# =============================================================================
-# USER DISTRIBUTION (compose.yml - prebuilt images)
-# =============================================================================
-
-user-up:
-	podman-compose up -d
-
-user-down:
-	podman-compose down
-
-user-logs:
-	podman-compose logs
-
-user-clean:
-	podman-compose down -v
-	podman system prune -f
+	$(COMPOSE) -f compose-dev.yml down -v

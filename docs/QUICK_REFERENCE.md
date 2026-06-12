@@ -57,35 +57,37 @@ cd backend && source .venv/bin/activate && pip install -r requirements.txt
 cd frontend && npm install
 ```
 
-## Production Testing
+## Compose Dev Build
+
+Use this for local image build and smoke testing via `compose-dev.yml`.
 
 ```bash
-# Build and run production containers
-make prod-up
+# Build images
+make build
+
+# Start local-build containers
+make up
 
 # View logs
-make prod-logs
+make logs
 
 # Stop
-make prod-down
+make down
 
-# Clean everything
-make prod-clean
+# Clean volumes
+make clean
 ```
 
-**URL:** http://localhost:8080
+**URLs:** http://localhost:8080 and http://localhost:8000/docs
 
-## User Distribution Mode
+## Self-Hosted Compose Quick Start
+
+Use this for the end-user flow with prebuilt GHCR images.
 
 ```bash
-# Start with prebuilt images
-make user-up
-
-# Stop
-make user-down
-
-# View logs
-make user-logs
+curl -fsSLO https://raw.githubusercontent.com/marekruzicka/vagrantfile-generator/refs/heads/master/compose.yml
+podman-compose up -d
+# or: docker compose up -d
 ```
 
 ## VS Code Shortcuts

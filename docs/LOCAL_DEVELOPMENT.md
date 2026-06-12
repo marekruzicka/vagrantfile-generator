@@ -322,20 +322,20 @@ npm install
 
 ## Switching Between Modes
 
-### From Local Dev to Production Testing
+### From Local Dev to Compose Dev Build
 
 1. Stop local dev servers (Ctrl+C or stop debugger)
-2. Build and run production containers:
+2. Build and run local containers:
    ```bash
-   make prod-up
+   make up
    ```
-3. Access at http://localhost:8080
+3. Access the frontend at http://localhost:8080 and backend docs at http://localhost:8000/docs
 
-### From Production Back to Local Dev
+### From Compose Dev Build Back to Local Dev
 
-1. Stop production containers:
+1. Stop containers:
    ```bash
-   make prod-down
+   make down
    ```
 2. Restart local development (F5 in VS Code)
 

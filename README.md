@@ -24,7 +24,7 @@ Take a [Quick Tour](./docs/APP_OVERVIEW.md) through app inteface.
 
 Docker or Podman installed on your system
 Modern web browser (Chrome, Firefox, Safari, Edge)
-Available port 8080 (and possibly 8000 if you want to expose backend) on your machine
+Available port 8080 for the self-hosted quick start (developer Compose also uses port 8000)
 
 ## Deployment Modes
 
@@ -88,13 +88,16 @@ See [AUTHENTICATION.md](./docs/AUTHENTICATION.md) for detailed authentication se
 
 ```bash
 # Download latest compose.yml
-curl -fsSLO "https://raw.githubusercontent.com/marekruzicka/vagrantfile-generator/refs/heads/master/compose.yml"
+curl -fsSLO https://raw.githubusercontent.com/marekruzicka/vagrantfile-generator/refs/heads/master/compose.yml
 
-# Start the application
-podman-compose -f compose.yml up -d  # or: docker compose up -d
+# Start the application with Podman or Docker
+podman-compose up -d
+# or: docker compose up -d
 
 # Open your browser: http://localhost:8080
 ```
+
+This uses prebuilt GHCR `latest` images and runs in self-hosted mode. The backend is not exposed directly; API requests go through the frontend at `/api`.
 
 ### For Developers (Local Development)
 
@@ -103,11 +106,14 @@ podman-compose -f compose.yml up -d  # or: docker compose up -d
 git clone https://github.com/marekruzicka/vagrantfile-generator.git
 cd vagrantfile-generator
 
-# Run setup script
+# Run native setup script
 ./setup-local-dev.sh
 
 # Open in VS Code and press F5 to start debugging
-# Or use: make help  # to see all available commands
+# Or smoke-test local container builds with compose-dev.yml:
+make up
+make logs
+make down
 ```
 
 See [LOCAL_DEVELOPMENT.md](./docs/LOCAL_DEVELOPMENT.md) for detailed development setup.
@@ -121,7 +127,7 @@ See [LOCAL_DEVELOPMENT.md](./docs/LOCAL_DEVELOPMENT.md) for detailed development
 ## Support & Documentation
 
 - **Local Development**: See [LOCAL_DEVELOPMENT.md](./docs/LOCAL_DEVELOPMENT.md) for native development setup
-- **Deployment Modes**: See [ENVIRONMENTS.md](./docs/ENVIRONMENTS.md) for DEV/PROD/USER environments
+- **Deployment Modes**: See [ENVIRONMENTS.md](./docs/ENVIRONMENTS.md) for native dev, Compose, and Helm environment roles
 - **Authentication Setup**: See [AUTHENTICATION.md](./docs/AUTHENTICATION.md) for multi-user configuration
 - **Contributing**: See [CONTRIBUTING.md](./CONTRIBUTING.MD) for contribution guidelines
 - **Architecture**: See [APP_OVERVIEW.md](./docs/APP_OVERVIEW.md) for a tour of the application
