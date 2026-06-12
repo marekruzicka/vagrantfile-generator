@@ -70,7 +70,11 @@ test.describe('12. Shared Resources and Multi-User Isolation', () => {
   })
 
   test('12.6 personal projects and resources are isolated between two users', async ({ page }) => {
-    test.skip(!process.env.E2E_USER_OTP, 'Two-user public-mode test requires OTP credentials')
+    const userA = process.env.E2E_USER_EMAIL
+    const userB = process.env.E2E_USER_EMAIL_2
+    const otpA = process.env.E2E_USER_OTP
+    const otpB = process.env.E2E_USER_OTP_2 || otpA
+    test.skip(!userA || !userB || !otpA, 'Two-user public-mode test requires E2E_USER_EMAIL, E2E_USER_EMAIL_2, and E2E_USER_OTP')
 
     const projects = new ProjectsPage(page)
     const settings = new SettingsPage(page)
@@ -79,11 +83,11 @@ test.describe('12. Shared Resources and Multi-User Isolation', () => {
     const alicePluginName = `e2e-alice-private-plugin-${Date.now()}`
 
     try {
-      await loginOnPage(page, 'test@glide.sk', process.env.E2E_USER_OTP)
+      await loginOnPage(page, userA!, otpA!)
       await projects.createProject(aliceProjectName, projectDescription)
       await settings.goto()
       await settings.addPlugin(alicePluginName)
-      await loginOnPage(page, 'test1@glide.sk', process.env.E2E_USER_OTP)
+      await loginOnPage(page, userB!, otpB!)
       await expect(projects.projectCard(aliceProjectName)).toBeHidden()
       await projects.createProject(bobProjectName, projectDescription)
       await projects.openProject(bobProjectName)
@@ -93,16 +97,16 @@ test.describe('12. Shared Resources and Multi-User Isolation', () => {
       await expect(addPluginDialog).not.toContainText(alicePluginName)
       await addPluginDialog.getByRole('button', { name: /^cancel$/i }).click()
 
-      await loginOnPage(page, 'test@glide.sk', process.env.E2E_USER_OTP)
+      await loginOnPage(page, userA!, otpA!)
       await expect(projects.projectCard(bobProjectName)).toBeHidden()
     } finally {
-      await loginOnPage(page, 'test@glide.sk', process.env.E2E_USER_OTP).catch(() => undefined)
+      await loginOnPage(page, userA!, otpA!).catch(() => undefined)
       await projects.goto().catch(() => undefined)
       await projects.safeDeleteDraftProject(aliceProjectName).catch(() => undefined)
-      await loginOnPage(page, 'test1@glide.sk', process.env.E2E_USER_OTP).catch(() => undefined)
+      await loginOnPage(page, userB!, otpB!).catch(() => undefined)
       await projects.goto().catch(() => undefined)
       await projects.safeDeleteDraftProject(bobProjectName).catch(() => undefined)
-      await loginOnPage(page, 'test@glide.sk', process.env.E2E_USER_OTP).catch(() => undefined)
+      await loginOnPage(page, userA!, otpA!).catch(() => undefined)
     }
   })
 
