@@ -33,9 +33,10 @@ FRONTEND_URL=http://localhost:8080          # Development
 FRONTEND_URL=https://yourdomain.com         # Production
 ```
 
-### 2. Generate JWT Secret
+### 2. Generate JWT and Session Cookie Secrets
 
 ```bash
+openssl rand -hex 32
 openssl rand -hex 32
 ```
 
@@ -43,7 +44,8 @@ openssl rand -hex 32
 
 ```bash
 DEPLOYMENT_MODE=public
-JWT_SECRET_KEY=<generated-secret-from-step-2>
+JWT_SECRET=<generated-jwt-secret-from-step-2>
+SESSION_COOKIE_SECRET=<generated-session-cookie-secret-from-step-2>
 ```
 
 ## Provider-Specific Setup
@@ -181,7 +183,8 @@ OIDC_GITLAB_URL=https://gitlab.yourcompany.com  # Your GitLab instance
 ```bash
 # Deployment
 DEPLOYMENT_MODE=public
-JWT_SECRET_KEY=a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6q7r8s9t0u1v2w3x4y5z6
+JWT_SECRET=a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6q7r8s9t0u1v2w3x4y5z6
+SESSION_COOKIE_SECRET=b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6q7r8s9t0u1v2w3x4y5z6a1
 
 # Base URLs
 BASE_URL=http://localhost:8000
@@ -206,7 +209,8 @@ OIDC_GITLAB_URL=https://gitlab.com
 ```bash
 # Deployment
 DEPLOYMENT_MODE=public
-JWT_SECRET_KEY=<strong-random-secret>
+JWT_SECRET=<strong-random-jwt-secret>
+SESSION_COOKIE_SECRET=<strong-random-session-cookie-secret>
 
 # Base URLs
 BASE_URL=https://api.yourdomain.com

@@ -43,7 +43,8 @@ Add to your `.env` file or `compose-dev.yml`:
 DEPLOYMENT_MODE=public
 
 # JWT Configuration
-JWT_SECRET_KEY=your-secret-key-here  # Generate with: openssl rand -hex 32
+JWT_SECRET=your-jwt-secret-here  # Generate with: openssl rand -hex 32
+SESSION_COOKIE_SECRET=your-session-cookie-secret-here  # Generate with: openssl rand -hex 32
 
 # Mailgun Configuration
 MAILGUN_API_KEY=key-xxxxxxxxxxxxxxxxxxxxxxxx
@@ -121,13 +122,14 @@ Indexed users use matching numeric suffixes: `TEST_USER_EMAIL_<number>` with `TE
 
 ⚠️ **Security Warning**: Never enable test users in production! Static OTPs provide no security.
 
-### 4. Generate JWT Secret
+### 4. Generate JWT and Session Cookie Secrets
 
 ```bash
 openssl rand -hex 32
+openssl rand -hex 32
 ```
 
-Copy the output and use it as your `JWT_SECRET_KEY`.
+Use one generated value for `JWT_SECRET` and the other for `SESSION_COOKIE_SECRET`.
 
 ### 5. Start the Application
 

@@ -210,12 +210,13 @@ OTP_RATE_LIMIT_WINDOW_HOURS=1     # Default: 1 hour window
 
 ### Session Management
 
-JWT tokens are used for session management:
+JWT tokens are used for application bearer-token session management. OAuth/OIDC state uses a separate signed session cookie secret.
 
 ```bash
-JWT_SECRET_KEY=<your-secret-key>   # Generate with: openssl rand -hex 32
-JWT_ALGORITHM=HS256                # Default: HS256
-JWT_EXPIRATION_HOURS=24            # Default: 24 hours
+JWT_SECRET=<your-jwt-secret>                  # Generate with: openssl rand -hex 32
+JWT_ALGORITHM=HS256                           # Default: HS256
+JWT_EXPIRATION_HOURS=24                       # Default: 24 hours
+SESSION_COOKIE_SECRET=<your-cookie-secret>    # Generate with: openssl rand -hex 32
 ```
 
 **JWT Token Structure:**
@@ -231,7 +232,7 @@ JWT_EXPIRATION_HOURS=24            # Default: 24 hours
 
 **Security Best Practices:**
 - Use a strong, random JWT secret (minimum 32 bytes)
-- Never commit JWT_SECRET_KEY to version control
+- Never commit JWT_SECRET or SESSION_COOKIE_SECRET to version control
 - Use environment variables or secret management systems
 - Rotate JWT secret periodically in production
 
@@ -368,7 +369,7 @@ Each resource has:
    ```
 
 2. Check system time on server (JWT uses timestamps)
-3. Verify JWT_SECRET_KEY hasn't changed (invalidates all existing tokens)
+3. Verify JWT_SECRET hasn't changed (invalidates all existing JWT tokens)
 
 ### Debugging Tools
 
@@ -503,7 +504,8 @@ Response:
 5. **Update environment variables**:
    ```bash
    DEPLOYMENT_MODE=public
-   JWT_SECRET_KEY=<generated-secret>
+   JWT_SECRET=<generated-jwt-secret>
+   SESSION_COOKIE_SECRET=<generated-session-cookie-secret>
    # Add other required variables
    ```
 

@@ -57,7 +57,8 @@ The setup script creates `.env.local` files with sensible defaults. Review and c
 
 ```bash
 DEPLOYMENT_MODE=self-hosted
-JWT_SECRET=local-dev-secret-key-change-this-min-32-chars-for-security
+JWT_SECRET=local-dev-jwt-secret-key-change-this-min-32-chars
+SESSION_COOKIE_SECRET=local-dev-session-cookie-secret-change-this-min-32-chars
 CORS_ORIGINS=http://localhost:5173
 FRONTEND_URL=http://localhost:5173
 BASE_URL=http://localhost:8000

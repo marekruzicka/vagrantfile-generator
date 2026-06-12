@@ -56,7 +56,8 @@ Designed for multi-user environments with full authentication.
 DEPLOYMENT_MODE=public
 
 # JWT Configuration
-JWT_SECRET_KEY=<your-secret-key>  # Generate with: openssl rand -hex 32
+JWT_SECRET=<your-jwt-secret>  # Generate with: openssl rand -hex 32
+SESSION_COOKIE_SECRET=<your-session-cookie-secret>  # Generate with: openssl rand -hex 32
 
 # Backend URLs (required for OIDC)
 BASE_URL=https://your-domain.com

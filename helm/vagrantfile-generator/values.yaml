@@ -171,11 +171,17 @@ gatewayAPI:
 config:
   # -- JWT Configuration
   jwt:
-    # -- Secret key for JWT signing (min 32 characters)
+    # -- Secret key for application bearer JWT signing (min 32 characters)
     # IMPORTANT: Change this in production!
-    secret: "change-this-to-a-secure-secret-key-min-32-chars"
+    secret: "change-this-to-a-secure-jwt-secret-min-32-chars"
     algorithm: HS256
     expirationHours: 24
+
+  # -- Session cookie configuration for OAuth/OIDC state
+  session:
+    # -- Secret key for signing Starlette session cookies (min 32 characters)
+    # IMPORTANT: Change this in production and keep separate from jwt.secret.
+    cookieSecret: "change-this-to-a-secure-session-cookie-secret-min-32-chars"
 
   # -- Email OTP Configuration (Mailgun)
   mailgun:
