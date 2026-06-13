@@ -22,8 +22,8 @@ services:
       OIDC_GITLAB_URL: ${OIDC_GITLAB_URL:-https://gitlab.com}
     ports:
       - "8000:8000"
-    volumes:
-      - ./backend/data:/app/data
+    # volumes:
+    #   - ./backend/data:/app/data
 
   frontend:
     build:

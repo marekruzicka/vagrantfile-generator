@@ -107,7 +107,8 @@ The setup test saves browser state to `frontend/.auth/user.json` for the feature
 
 ## Notes
 
-- Test data names are prefixed with `E2E` and include a unique suffix.
+- Test data names are prefixed with `E2E` or `e2e-` and include a unique suffix.
 - Tests clean up projects they create through the UI when possible.
+- After each run, Playwright global teardown deletes user-owned plugins, provisioners, and triggers whose names start with `e2e-`. Set `E2E_CLEANUP=0` to disable this cleanup for debugging.
 - The empty first-run test is skipped automatically when the target environment already has projects.
 - Failure traces, screenshots, videos, and reports are written to Playwright's standard output folders.
