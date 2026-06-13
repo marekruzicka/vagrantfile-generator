@@ -8,7 +8,11 @@ export class SettingsPage {
     await expect(this.page.getByRole('heading', { name: /your vagrant projects/i })).toBeVisible()
     await this.page.getByRole('button', { name: /settings/i }).click()
     await expect(this.page.getByRole('heading', { name: /^settings$/i })).toBeVisible()
-    await this.page.locator('#vfg-cookie-banner').getByRole('button', { name: /dismiss/i }).click().catch(() => undefined)
+    await this.page.evaluate(() => {
+      localStorage.setItem('vfg_cookie_banner_dismissed', '1')
+      const banner = document.getElementById('vfg-cookie-banner')
+      if (banner) banner.remove()
+    })
   }
 
   resourceCard(name: string): Locator {

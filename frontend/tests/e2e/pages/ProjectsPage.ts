@@ -6,7 +6,11 @@ export class ProjectsPage {
   async goto() {
     await this.page.goto('/')
     await this.expectLoaded()
-    await this.page.locator('#vfg-cookie-banner').getByRole('button', { name: /dismiss/i }).click().catch(() => undefined)
+    await this.page.evaluate(() => {
+      localStorage.setItem('vfg_cookie_banner_dismissed', '1')
+      const banner = document.getElementById('vfg-cookie-banner')
+      if (banner) banner.remove()
+    })
   }
 
   async expectLoaded() {

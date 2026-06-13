@@ -8,9 +8,9 @@ export class ProjectDetailPage {
   }
 
   private modal(heading: RegExp | string): Locator {
-    return this.page
-      .getByRole('heading', { name: heading })
-      .locator('xpath=ancestor::div[contains(@class, "bg-white") or contains(@class, "modal-content")][1]')
+    return this.page.locator('.modal-content').filter({
+      has: this.page.getByRole('heading', { name: heading }),
+    })
   }
 
   private fieldAfterLabel(scope: Locator, label: string): Locator {
@@ -212,7 +212,9 @@ export class ProjectDetailPage {
     await expect(addDialog).toBeVisible()
     await addDialog.getByRole('button', { name: /create a new plugin configuration in settings/i }).click()
 
-    const pluginDialog = this.modal(/add new plugin/i)
+    const pluginDialog = this.page
+      .getByRole('heading', { name: /add new plugin/i })
+      .locator('xpath=ancestor::div[contains(@class, "bg-white") or contains(@class, "modal-content")][1]')
     await expect(pluginDialog).toBeVisible()
     await this.fieldAfterLabel(pluginDialog, 'Plugin Name').fill(pluginName)
     await this.fieldAfterLabel(pluginDialog, 'Description').fill('E2E plugin created from project')
@@ -242,7 +244,9 @@ export class ProjectDetailPage {
     await expect(addDialog).toBeVisible()
     await addDialog.getByRole('button', { name: /create a new provisioner in settings/i }).click()
 
-    const provisionerDialog = this.modal(/add new provisioner/i)
+    const provisionerDialog = this.page
+      .getByRole('heading', { name: /add new provisioner/i })
+      .locator('xpath=ancestor::div[contains(@class, "bg-white") or contains(@class, "modal-content")][1]')
     await expect(provisionerDialog).toBeVisible()
     await this.fieldAfterLabel(provisionerDialog, 'Provisioner Name').fill(provisionerName)
     await this.fieldAfterLabel(provisionerDialog, 'Description').fill('E2E provisioner created from project')
@@ -274,7 +278,9 @@ export class ProjectDetailPage {
     await expect(addDialog).toBeVisible()
     await addDialog.getByRole('button', { name: /create a new trigger/i }).click()
 
-    const triggerDialog = this.modal(/create new trigger/i)
+    const triggerDialog = this.page
+      .getByRole('heading', { name: /create new trigger/i })
+      .locator('xpath=ancestor::div[contains(@class, "bg-white") or contains(@class, "modal-content")][1]')
     await expect(triggerDialog).toBeVisible()
     await this.fieldAfterLabel(triggerDialog, 'Trigger Name').fill(triggerName)
     await this.fieldAfterLabel(triggerDialog, 'Description').fill('E2E trigger created from project')

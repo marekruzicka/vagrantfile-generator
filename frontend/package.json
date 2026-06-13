@@ -10,6 +10,7 @@
     "test:e2e": "playwright test",
     "test:e2e:dashboard": "playwright test tests/e2e/projects-dashboard.spec.ts",
     "test:e2e:report": "playwright show-report",
+    "test:e2e:cleanup": "node scripts/e2e-cleanup.mjs",
     "tailwind": "tailwindcss -i ./src/styles/input.css -o ./src/styles/output.css",
     "tailwind:watch": "tailwindcss -i ./src/styles/input.css -o ./src/styles/output.css --watch"
   },

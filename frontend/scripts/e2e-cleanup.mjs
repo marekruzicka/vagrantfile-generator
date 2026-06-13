@@ -1,4 +1,4 @@
-import { request, type APIRequestContext } from '@playwright/test'
+import { request } from '@playwright/test'
 import { existsSync, readFileSync } from 'node:fs'
 
 // ---------------------------------------------------------------------------
@@ -10,66 +10,69 @@ const authFile = '.auth/user.json'
 // ---------------------------------------------------------------------------
 // Naming conventions used by E2E tests (see test-data.ts and spec files)
 // ---------------------------------------------------------------------------
-const E2E_PROJECT_PREFIX = /^E2E /i
-const E2E_BOX_PREFIX = /^e2e[/-]/i
-const E2E_RESOURCE_PREFIX = /^e2e-/i
+const E2E_PROJECT_PREFIX = /^E2E /i           // uniqueProjectName("Foo")  → "E2E Foo …"
+const E2E_BOX_PREFIX = /^e2e[/-]/i            // boxes named "e2e/box-…"
+const E2E_RESOURCE_PREFIX = /^e2e-/i          // plugins, provisioners, triggers
 
 // ---------------------------------------------------------------------------
 // Auth helpers
 // ---------------------------------------------------------------------------
 
-type StorageState = {
-  origins?: Array<{
-    localStorage?: Array<{ name: string; value: string }>
-  }>
-}
-
-function getStoredAuthToken(): string | undefined {
+/** Read cached token from Playwright auth state file. */
+function getStoredAuthToken() {
   if (!existsSync(authFile)) return undefined
   try {
-    const state = JSON.parse(readFileSync(authFile, 'utf8')) as StorageState
+    const state = JSON.parse(readFileSync(authFile, 'utf8'))
     for (const origin of state.origins || []) {
       const token = origin.localStorage?.find(e => e.name === 'auth_token')?.value
       if (token) return token
     }
   } catch (error) {
-    console.warn(`[e2e cleanup] Could not read ${authFile}: ${(error as Error).message}`)
+    console.warn(`[e2e cleanup] Could not read ${authFile}: ${error.message}`)
   }
   return undefined
 }
 
-async function requestOtpToken(email: string, otp: string): Promise<string | undefined> {
+/** Log in via OTP and return a Bearer token. */
+async function requestOtpToken(email, otp) {
   const authApi = await request.newContext({ baseURL, ignoreHTTPSErrors: true })
   try {
+    // Request OTP
     const reqRes = await authApi.post('/api/auth/otp/request', { data: { email } })
     if (!reqRes.ok()) {
       console.warn(`[e2e cleanup] OTP request failed for ${email}: ${reqRes.status()}`)
       return undefined
     }
+    // Verify OTP
     const verifyRes = await authApi.post('/api/auth/otp/verify', { data: { email, code: otp } })
     if (!verifyRes.ok()) {
       console.warn(`[e2e cleanup] OTP verify failed for ${email}: ${verifyRes.status()}`)
       return undefined
     }
     console.log(`[e2e cleanup] Authenticated as ${email}`)
-    return ((await verifyRes.json()) as { token: string }).token
+    return (await verifyRes.json()).token
   } finally {
     await authApi.dispose()
   }
 }
 
-interface E2eUser {
-  email: string
-  otp: string
-}
-
-function discoverUsers(): E2eUser[] {
-  const users: E2eUser[] = []
+/**
+ * Discover E2E users from environment variables.
+ *
+ * Supported patterns (listed in test-run order):
+ *   E2E_USER_EMAIL          / E2E_USER_OTP           → user 0
+ *   E2E_USER_EMAIL_1        / E2E_USER_OTP_1         → user 1  (fallback OTP: E2E_USER_OTP)
+ *   E2E_USER_EMAIL_2        / E2E_USER_OTP_2         → user 2  (fallback OTP: E2E_USER_OTP)
+ */
+function discoverUsers() {
+  const users = []
   const defaultOtp = process.env.E2E_USER_OTP || '123456'
 
+  // User 0
   const email0 = process.env.E2E_USER_EMAIL
   if (email0) users.push({ email: email0, otp: process.env.E2E_USER_OTP || defaultOtp })
 
+  // User 1..9
   for (let i = 1; i <= 9; i++) {
     const email = process.env[`E2E_USER_EMAIL_${i}`]
     if (!email) continue
@@ -81,29 +84,30 @@ function discoverUsers(): E2eUser[] {
 }
 
 // ---------------------------------------------------------------------------
-// API helpers
+// API cleanup helpers
 // ---------------------------------------------------------------------------
 
-type ProjectRow = { id: string; name: string; deployment_status?: string }
-
-async function cleanupProjects(api: APIRequestContext): Promise<void> {
+async function cleanupProjects(api) {
   const listRes = await api.get('/api/projects')
   if (!listRes.ok()) {
     console.warn(`[e2e cleanup] Could not list projects: ${listRes.status()}`)
     return
   }
 
-  const body = (await listRes.json()) as { projects?: ProjectRow[] }
-  const allProjects = body.projects || (body as unknown as ProjectRow[])
+  const body = await listRes.json()
+  const allProjects = body.projects || body
   const e2eProjects = allProjects.filter(p => E2E_PROJECT_PREFIX.test(p.name))
 
   for (const project of e2eProjects) {
+    // Unlock Ready projects before deleting
     if (project.deployment_status?.toLowerCase() === 'ready') {
       const patchRes = await api.patch(
         `/api/projects/${project.id}/deployment-status?status=draft`
       )
       if (!patchRes.ok()) {
-        console.warn(`[e2e cleanup] Could not unlock project "${project.name}": ${patchRes.status()}`)
+        console.warn(
+          `[e2e cleanup] Could not unlock project "${project.name}": ${patchRes.status()}`
+        )
         continue
       }
     }
@@ -114,7 +118,9 @@ async function cleanupProjects(api: APIRequestContext): Promise<void> {
     } else if (delRes.status() === 403) {
       console.warn(`[e2e cleanup] Skipped read-only project: ${project.name}`)
     } else {
-      console.warn(`[e2e cleanup] Could not delete project "${project.name}": ${delRes.status()}`)
+      console.warn(
+        `[e2e cleanup] Could not delete project "${project.name}": ${delRes.status()}`
+      )
     }
   }
 
@@ -123,16 +129,14 @@ async function cleanupProjects(api: APIRequestContext): Promise<void> {
   }
 }
 
-type BoxRow = { id: string; name: string }
-
-async function cleanupBoxes(api: APIRequestContext): Promise<void> {
+async function cleanupBoxes(api) {
   const listRes = await api.get('/api/boxes')
   if (!listRes.ok()) {
     console.warn(`[e2e cleanup] Could not list boxes: ${listRes.status()}`)
     return
   }
 
-  const boxes = (await listRes.json()) as BoxRow[]
+  const boxes = await listRes.json()
   const e2eBoxes = boxes.filter(b => E2E_BOX_PREFIX.test(b.name))
 
   for (const box of e2eBoxes) {
@@ -142,7 +146,9 @@ async function cleanupBoxes(api: APIRequestContext): Promise<void> {
     } else if (delRes.status() === 403) {
       console.warn(`[e2e cleanup] Skipped read-only box: ${box.name}`)
     } else {
-      console.warn(`[e2e cleanup] Could not delete box "${box.name}": ${delRes.status()}`)
+      console.warn(
+        `[e2e cleanup] Could not delete box "${box.name}": ${delRes.status()}`
+      )
     }
   }
 
@@ -151,16 +157,14 @@ async function cleanupBoxes(api: APIRequestContext): Promise<void> {
   }
 }
 
-type ResourceSummary = { id: string; name: string }
-
-async function cleanupResourceKind(api: APIRequestContext, kind: string): Promise<void> {
+async function cleanupResourceKind(api, kind) {
   const listRes = await api.get(`/api/${kind}`)
   if (!listRes.ok()) {
     console.warn(`[e2e cleanup] Could not list ${kind}: ${listRes.status()}`)
     return
   }
 
-  const resources = (await listRes.json()) as ResourceSummary[]
+  const resources = await listRes.json()
   const e2eResources = resources.filter(r => E2E_RESOURCE_PREFIX.test(r.name))
 
   for (const resource of e2eResources) {
@@ -170,7 +174,9 @@ async function cleanupResourceKind(api: APIRequestContext, kind: string): Promis
     } else if (delRes.status() === 403) {
       console.warn(`[e2e cleanup] Skipped read-only ${kind.slice(0, -1)}: ${resource.name}`)
     } else {
-      console.warn(`[e2e cleanup] Could not delete ${kind.slice(0, -1)} "${resource.name}": ${delRes.status()}`)
+      console.warn(
+        `[e2e cleanup] Could not delete ${kind.slice(0, -1)} "${resource.name}": ${delRes.status()}`
+      )
     }
   }
 
@@ -180,50 +186,45 @@ async function cleanupResourceKind(api: APIRequestContext, kind: string): Promis
 }
 
 // ---------------------------------------------------------------------------
-// Global teardown entry point
+// Main
 // ---------------------------------------------------------------------------
 
-export default async function globalTeardown(): Promise<void> {
-  if (process.env.E2E_CLEANUP === '0') {
-    console.log('[e2e cleanup] Skipped because E2E_CLEANUP=0')
-    return
-  }
+const users = discoverUsers()
 
-  const users = discoverUsers()
-
-  if (users.length === 0) {
-    console.warn('[e2e cleanup] No E2E_USER_EMAIL set; cleanup will only see self-hosted/anonymous resources')
-  }
-
-  // Fallback: use stored auth token for first user
-  const storedToken = getStoredAuthToken()
-
-  for (const user of users) {
-    console.log(`[e2e cleanup] Cleaning as ${user.email}`)
-
-    const token = process.env.E2E_AUTH_TOKEN || storedToken || await requestOtpToken(user.email, user.otp)
-
-    if (!token) {
-      console.warn(`[e2e cleanup] Could not authenticate as ${user.email}; skipping`)
-      continue
-    }
-
-    const api = await request.newContext({
-      baseURL,
-      ignoreHTTPSErrors: true,
-      extraHTTPHeaders: { Authorization: `Bearer ${token}` },
-    })
-
-    try {
-      await cleanupProjects(api)
-      await cleanupBoxes(api)
-      for (const kind of ['plugins', 'provisioners', 'triggers'] as const) {
-        await cleanupResourceKind(api, kind)
-      }
-    } finally {
-      await api.dispose()
-    }
-  }
-
-  console.log('[e2e cleanup] Done')
+if (users.length === 0) {
+  // Self-hosted / no env vars — use stored auth token if available
+  console.warn(
+    '[e2e cleanup] No E2E_USER_EMAIL set; trying stored auth token or anonymous access'
+  )
 }
+
+let authToken = getStoredAuthToken()
+
+for (const user of users) {
+  console.log(`[e2e cleanup] Cleaning as ${user.email}`)
+
+  const token = process.env.E2E_AUTH_TOKEN || await requestOtpToken(user.email, user.otp)
+
+  if (!token) {
+    console.warn(`[e2e cleanup] Could not authenticate as ${user.email}; skipping`)
+    continue
+  }
+
+  const api = await request.newContext({
+    baseURL,
+    ignoreHTTPSErrors: true,
+    extraHTTPHeaders: { Authorization: `Bearer ${token}` },
+  })
+
+  try {
+    await cleanupProjects(api)
+    await cleanupBoxes(api)
+    for (const kind of ['plugins', 'provisioners', 'triggers']) {
+      await cleanupResourceKind(api, kind)
+    }
+  } finally {
+    await api.dispose()
+  }
+}
+
+console.log('[e2e cleanup] Done')
