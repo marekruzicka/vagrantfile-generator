@@ -8,9 +8,9 @@ export class ProjectDetailPage {
   }
 
   private modal(heading: RegExp | string): Locator {
-    return this.page.locator('.modal-content').filter({
-      has: this.page.getByRole('heading', { name: heading }),
-    })
+    return this.page
+      .getByRole('heading', { name: heading })
+      .locator('xpath=ancestor::div[contains(@class, "bg-white") or contains(@class, "modal-content")][1]')
   }
 
   private fieldAfterLabel(scope: Locator, label: string): Locator {
@@ -206,6 +206,26 @@ export class ProjectDetailPage {
     await expect(this.page.getByRole('main')).toContainText(pluginName)
   }
 
+  async createPluginFromProjectAddModal(pluginName: string) {
+    await this.page.getByRole('main').getByRole('button', { name: /^add plugin$/i }).click()
+    const addDialog = this.modal(/add plugins to project/i)
+    await expect(addDialog).toBeVisible()
+    await addDialog.getByRole('button', { name: /create a new plugin configuration in settings/i }).click()
+
+    const pluginDialog = this.modal(/add new plugin/i)
+    await expect(pluginDialog).toBeVisible()
+    await this.fieldAfterLabel(pluginDialog, 'Plugin Name').fill(pluginName)
+    await this.fieldAfterLabel(pluginDialog, 'Description').fill('E2E plugin created from project')
+    await this.fieldAfterLabel(pluginDialog, 'Source URL').fill('https://example.com/project-plugin')
+    await this.fieldAfterLabel(pluginDialog, 'Documentation URL').fill('https://example.com/project-plugin/docs')
+    await this.fieldAfterLabel(pluginDialog, 'Default Version').fill('1.2.3')
+    await this.fieldAfterLabel(pluginDialog, 'Plugin Configuration').fill('# E2E project plugin config')
+    await pluginDialog.getByRole('button', { name: /^add plugin$/i }).click()
+    await expect(pluginDialog).toBeHidden()
+
+    await this.addProjectPlugin(pluginName)
+  }
+
   async addProjectProvisioner(provisionerName: string) {
     await this.page.getByRole('main').getByRole('button', { name: /^add provisioner$/i }).click()
     const dialog = this.modal(/add provisioners to project/i)
@@ -214,6 +234,24 @@ export class ProjectDetailPage {
     await dialog.getByRole('button', { name: /^add provisioner$/i }).click()
     await expect(dialog).toBeHidden()
     await expect(this.page.getByRole('main')).toContainText(provisionerName)
+  }
+
+  async createProvisionerFromProjectAddModal(provisionerName: string, script = 'echo project-created provisioner') {
+    await this.page.getByRole('main').getByRole('button', { name: /^add provisioner$/i }).click()
+    const addDialog = this.modal(/add provisioners to project/i)
+    await expect(addDialog).toBeVisible()
+    await addDialog.getByRole('button', { name: /create a new provisioner in settings/i }).click()
+
+    const provisionerDialog = this.modal(/add new provisioner/i)
+    await expect(provisionerDialog).toBeVisible()
+    await this.fieldAfterLabel(provisionerDialog, 'Provisioner Name').fill(provisionerName)
+    await this.fieldAfterLabel(provisionerDialog, 'Description').fill('E2E provisioner created from project')
+    await this.fieldAfterLabel(provisionerDialog, 'Shell Script').fill(script)
+    await provisionerDialog.locator('select').last().selectOption('always')
+    await provisionerDialog.getByRole('button', { name: /^add provisioner$/i }).click()
+    await expect(provisionerDialog).toBeHidden()
+
+    await this.addProjectProvisioner(provisionerName)
   }
 
   async addProjectTrigger(triggerName: string) {
@@ -225,6 +263,34 @@ export class ProjectDetailPage {
     await dialog.locator('.flex.items-start').filter({ hasText: triggerName }).first().click()
     await dialog.getByRole('button', { name: /add selected triggers/i }).click()
     await expect(dialog).toBeHidden()
+    await expect(this.page.getByRole('main')).toContainText(triggerName)
+  }
+
+  async createTriggerFromProjectAddModal(triggerName: string, command = "echo 'project-created trigger'") {
+    await this.page.getByRole('main').getByRole('button', { name: /^add trigger$/i }).click()
+    const addDialog = this.page
+      .getByRole('heading', { name: /add triggers to project/i })
+      .locator('xpath=ancestor::div[contains(@class, "bg-white")][1]')
+    await expect(addDialog).toBeVisible()
+    await addDialog.getByRole('button', { name: /create a new trigger/i }).click()
+
+    const triggerDialog = this.modal(/create new trigger/i)
+    await expect(triggerDialog).toBeVisible()
+    await this.fieldAfterLabel(triggerDialog, 'Trigger Name').fill(triggerName)
+    await this.fieldAfterLabel(triggerDialog, 'Description').fill('E2E trigger created from project')
+    await this.fieldAfterLabel(triggerDialog, 'Timing').selectOption('after')
+    await this.fieldAfterLabel(triggerDialog, 'Stage').selectOption('up')
+    await this.fieldAfterLabel(triggerDialog, 'Command').fill(command)
+    await triggerDialog.getByRole('button', { name: /^create trigger$/i }).click()
+    await expect(triggerDialog).toBeHidden()
+
+    const reopenedAddDialog = this.page
+      .getByRole('heading', { name: /add triggers to project/i })
+      .locator('xpath=ancestor::div[contains(@class, "bg-white")][1]')
+    await expect(reopenedAddDialog).toBeVisible()
+    await reopenedAddDialog.locator('.flex.items-start').filter({ hasText: triggerName }).first().click()
+    await reopenedAddDialog.getByRole('button', { name: /add selected triggers/i }).click()
+    await expect(reopenedAddDialog).toBeHidden()
     await expect(this.page.getByRole('main')).toContainText(triggerName)
   }
 

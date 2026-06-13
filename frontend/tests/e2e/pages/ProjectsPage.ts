@@ -6,6 +6,7 @@ export class ProjectsPage {
   async goto() {
     await this.page.goto('/')
     await this.expectLoaded()
+    await this.page.locator('#vfg-cookie-banner').getByRole('button', { name: /dismiss/i }).click().catch(() => undefined)
   }
 
   async expectLoaded() {

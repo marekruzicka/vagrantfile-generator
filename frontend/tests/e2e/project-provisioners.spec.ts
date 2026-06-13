@@ -33,6 +33,24 @@ test.describe('9. Project Provisioners', () => {
     }
   })
 
+  test('9.4 creates a provisioner from the project add-provisioner flow', async ({ page }) => {
+    const projects = new ProjectsPage(page)
+    const detail = new ProjectDetailPage(page)
+    const provisionerName = `e2e-project-created-provisioner-${Date.now()}`
+    const projectName = uniqueProjectName('Project Provisioner Create')
+
+    await projects.goto()
+    try {
+      await projects.createProject(projectName, projectDescription)
+      await projects.openProject(projectName)
+      await detail.createProvisionerFromProjectAddModal(provisionerName)
+      await expect(page.getByRole('main')).toContainText(provisionerName)
+    } finally {
+      await detail.backToDashboard().catch(() => undefined)
+      await projects.safeDeleteDraftProject(projectName)
+    }
+  })
+
   test('9.2-9.3 filters, removes, and bulk-removes project provisioners', async ({ page }) => {
     const settings = new SettingsPage(page)
     const projects = new ProjectsPage(page)

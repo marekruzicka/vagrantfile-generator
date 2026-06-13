@@ -33,6 +33,24 @@ test.describe('11. Project Triggers', () => {
     }
   })
 
+  test('11.4 creates a trigger from the project add-trigger flow', async ({ page }) => {
+    const projects = new ProjectsPage(page)
+    const detail = new ProjectDetailPage(page)
+    const triggerName = `e2e-project-created-trigger-${Date.now()}`
+    const projectName = uniqueProjectName('Project Trigger Create')
+
+    await projects.goto()
+    try {
+      await projects.createProject(projectName, projectDescription)
+      await projects.openProject(projectName)
+      await detail.createTriggerFromProjectAddModal(triggerName)
+      await expect(page.getByRole('main')).toContainText(triggerName)
+    } finally {
+      await detail.backToDashboard().catch(() => undefined)
+      await projects.safeDeleteDraftProject(projectName)
+    }
+  })
+
   test('11.2-11.3 searches, removes, and bulk-removes project triggers', async ({ page }) => {
     const settings = new SettingsPage(page)
     const projects = new ProjectsPage(page)

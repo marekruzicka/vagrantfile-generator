@@ -36,6 +36,24 @@ test.describe('7. Project Plugins', () => {
     }
   })
 
+  test('7.6 creates a plugin from the project add-plugin flow', async ({ page }) => {
+    const projects = new ProjectsPage(page)
+    const detail = new ProjectDetailPage(page)
+    const pluginName = `e2e-project-created-plugin-${Date.now()}`
+    const projectName = uniqueProjectName('Project Plugin Create')
+
+    await projects.goto()
+    try {
+      await projects.createProject(projectName, projectDescription)
+      await projects.openProject(projectName)
+      await detail.createPluginFromProjectAddModal(pluginName)
+      await expect(page.getByRole('main')).toContainText(pluginName)
+    } finally {
+      await detail.backToDashboard().catch(() => undefined)
+      await projects.safeDeleteDraftProject(projectName)
+    }
+  })
+
   test('7.3-7.5 edit, remove, and bulk remove project plugins', async ({ page }) => {
     const settings = new SettingsPage(page)
     const projects = new ProjectsPage(page)
