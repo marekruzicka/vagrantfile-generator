@@ -1,5 +1,34 @@
 # Changelog
 
+## Version 1.14.0
+
+**Date:** June 16, 2026
+
+### ✨ New Features
+
+- **Public landing page**: Added a new `/landing.html` marketing/sign-in entry page for public deployments, including feature highlights, a "How It Works" section, and a floating login card.
+- **Scroll-to-dismiss login overlay**: The landing page now lets visitors dismiss the login card by scrolling or selecting "Learn more", then shows a sticky sign-in bar for returning to authentication.
+
+### 🎨 UI / UX Improvements
+
+- **Footer redesign**: Reworked the footer into a cleaner three-column layout with the app icon, copyright text, navigation links, and a static GitHub icon.
+- **Responsive footer fix**: Fixed the footer layout so it remains three columns instead of stacking into three rows at tablet and desktop widths.
+- **OTP flow polish**: The login form now automatically focuses the OTP code input after a login code is sent.
+
+### 🐛 Bug Fixes
+
+- **Public auth redirect**: Unauthenticated public-mode users are now redirected to the landing page instead of directly to the login page.
+- **Release artifact name**: Updated the release workflow to attach `compose.yml` instead of the old `docker-compose.yml` filename.
+
+### 🔧 Technical Notes
+
+- **Frontend container**: The production frontend image now includes `landing.html` so the new public entry page is available in container deployments.
+- **Footer resources cleanup**: Removed old backend footer markdown links now replaced by the simplified footer navigation.
+- **Helm secrets safety**: Expanded `.gitignore` coverage for Helm values files.
+- **E2E coverage**: Added Playwright tests for the landing page overlay, sticky sign-in bar, feature cards, and updated public-auth redirect expectations.
+
+---
+
 ## Version 1.13.1
 
 **Date:** June 16, 2026
