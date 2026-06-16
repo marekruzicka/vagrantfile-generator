@@ -23,7 +23,21 @@ async function loginOnPage(page: Page, email: string, otp = '123456') {
   await expect(emailField).toBeVisible({ timeout: 10_000 })
   await emailField.fill(email)
   await page.getByRole('button', { name: /send login code/i }).click()
-  await page.locator('#code').fill(otp)
+
+  // Guard: fail fast if OTP send errored, rather than spinning on an invisible #code field
+  const codeInput = page.locator('#code')
+  const otpError = page.getByText(/failed to send otp/i)
+  await Promise.race([
+    codeInput.waitFor({ state: 'visible', timeout: 15_000 }),
+    otpError.waitFor({ state: 'visible', timeout: 15_000 }),
+  ])
+  if (await otpError.isVisible().catch(() => false)) {
+    throw new Error(
+      `OTP send failed for ${email}. Check that this email is registered and that the email service is configured.`
+    )
+  }
+
+  await codeInput.fill(otp)
   await page.getByRole('button', { name: /verify code/i }).click()
   await expect(projectsHeading).toBeVisible({ timeout: 20_000 })
   await expect(page.getByRole('banner')).toContainText(email)
@@ -82,11 +96,11 @@ test.describe('12. Shared Resources and Multi-User Isolation', () => {
   })
 
   test('12.6 personal projects and resources are isolated between two users', async ({ page }) => {
-    const userA = process.env.E2E_USER_EMAIL
-    const userB = process.env.E2E_USER_EMAIL_2
-    const otpA = process.env.E2E_USER_OTP
-    const otpB = process.env.E2E_USER_OTP_2 || otpA
-    test.skip(!userA || !userB || !otpA, 'Two-user public-mode test requires E2E_USER_EMAIL, E2E_USER_EMAIL_2, and E2E_USER_OTP')
+    const userA = process.env.TEST_USER_EMAIL_1
+    const userB = process.env.TEST_USER_EMAIL_2
+    const otpA = process.env.TEST_USER_OTP_1
+    const otpB = process.env.TEST_USER_OTP_2
+    test.skip(!userA || !userB || !otpA || !otpB, 'Two-user isolation test requires TEST_USER_EMAIL_1, TEST_USER_EMAIL_2, TEST_USER_OTP_1, and TEST_USER_OTP_2')
 
     const projects = new ProjectsPage(page)
     const settings = new SettingsPage(page)

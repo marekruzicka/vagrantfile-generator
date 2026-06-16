@@ -45,19 +45,19 @@ Legend:
 
   ```bash
   E2E_BASE_URL=https://vgf.i.glide.sk:443 \
-  E2E_USER_EMAIL=test@glide.sk \
-  E2E_USER_EMAIL_2=test1@glide.sk \
-  E2E_USER_OTP=123456 \
+  TEST_USER_EMAIL_1=test@glide.sk \
+  TEST_USER_OTP_1=123456 \
   npx playwright test tests/e2e/vms.spec.ts
   ```
 
-- Full suite:
+- Full suite (with multi-user isolation tests):
 
   ```bash
   E2E_BASE_URL=https://vgf.i.glide.sk:443 \
-  E2E_USER_EMAIL=test@glide.sk \
-  E2E_USER_EMAIL_2=test1@glide.sk \
-  E2E_USER_OTP=123456 \
+  TEST_USER_EMAIL_1=test@glide.sk \
+  TEST_USER_OTP_1=123456 \
+  TEST_USER_EMAIL_2=test1@glide.sk \
+  TEST_USER_OTP_2=123456 \
   npm run test:e2e
   ```
 
@@ -373,7 +373,7 @@ Toggle Shared Resources visibility in Settings. Verify the label changes between
 
 Login as Alice. Create a project and a private plugin. Login as Bob. Verify Bob cannot see Alice's project or private plugin. Alice cannot see Bob's project.
 
-> Uses `E2E_USER_EMAIL`, `E2E_USER_EMAIL_1`, `E2E_USER_OTP` (and optionally `E2E_USER_OTP_1`).
+> Uses `TEST_USER_EMAIL_1`, `TEST_USER_EMAIL_2`, and `TEST_USER_OTP_1` (optionally `TEST_USER_OTP_2`).
 
 ### 12.7 Shared resource usage in projects ✅
 

@@ -65,9 +65,6 @@ OTP_RATE_LIMIT_WINDOW_HOURS=1
 # Optional: Test Users (for development/testing)
 # When enabled, allows login with static OTP codes
 TEST_USER_ENABLED=false
-TEST_USER_EMAIL=test@example.com
-TEST_USER_OTP=123456
-# Optional additional indexed users for E2E multi-user tests:
 # TEST_USER_EMAIL_1=test@example.com
 # TEST_USER_OTP_1=123456
 # TEST_USER_EMAIL_2=test2@example.com
@@ -85,32 +82,24 @@ For development and automated E2E testing, you can enable static OTP test users 
 
 `TEST_USER_ENABLED` enables or disables **all** static test users.
 
-**Enable a single test user:**
+**Enable test users:**
 
 ```bash
 # Add to .env or backend environment
 TEST_USER_ENABLED=true
-TEST_USER_EMAIL=test@example.com  # Default
-TEST_USER_OTP=123456              # Default
-```
 
-**Enable multiple test users:**
-
-```bash
-TEST_USER_ENABLED=true
-
-# Legacy/default user remains supported
-TEST_USER_EMAIL=test@example.com
-TEST_USER_OTP=123456
-
-# Optional indexed users
+# Primary test user (index 1)
 TEST_USER_EMAIL_1=test@example.com
 TEST_USER_OTP_1=123456
+
+# Additional users for multi-user tests
 TEST_USER_EMAIL_2=test2@example.com
 TEST_USER_OTP_2=123456
 ```
 
-Indexed users use matching numeric suffixes: `TEST_USER_EMAIL_<number>` with `TEST_USER_OTP_<number>`.
+Each user is a matching pair: `TEST_USER_EMAIL_<N>` with `TEST_USER_OTP_<N>`. Indexes must be sequential starting from 1.
+
+The same env vars are used by the E2E test suite — configure them once for both backend and tests.
 
 **Using Test Users:**
 

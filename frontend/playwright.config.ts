@@ -39,7 +39,7 @@ export default defineConfig({
       use: {
         ...devices['Desktop Chrome'],
       },
-      testIgnore: /auth\.setup\.ts/,
+      testMatch: /public-auth-redirect\.spec\.ts/,
     },
     // {
     //   name: 'firefox',

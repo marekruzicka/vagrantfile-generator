@@ -42,12 +42,12 @@ test('authenticate for E2E tests or capture self-hosted session', async ({ page 
   const entryState = await waitForEntryState(page, projectsHeading, emailField)
 
   if (entryState === 'login') {
-    const email = process.env.E2E_USER_EMAIL
-    const otp = process.env.E2E_USER_OTP || '123456'
+    const email = process.env.TEST_USER_EMAIL_1
+    const otp = process.env.TEST_USER_OTP_1
 
-    if (!email) {
+    if (!email || !otp) {
       throw new Error(
-        'Public-mode login detected. Set E2E_USER_EMAIL and E2E_USER_OTP before running E2E tests.'
+        'Public-mode login detected. Set TEST_USER_EMAIL_1 and TEST_USER_OTP_1 before running E2E tests.'
       )
     }
 

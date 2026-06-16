@@ -19,27 +19,21 @@ from .file_service import FileService
 
 logger = logging.getLogger(__name__)
 
-# Built-in test user configuration
-# Backward-compatible single-user variables:
-#   TEST_USER_EMAIL=test@example.com
-#   TEST_USER_OTP=123456
-# Multi-user variables:
+# Test user configuration
+#   TEST_USER_ENABLED=true
 #   TEST_USER_EMAIL_1=test@example.com
 #   TEST_USER_OTP_1=123456
 #   TEST_USER_EMAIL_2=test2@example.com
 #   TEST_USER_OTP_2=123456
 # TEST_USER_ENABLED gates all static test users.
-TEST_USER_EMAIL = os.getenv("TEST_USER_EMAIL", "test@example.com")
-TEST_USER_OTP = os.getenv("TEST_USER_OTP", "123456")
 TEST_USER_ENABLED = os.getenv("TEST_USER_ENABLED", "false").lower() == "true"
 
 
 def load_test_users() -> dict[str, str]:
     """Load static test users from environment variables.
 
-    Supports the legacy TEST_USER_EMAIL/TEST_USER_OTP pair and any indexed
-    TEST_USER_EMAIL_<number>/TEST_USER_OTP_<number> pairs. The global
-    TEST_USER_ENABLED flag enables or disables all static test users.
+    Reads indexed TEST_USER_EMAIL_<N> / TEST_USER_OTP_<N> pairs.
+    TEST_USER_ENABLED gates all static test users.
     """
     if not TEST_USER_ENABLED:
         return {}
@@ -52,13 +46,6 @@ def load_test_users() -> dict[str, str]:
         for key in os.environ
         if (match := indexed_pattern.match(key))
     )
-
-    # Preserve backward compatibility with existing single test user settings.
-    # If indexed users are configured, do not implicitly add the default
-    # test@example.com user unless legacy variables were explicitly set.
-    legacy_configured = "TEST_USER_EMAIL" in os.environ or "TEST_USER_OTP" in os.environ
-    if TEST_USER_EMAIL and TEST_USER_OTP and (legacy_configured or not indexes):
-        users[normalize_email(TEST_USER_EMAIL)] = TEST_USER_OTP
 
     for index in indexes:
         email = os.getenv(f"TEST_USER_EMAIL_{index}")

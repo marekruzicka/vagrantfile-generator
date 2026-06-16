@@ -65,15 +65,11 @@ interface E2eUser {
 
 function discoverUsers(): E2eUser[] {
   const users: E2eUser[] = []
-  const defaultOtp = process.env.E2E_USER_OTP || '123456'
-
-  const email0 = process.env.E2E_USER_EMAIL
-  if (email0) users.push({ email: email0, otp: process.env.E2E_USER_OTP || defaultOtp })
 
   for (let i = 1; i <= 9; i++) {
-    const email = process.env[`E2E_USER_EMAIL_${i}`]
-    if (!email) continue
-    const otp = process.env[`E2E_USER_OTP_${i}`] || defaultOtp
+    const email = process.env[`TEST_USER_EMAIL_${i}`]
+    const otp = process.env[`TEST_USER_OTP_${i}`]
+    if (!email || !otp) continue
     users.push({ email, otp })
   }
 
@@ -192,7 +188,7 @@ export default async function globalTeardown(): Promise<void> {
   const users = discoverUsers()
 
   if (users.length === 0) {
-    console.warn('[e2e cleanup] No E2E_USER_EMAIL set; cleanup will only see self-hosted/anonymous resources')
+    console.warn('[e2e cleanup] No TEST_USER_EMAIL_1 set; cleanup will only see self-hosted/anonymous resources')
   }
 
   // Fallback: use stored auth token for first user

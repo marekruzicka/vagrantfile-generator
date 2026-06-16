@@ -87,10 +87,10 @@ Use environment variables for deployment-specific settings:
 
 ```bash
 E2E_BASE_URL=http://localhost:8080
-E2E_USER_EMAIL=test@glide.sk
-E2E_USER_OTP=123456
-E2E_SECOND_USER_EMAIL=test2@glide.sk
-E2E_SECOND_USER_OTP=123456
+TEST_USER_EMAIL_1=test@glide.sk
+TEST_USER_OTP_1=123456
+TEST_USER_EMAIL_2=test2@glide.sk
+TEST_USER_OTP_2=123456
 ```
 
 Example `playwright.config.ts` concepts:
@@ -122,8 +122,8 @@ The current proof of concept lives under `frontend/`, so run commands from that 
 ```bash
 cd frontend
 E2E_BASE_URL=https://vgf.i.glide.sk:443 \
-E2E_USER_EMAIL=test@glide.sk \
-E2E_USER_OTP=123456 \
+TEST_USER_EMAIL_1=test@glide.sk \
+TEST_USER_OTP_1=123456 \
 npm run test:e2e:dashboard
 ```
 
@@ -135,9 +135,9 @@ Recommended flow:
 
 1. Create `auth.setup.ts`
 2. Open login page
-3. Enter `E2E_USER_EMAIL`
+3. Enter email from `TEST_USER_EMAIL_1`
 4. Request OTP
-5. Enter `E2E_USER_OTP`
+5. Enter OTP from `TEST_USER_OTP_1`
 6. Wait for Projects page
 7. Save Playwright storage state to `.auth/user.json`
 8. Reuse `.auth/user.json` in authenticated test projects

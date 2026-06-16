@@ -48,8 +48,8 @@ Run one spec file:
 
 ```bash
 E2E_BASE_URL=https://vgf.i.glide.sk:443 \
-E2E_USER_EMAIL=test@glide.sk \
-E2E_USER_OTP=123456 \
+TEST_USER_EMAIL_1=test@glide.sk \
+TEST_USER_OTP_1=123456 \
 npx playwright test tests/e2e/vms.spec.ts
 ```
 
@@ -98,8 +98,8 @@ If the app redirects to the login page, provide deterministic OTP credentials:
 
 ```bash
 E2E_BASE_URL=http://localhost:8080 \
-E2E_USER_EMAIL=test@glide.sk \
-E2E_USER_OTP=123456 \
+TEST_USER_EMAIL_1=test@glide.sk \
+TEST_USER_OTP_1=123456 \
 npm run test:e2e:dashboard
 ```
 
