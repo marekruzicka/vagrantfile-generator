@@ -125,7 +125,7 @@ jobs:
           tag_name: ${{ needs.build-and-push.outputs.tag }}
           name: "Release ${{ needs.build-and-push.outputs.version }}"
           body: ${{ steps.notes.outputs.notes }}
-          files: docker-compose.yml
+          files: compose.yml
           overwrite_files: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
