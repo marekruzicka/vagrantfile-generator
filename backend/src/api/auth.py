@@ -19,6 +19,9 @@ from ..services.oidc_service import OIDCService, OIDCServiceError
 from ..middleware.auth_middleware import get_current_user
 from ..utils.validators import validate_email, validate_otp_code
 
+import logging
+logger = logging.getLogger(__name__)
+
 router = APIRouter(prefix="/api/auth", tags=["authentication"])
 
 # Initialize OIDC service

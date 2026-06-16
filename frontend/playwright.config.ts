@@ -35,13 +35,20 @@ export default defineConfig({
       testIgnore: /auth\.setup\.ts/,
     },
     {
-      name: 'firefox',
+      name: 'no-auth',
       use: {
-        ...devices['Desktop Firefox'],
-        storageState: '.auth/user.json',
+        ...devices['Desktop Chrome'],
       },
-      dependencies: ['setup'],
       testIgnore: /auth\.setup\.ts/,
-    }
+    },
+    // {
+    //   name: 'firefox',
+    //   use: {
+    //     ...devices['Desktop Firefox'],
+    //     storageState: '.auth/user.json',
+    //   },
+    //   dependencies: ['setup'],
+    //   testIgnore: /auth\.setup\.ts/,
+    // }
   ],
 })
