@@ -49,38 +49,7 @@ Designed for multi-user environments with full authentication.
 - 📧 Email OTP delivery via Mailgun
 - 🌐 OIDC/OAuth integration with external providers
 
-**Required Environment Variables for Public Mode:**
-
-```bash
-# Deployment
-DEPLOYMENT_MODE=public
-
-# JWT Configuration
-JWT_SECRET=<your-jwt-secret>  # Generate with: openssl rand -hex 32
-SESSION_COOKIE_SECRET=<your-session-cookie-secret>  # Generate with: openssl rand -hex 32
-
-# Backend URLs (required for OIDC)
-BASE_URL=https://your-domain.com
-FRONTEND_URL=https://your-domain.com
-
-# Email OTP (optional - falls back to OIDC only if not configured)
-MAILGUN_API_KEY=<your-mailgun-api-key>
-MAILGUN_DOMAIN=<your-mailgun-domain>
-MAILGUN_FROM_EMAIL=noreply@your-domain.com
-
-# OIDC Providers (at least one required)
-OIDC_GOOGLE_CLIENT_ID=<google-oauth-client-id>
-OIDC_GOOGLE_CLIENT_SECRET=<google-oauth-client-secret>
-
-OIDC_GITHUB_CLIENT_ID=<github-oauth-client-id>
-OIDC_GITHUB_CLIENT_SECRET=<github-oauth-client-secret>
-
-OIDC_GITLAB_CLIENT_ID=<gitlab-oauth-client-id>
-OIDC_GITLAB_CLIENT_SECRET=<gitlab-oauth-client-secret>
-OIDC_GITLAB_URL=https://gitlab.com  # Optional, defaults to gitlab.com
-```
-
-See [AUTHENTICATION.md](./docs/AUTHENTICATION.md) for detailed authentication setup guide.
+Copy [`backend/.env.example`](./backend/.env.example) to `.env` and fill in your values. See [docs/user/AUTHENTICATION.md](./docs/user/AUTHENTICATION.md) for detailed setup guide.
 
 ## Quick Start
 
@@ -99,24 +68,9 @@ podman-compose up -d
 
 This uses prebuilt GHCR `latest` images and runs in self-hosted mode. The backend is not exposed directly; API requests go through the frontend at `/api`.
 
-### For Developers (Local Development)
+### For Developers
 
-```bash
-# Clone the repository
-git clone https://github.com/marekruzicka/vagrantfile-generator.git
-cd vagrantfile-generator
-
-# Run native setup script
-./setup-local-dev.sh
-
-# Open in VS Code and press F5 to start debugging
-# Or smoke-test local container builds with compose-dev.yml:
-make up
-make logs
-make down
-```
-
-See [LOCAL_DEVELOPMENT.md](./docs/LOCAL_DEVELOPMENT.md) for detailed development setup.
+See [docs/dev/local-setup.md](./docs/dev/local-setup.md) for full development setup instructions.
 
 ## How to Use
 
@@ -126,11 +80,11 @@ See [LOCAL_DEVELOPMENT.md](./docs/LOCAL_DEVELOPMENT.md) for detailed development
 
 ## Support & Documentation
 
-- **Local Development**: See [LOCAL_DEVELOPMENT.md](./docs/LOCAL_DEVELOPMENT.md) for native development setup
-- **Deployment Modes**: See [ENVIRONMENTS.md](./docs/ENVIRONMENTS.md) for native dev, Compose, and Helm environment roles
-- **Authentication Setup**: See [AUTHENTICATION.md](./docs/AUTHENTICATION.md) for multi-user configuration
-- **Contributing**: See [CONTRIBUTING.md](./CONTRIBUTING.MD) for contribution guidelines
-- **Architecture**: See [APP_OVERVIEW.md](./docs/APP_OVERVIEW.md) for a tour of the application
+- **App Tour**: See [APP_OVERVIEW.md](./docs/APP_OVERVIEW.md) for a walkthrough of the interface
+- **Authentication Setup**: See [docs/user/AUTHENTICATION.md](./docs/user/AUTHENTICATION.md)
+- **Shared Resources**: See [docs/user/SHARED_RESOURCES.md](./docs/user/SHARED_RESOURCES.md)
+- **Development**: See [docs/dev/local-setup.md](./docs/dev/local-setup.md) for native development setup
+- **Environments**: See [docs/dev/environments.md](./docs/dev/environments.md) for dev, Compose, and Helm roles
 - **Issues**: Report bugs and feature requests through [GitHub Issues](https://github.com/marekruzicka/vagrantfile-generator/issues)
 
 ## License
