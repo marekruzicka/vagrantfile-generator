@@ -70,7 +70,8 @@ test.describe('13. Generated Vagrantfile', () => {
     }
   })
 
-  test('13.6 copy generated Vagrantfile to clipboard', async ({ page, context }) => {
+  test('13.6 copy generated Vagrantfile to clipboard', async ({ page, context, browserName }) => {
+    test.skip(browserName === 'firefox', 'clipboard-read/write permissions not supported in Firefox')
     await context.grantPermissions(['clipboard-read', 'clipboard-write'])
     const projects = new ProjectsPage(page)
     const detail = new ProjectDetailPage(page)

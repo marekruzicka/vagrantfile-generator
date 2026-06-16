@@ -66,9 +66,16 @@ test.describe('12. Shared Resources and Multi-User Isolation', () => {
 
     const sharedToggle = page.locator('input[x-model="showSharedResources"]')
     const initiallyChecked = await sharedToggle.isChecked()
-    await sharedToggle.setChecked(!initiallyChecked, { force: true })
+    // Toggle via evaluate + change event — setChecked({force}) doesn't trigger Alpine on Firefox
+    await sharedToggle.evaluate(el => {
+      ;(el as HTMLInputElement).checked = !(el as HTMLInputElement).checked
+      el.dispatchEvent(new Event('change', { bubbles: true }))
+    })
     await expect(page.getByText(initiallyChecked ? 'Hidden' : 'Showing')).toBeVisible()
-    await sharedToggle.setChecked(initiallyChecked, { force: true })
+    await sharedToggle.evaluate(el => {
+      ;(el as HTMLInputElement).checked = !(el as HTMLInputElement).checked
+      el.dispatchEvent(new Event('change', { bubbles: true }))
+    })
     await expect(page.getByText(initiallyChecked ? 'Showing' : 'Hidden')).toBeVisible()
   })
 

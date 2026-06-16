@@ -11,7 +11,11 @@ test.describe('14. Global Application Settings', () => {
 
     const publicIpCheckbox = page.locator('#allowPublicIPs')
     const initiallyChecked = await publicIpCheckbox.isChecked()
-    await publicIpCheckbox.setChecked(!initiallyChecked, { force: true })
+    // Toggle via evaluate + change event — setChecked({force}) doesn't trigger Alpine on Firefox
+    await publicIpCheckbox.evaluate(el => {
+      ;(el as HTMLInputElement).checked = !(el as HTMLInputElement).checked
+      el.dispatchEvent(new Event('change', { bubbles: true }))
+    })
 
     await page.locator('xpath=.//label[contains(normalize-space(.), "Maximum CPUs")]/following::input[1]').fill('6')
     await page.locator('xpath=.//label[contains(normalize-space(.), "Maximum Memory")]/following::input[1]').fill('12288')
@@ -27,7 +31,10 @@ test.describe('14. Global Application Settings', () => {
     await expect(publicIpCheckbox).toBeChecked({ checked: !initiallyChecked })
 
     // Restore public-IP setting to its original state for later tests/users.
-    await publicIpCheckbox.setChecked(initiallyChecked, { force: true })
+    await publicIpCheckbox.evaluate((el, checked) => {
+      ;(el as HTMLInputElement).checked = checked
+      el.dispatchEvent(new Event('change', { bubbles: true }))
+    }, initiallyChecked)
   })
 
   test('14.1 VM limits affect VM form validation', async ({ page }) => {
