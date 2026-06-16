@@ -20,7 +20,7 @@ From `frontend/`:
 
 ```bash
 # Full suite (public mode with multi-user isolation)
-E2E_BASE_URL=https://vgf.i.glide.sk:443 \
+E2E_BASE_URL=http://localhost:8080 \
 TEST_USER_EMAIL_1=test@glide.sk \
 TEST_USER_OTP_1=123456 \
 TEST_USER_EMAIL_2=test1@glide.sk \
