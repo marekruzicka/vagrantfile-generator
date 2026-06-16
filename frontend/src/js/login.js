@@ -76,6 +76,12 @@ function loginApp() {
                 // Start countdown timer
                 this.startCountdown(this.expiresInMinutes * 60);
 
+                // Auto-focus the OTP code input
+                this.$nextTick(() => {
+                    const input = this.$refs.otpInput;
+                    if (input) input.focus();
+                });
+
                 console.log('OTP sent successfully');
             } catch (err) {
                 console.error('Error requesting OTP:', err);

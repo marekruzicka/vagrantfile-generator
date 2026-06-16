@@ -13,6 +13,7 @@ FROM nginx:stable-alpine AS runtime
 WORKDIR /usr/share/nginx/html
 
 COPY --from=build /app/dist/ ./
+COPY --from=build /app/src/landing.html ./landing.html
 COPY --from=build /app/src/views ./views
 COPY --from=build /app/src/components ./components
 COPY --from=build /app/src/modals ./modals

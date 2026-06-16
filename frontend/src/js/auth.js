@@ -110,9 +110,9 @@ class AuthManager {
         const user = await this.checkAuth();
         
         if (!user) {
-            // Not authenticated in public mode - redirect to login
-            console.log('Not authenticated - redirecting to login');
-            window.location.href = '/views/login/login.html';
+            // Not authenticated in public mode - redirect to landing page
+            console.log('Not authenticated - redirecting to landing');
+            window.location.href = '/landing.html';
         } else {
             console.log('Authenticated as:', user.email);
         }
@@ -170,7 +170,7 @@ class AuthManager {
         this.clearAuth();
 
         // Redirect to login
-        window.location.href = '/views/login/login.html';
+        window.location.href = '/landing.html';
     }
 
     /**
