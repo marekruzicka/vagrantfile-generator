@@ -143,5 +143,4 @@ helm/**/values-*.local.yaml
 STATUS.md
 .playwright-cli
 cleanup.md
-.pi/plans
-.pi/discussions
+.pi
