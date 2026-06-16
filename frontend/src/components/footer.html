@@ -8,11 +8,11 @@
 
 <footer
   data-testid="footer"
-  class="footer-component mt-auto bg-gray-50 border-t border-gray-200"
+  class="footer-component mt-auto bg-gradient-to-br from-slate-50 to-blue-50 border-t-2 border-blue-100"
   x-data="footerComponent"
   x-init="initializeFooter()"
 >
-  <div class="app-container py-4">
+  <div class="app-container py-8">
     <!-- Loading state -->
     <div x-show="loading" class="text-center text-gray-500">
       <div class="inline-flex items-center">
@@ -53,25 +53,36 @@
     </div>
 
     <!-- Main footer content -->
-    <!-- Use top alignment on wider screens so wrapped navigation doesn't vertically center with the copyright text -->
     <div
       x-show="!loading && !error"
-      class="footer-content flex flex-col sm:flex-row sm:items-start sm:justify-between"
+      class="footer-content flex flex-col lg:flex-row lg:items-start gap-6 lg:gap-8"
     >
-      <!-- Copyright text -->
-      <div class="footer-text mb-4 sm:mb-0">
-        <p class="text-sm text-gray-600" x-html="copyrightText"></p>
+      <!-- Left: Icon + app name -->
+      <div class="flex items-center gap-3 lg:w-52 flex-shrink-0">
+        <img src="/images/icon-tr.png"
+             alt="Vagrantfile Generator"
+             class="h-10 w-10 flex-shrink-0"
+             style="image-rendering: -webkit-optimize-contrast;">
+        <div class="min-w-0">
+          <p class="text-sm font-semibold text-gray-900">Vagrantfile Generator</p>
+          <p class="text-xs text-gray-500 mt-0.5">Create & manage Vagrant environments</p>
+        </div>
       </div>
 
-      <!-- Navigation links -->
+      <!-- Center: Copyright text (grows to fill) -->
+      <div class="footer-text flex-1 min-w-0">
+        <p class="text-sm text-gray-600 leading-relaxed" x-html="copyrightText"></p>
+      </div>
+
+      <!-- Right: Navigation links -->
       <nav
-        class="footer-nav ml-auto"
+        class="footer-nav lg:w-44 flex-shrink-0"
         x-show="navigationLinks.length >= 1"
         aria-label="Footer navigation"
       >
-        <ul class="flex flex-wrap gap-2 sm:gap-2 items-center justify-end">
+        <ul class="flex flex-row flex-wrap lg:flex-col gap-x-4 gap-y-1 lg:items-end">
           <template x-for="link in navigationLinks" :key="link.pageId">
-            <li class="flex items-center">
+            <li class="flex items-center lg:justify-end">
               <!-- Internal page link -->
               <a
                 x-show="!link.isExternal"
@@ -80,7 +91,7 @@
                 :aria-current="link.pageId === currentPage ? 'page' : null"
                 :class="{
                   'text-blue-600 font-medium': link.pageId === currentPage,
-                  'text-gray-600 hover:text-gray-900': link.pageId !== currentPage
+                  'text-gray-500 hover:text-gray-900': link.pageId !== currentPage
                 }"
                 class="text-sm transition-colors duration-150 ease-in-out cursor-pointer"
                 @click="handleLinkClick($event, link)"
@@ -94,7 +105,7 @@
                 :data-page="link.pageId"
                 target="_blank"
                 rel="noopener noreferrer"
-                class="external-link text-sm text-gray-600 hover:text-gray-900 transition-colors duration-150 ease-in-out inline-flex items-center"
+                class="external-link text-sm text-gray-500 hover:text-gray-900 transition-colors duration-150 ease-in-out inline-flex items-center"
                 @click="handleExternalLink($event, link)"
               >
                 <span x-text="link.text"></span>
@@ -116,20 +127,6 @@
           </template>
         </ul>
       </nav>
-    </div>
-
-    <!-- Mobile responsive adjustments -->
-    <div
-      class="sm:hidden"
-      x-show="!loading && !error && navigationLinks.length > 0"
-    >
-      <div class="mt-4 pt-4 border-t border-gray-200">
-        <p class="text-xs text-gray-500 text-center">
-          <span x-text="navigationLinks.length"></span>
-          <span x-text="navigationLinks.length === 1 ? 'page' : 'pages'"></span>
-          available
-        </p>
-      </div>
     </div>
   </div>
 
