@@ -39,7 +39,7 @@ export default defineConfig({
       use: {
         ...devices['Desktop Chrome'],
       },
-      testMatch: /public-auth-redirect\.spec\.ts/,
+      testMatch: /(public-auth-redirect|landing-page)\.spec\.ts/,
     },
     {
       name: 'firefox',

@@ -75,8 +75,8 @@ test.describe('Public-mode unauthenticated redirect', () => {
 
     // ---- Assert ------------------------------------------------------------
 
-    // 1. We should end up on the login page.
-    await expect(page).toHaveURL(/\/views\/login\/login\.html$/, { timeout: 15_000 })
+    // 1. We should end up on the landing page.
+    await expect(page).toHaveURL(/\/landing\.html$/, { timeout: 15_000 })
 
     // 2. No protected endpoint should have been called.
     expect(calledEndpoints.size).toBe(0)

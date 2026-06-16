@@ -322,7 +322,10 @@
                         </p>
                     </div>
                     <div>
-                        <input type="text" x-ref="otpInput" x-model="otpCode" required maxlength="6"
+                        <label for="code" class="block text-sm font-medium text-gray-700 mb-2">
+                            Enter 6-digit code
+                        </label>
+                        <input type="text" id="code" x-ref="otpInput" x-model="otpCode" required maxlength="6"
                                pattern="[0-9]{6}" :disabled="loading"
                                class="form-input text-center text-2xl tracking-widest font-mono"
                                placeholder="000000" autocomplete="off">
@@ -364,7 +367,7 @@
 
             <!-- Learn more hint -->
             <div class="mt-5 text-center">
-                <button @click="$dispatch('scroll-down')"
+                <button @click="$dispatch('dismiss-login')"
                         class="text-sm text-gray-400 hover:text-gray-600 transition-colors">
                     ↓ Learn more about Vagrantfile Generator
                 </button>
@@ -402,13 +405,16 @@
 
                 init() {
                     const self = this;
-                    window.addEventListener('scroll', () => {
-                        self.scrolled = window.scrollY > self.scrollThreshold;
-                    }, { passive: true });
+                    const onScroll = () => {
+                        if (window.scrollY > self.scrollThreshold) {
+                            self.scrolled = true;
+                        }
+                    };
+                    window.addEventListener('scroll', onScroll, { passive: true });
 
-                    // Listen for scroll-down event from the "Learn more" button
-                    document.addEventListener('scroll-down', () => {
-                        window.scrollBy({ top: window.innerHeight, behavior: 'smooth' });
+                    // Listen for dismiss-login event from the "Learn more" button
+                    document.addEventListener('dismiss-login', () => {
+                        self.scrolled = true;
                     });
                 }
             };
