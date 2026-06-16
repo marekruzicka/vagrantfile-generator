@@ -33,29 +33,7 @@
       content="Create & manage development environments with Vagrant"
     />
 
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-      tailwind.config = {
-        theme: {
-          extend: {
-            colors: {
-              primary: {
-                50: '#eff6ff',
-                100: '#dbeafe',
-                500: '#3b82f6',
-                600: '#2563eb',
-                700: '#1d4ed8',
-              },
-            },
-          },
-        },
-      }
 
-      // Configure Alpine.js to auto-start with defer
-      document.addEventListener('alpine:init', () => {
-        console.log('Alpine.js: alpine:init event fired')
-      })
-    </script>
     <script src="js/runtime-config.js"></script>
     <script
       defer
@@ -71,7 +49,7 @@
     <!-- Marked.js for markdown parsing -->
     <script src="https://cdn.jsdelivr.net/npm/marked@11.0.0/marked.min.js"></script>
     <!-- Custom CSS -->
-    <link rel="stylesheet" href="styles/input.css" />
+    <link rel="stylesheet" href="./styles/input.css" />
 
     <!-- External JavaScript files -->
     <script src="js/utils/html-loader.js"></script>

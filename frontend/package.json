@@ -5,7 +5,7 @@
   "description": "Frontend for Vagrantfile Generator",
   "scripts": {
     "dev": "vite",
-    "build": "vite build",
+    "build": "npm run tailwind && vite build",
     "preview": "vite preview",
     "test:e2e": "playwright test",
     "test:e2e:dashboard": "playwright test tests/e2e/projects-dashboard.spec.ts",
