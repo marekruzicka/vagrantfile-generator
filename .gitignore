@@ -136,6 +136,9 @@ backend/data/users/
 # Helm production values (contain secrets - never commit)
 helm/**/values-production*.yaml
 helm/**/values-*.local.yaml
+
+# Helm packaged charts
+*.tgz
 STATUS.md
 .playwright-cli
 cleanup.md

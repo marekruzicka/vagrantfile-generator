@@ -5,6 +5,9 @@
 
 .PHONY: help setup-local build up down restart logs backend-logs frontend-logs clean
 
+# Include Helm workflow (helm-package, helm-push, helm-release, etc.)
+include helm.mk
+
 COMPOSE ?= $(shell command -v podman-compose >/dev/null 2>&1 && echo podman-compose || echo "docker compose")
 
 # Default target

@@ -2,7 +2,7 @@ apiVersion: v2
 name: vagrantfile-generator
 description: A Helm chart for Vagrantfile Generator - web-based tool for generating Vagrantfiles
 type: application
-version: 0.2.0
+version: 0.2.1
 appVersion: "1.0.0"
 keywords:
   - vagrant
