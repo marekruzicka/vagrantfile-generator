@@ -5,9 +5,11 @@ End-to-end tests use **Playwright Test with TypeScript**, automating user workfl
 ## Prerequisites
 
 ```bash
+make up
+
 cd frontend
 npm install
-npx playwright install chromium
+npx playwright install chromium firefox
 ```
 
 Start the application in another terminal (e.g., `docker compose up`). Tests default to `http://localhost:8080` — override with `E2E_BASE_URL`.
@@ -85,13 +87,13 @@ Good patterns:
 
 ```ts
 // Scope to visible modal
-const dialog = page.locator('.modal-content').filter({
-  has: page.getByRole('heading', { name: /confirm deletion/i }),
+const dialog = page.locator(".modal-content").filter({
+  has: page.getByRole("heading", { name: /confirm deletion/i }),
 });
-await dialog.getByRole('button', { name: /^delete$/i }).click();
+await dialog.getByRole("button", { name: /^delete$/i }).click();
 
 // Distinguish header vs page controls
-await page.getByRole('banner').getByRole('button', { name: /^add vm$/i });
+await page.getByRole("banner").getByRole("button", { name: /^add vm$/i });
 ```
 
 ## Configuration
