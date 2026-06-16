@@ -1,334 +1,38 @@
 # Changelog
 
-## 🚀 Version 2.0.0 - Multi-User Support & Authentication
+## Version 1.13.1
 
-**Date:** November 18, 2025
-
-### ✨ Major Features
-
-#### **Dual Deployment Modes**
-
-The application now supports two deployment modes controlled by the `DEPLOYMENT_MODE` environment variable:
-
-- **Self-Hosted Mode** (default): No authentication required, maintains backward compatibility with existing single-user installations. All data stored in `/data/shared/` with unrestricted access.
-- **Public Mode**: Full multi-user support with authentication, data isolation, and permission management. Perfect for running as a public service with multiple users.
-
-#### **Hybrid Authentication System**
-
-Public mode supports multiple authentication methods:
-
-- **Email OTP (One-Time Password)**: Users receive a 6-digit code via email (Mailgun integration)
-  - Codes valid for 15 minutes
-  - Rate limited to 5 requests per hour per email
-  - No external OAuth app registration required
-- **Social Login (OIDC/OAuth)**: Authenticate using existing accounts
-  - Google OAuth integration
-  - GitHub OAuth integration
-  - GitLab OAuth integration (supports self-hosted instances)
-  - Single-click login experience
-
-#### **Complete Data Isolation**
-
-In public mode, users have private workspaces with secure data separation:
-
-- **User-Specific Storage**: Personal resources stored in `/data/users/{user-id}/` directories
-- **Shared Resources**: System-provided resources (boxes, plugins, provisioners, triggers) available to all users as read-only templates
-- **Permission Enforcement**: Service-layer permission checks prevent unauthorized access
-- **Visual Indicators**: UI clearly distinguishes between shared (read-only) and personal (editable) resources with amber borders and badges
-
-### 🏗️ Architecture & Infrastructure
-
-#### **New Backend Services**
-
-- **AuthenticationService**: JWT-based session management with 24-hour token validity
-- **OTPService**: One-time password generation, delivery, and verification
-- **OIDCService**: OpenID Connect integration for social login providers
-- **UserService**: User profile management and persistence
-- **PermissionService**: Access control enforcement for multi-user scenarios
-- **RateLimitService**: Token bucket algorithm for OTP request rate limiting
-- **PreferenceService**: User preferences for shared resources visibility and favorites
-
-#### **Authentication Middleware**
-
-- Automatic authentication enforcement in public mode
-- Transparent pass-through in self-hosted mode
-- JWT token validation on protected endpoints
-- User context injection for all authenticated requests
-
-#### **File Storage Architecture**
-
-```
-data/
-├── shared/              # System resources (read-only in public mode)
-│   ├── boxes/
-│   ├── plugins/
-│   ├── provisioners/
-│   ├── triggers/
-│   └── projects/        # Self-hosted mode only
-├── users/               # Public mode user data
-│   └── {user-id}/
-│       ├── boxes/
-│       ├── plugins/
-│       ├── provisioners/
-│       ├── triggers/
-│       ├── projects/
-│       └── preferences/
-└── auth/                # Authentication data
-    ├── otp-requests.json
-    └── rate-limits.json
-```
-
-### 🎨 UI/UX Improvements
-
-#### **Login Experience**
-
-- Clean, modern login page with multiple authentication options
-- Real-time email validation
-- Clear error messages and feedback
-- Automatic session restoration (24-hour validity)
-- Redirect to requested page after authentication
-
-#### **Resource Management**
-
-- **Shared Resource Indicators**: Amber borders and "Shared" badges for read-only resources
-- **Smart Button Controls**: Edit/delete buttons hidden for shared resources
-- **Favorites System**: Star important shared resources to keep them visible
-- **Global Toggle**: Hide/show all shared resources with a single switch
-- **Copy to Customize**: Create editable personal copies of shared resources
-
-#### **Settings Page Enhancements**
-
-- Shared resources visibility control at the top of Settings page
-- Visual distinction between read-only and editable resources
-- Star/favorite buttons for quick access to frequently used shared resources
-- Copy buttons to create personal editable versions of shared resources
-
-### 🔒 Security Features
-
-#### **Session Management**
-
-- Cryptographically secure JWT tokens (HS256 algorithm)
-- User IDs generated as UUID v4 (prevents enumeration attacks)
-- HttpOnly recommendations for production deployments
-- Automatic session expiration after 24 hours
-- Secure token validation on every API request
-
-#### **Rate Limiting**
-
-- OTP request limiting: 5 requests per hour per email address
-- Token bucket algorithm with file-based persistence
-- Prevents abuse and spam attacks
-- Automatic cleanup of expired rate limit records
-
-#### **Permission Model**
-
-| Operation  | Self-Hosted Mode | Public Mode (Shared) | Public Mode (Personal) |
-| ---------- | ---------------- | -------------------- | ---------------------- |
-| **Read**   | ✅ Full access   | ✅ Read-only         | ✅ Full access         |
-| **Create** | ✅ Full access   | ❌ Blocked           | ✅ Full access         |
-| **Update** | ✅ Full access   | ❌ Blocked           | ✅ Full access         |
-| **Delete** | ✅ Full access   | ❌ Blocked           | ✅ Full access         |
-| **Copy**   | N/A              | ✅ Allowed           | N/A                    |
-
-### 📧 Email Integration
-
-#### **Mailgun Support**
-
-- Professional email delivery for OTP codes
-- Configurable sender address and domain
-- Template-based email formatting
-- Delivery tracking and error handling
-- Required configuration:
-  - `MAILGUN_API_KEY`: Your Mailgun API key
-  - `MAILGUN_DOMAIN`: Your verified domain
-  - `MAILGUN_FROM_EMAIL`: Sender email address
-
-### 🔧 Configuration
-
-#### **Required Environment Variables**
-
-**For Public Mode:**
-
-```bash
-# Deployment
-DEPLOYMENT_MODE=public
-
-# JWT Security
-JWT_SECRET=your-secret-key-min-32-chars
-
-# URLs
-BASE_URL=https://api.yourdomain.com
-FRONTEND_URL=https://yourdomain.com
-CORS_ORIGINS=https://yourdomain.com
-
-# Email OTP (required)
-MAILGUN_API_KEY=key-xxxxx
-MAILGUN_DOMAIN=mg.yourdomain.com
-MAILGUN_FROM_EMAIL=noreply@yourdomain.com
-
-# Optional: Social Login
-OIDC_GOOGLE_CLIENT_ID=xxxxx.apps.googleusercontent.com
-OIDC_GOOGLE_CLIENT_SECRET=GOCSPX-xxxxx
-OIDC_GITHUB_CLIENT_ID=Iv1.xxxxx
-OIDC_GITHUB_CLIENT_SECRET=xxxxx
-OIDC_GITLAB_CLIENT_ID=xxxxx
-OIDC_GITLAB_CLIENT_SECRET=xxxxx
-OIDC_GITLAB_URL=https://gitlab.com  # Optional, for self-hosted GitLab
-```
-
-**For Self-Hosted Mode (backward compatible):**
-
-```bash
-# No configuration required - works out of the box
-# Optionally set explicitly:
-DEPLOYMENT_MODE=self-hosted
-```
-
-### 🎯 API Changes
-
-#### **New Endpoints**
-
-**Authentication:**
-
-- `POST /api/auth/otp/request` - Request OTP code
-- `POST /api/auth/otp/verify` - Verify OTP code
-- `GET /api/auth/oidc/{provider}` - Initiate OIDC flow
-- `GET /api/auth/callback/{provider}` - Handle OIDC callback
-- `GET /api/auth/me` - Get current user profile
-- `GET /api/config/deployment` - Get deployment mode
-
-**Preferences:**
-
-- `GET /api/config/preferences` - Get user preferences
-- `PUT /api/config/preferences` - Update preferences
-- `GET /api/config/preferences/show-shared` - Get visibility toggle
-- `PUT /api/config/preferences/show-shared` - Update visibility
-- `POST /api/config/preferences/favorites/{type}/add` - Add favorite
-- `POST /api/config/preferences/favorites/{type}/remove` - Remove favorite
-
-**Resource Copying:**
-
-- `POST /api/boxes/{id}/copy` - Copy shared box
-- `POST /api/plugins/{id}/copy` - Copy shared plugin
-- `POST /api/provisioners/{id}/copy` - Copy shared provisioner
-- `POST /api/triggers/{id}/copy` - Copy shared trigger
-
-#### **Response Changes**
-
-All resource endpoints now include ownership metadata in public mode:
-
-```json
-{
-  "id": "uuid",
-  "name": "Resource Name",
-  "is_shared": true, // New field
-  "owner_id": null // New field (null for shared resources)
-  // ... other fields
-}
-```
-
-### 📦 Database Schema
-
-#### **New Models**
-
-- **UserProfile**: User information (ID, email, name, provider, timestamps)
-- **UserPreferences**: User settings (show_shared, favorite lists)
-- **OTPRequest**: Temporary OTP codes with expiration
-- **RateLimit**: Request tracking for rate limiting
-- **Session**: JWT token data and user context
-
-#### **Enhanced Models**
-
-All resource models now include:
-
-- `is_shared`: Boolean flag (true for shared resources)
-- `owner_id`: UUID of owner (null for shared resources)
-- `source_id`: Reference to original shared resource (for copied resources)
-
-### 🧪 Testing & Quality
-
-#### **Test Coverage**
-
-- Unit tests for authentication services
-- Integration tests for multi-user scenarios
-- Permission enforcement validation
-- Rate limiting verification
-- Session management tests
-- Email delivery mocking for testing
-
-#### **Backward Compatibility**
-
-- ✅ Existing self-hosted installations work without changes
-- ✅ Default mode remains self-hosted (no auth required)
-- ✅ Data migration not required for existing users
-- ✅ All existing features work identically in self-hosted mode
-
-### 📚 Documentation
-
-New documentation added:
-
-- `docs/AUTHENTICATION.md` - Complete authentication guide
-- `docs/SHARED_RESOURCES.md` - Multi-user resource management
-- `docs/setup/SETUP_OIDC.md` - OAuth provider configuration
-- `docs/setup/SETUP_EMAIL_OTP.md` - Mailgun configuration
-- Updated `README.md` with deployment mode instructions
-
-### 🔄 Migration Guide
-
-#### **Upgrading from v1.x to v2.0**
-
-**For Self-Hosted Users:**
-
-1. Pull latest image or update compose file
-2. Restart services
-3. No configuration changes needed - works exactly as before
-
-**For Public Deployment:**
-
-1. Set `DEPLOYMENT_MODE=public`
-2. Configure JWT secret and URLs
-3. Set up Mailgun for email OTP
-4. Optionally configure OAuth providers
-5. Restart services
-6. Existing data in `/data/shared/` becomes read-only shared resources
+**Date:** June 16, 2026
 
 ### 🐛 Bug Fixes
 
-- Fixed concurrent write issues with file-based storage using file locking
-- Improved error handling for authentication failures
-- Enhanced validation for email addresses and OTP codes
-- Fixed CORS issues in multi-origin deployments
-- Improved session token validation error messages
+- **Fixed self-hosted mode**: Resolved issue with no-auth project creation in self-hosted deployments
+- **Removed Tailwind CDN dependency**: Tailwind CSS is now bundled locally, eliminating external CDN requests
+- **Added data-loading guard**: Prevented race conditions where UI components rendered before data was fully loaded
+- **Fixed session cookie secret**: Added missing `SESSION_COOKIE_SECRET` to backend secret configuration and updated JWT configs
 
-### ⚡ Performance Improvements
+### ✨ Improvements
 
-- Optimized resource listing to efficiently merge shared and user resources
-- Implemented in-memory caching for OTP and rate limit data with file persistence
-- Reduced database queries with smart session token validation
-- Improved file I/O with atomic write operations
+- **Vagrantfile download with auth**: Generated Vagrantfile downloads now include proper authorization headers
+- **Helm chart**: Added Helm chart for Kubernetes deployments
+- **Local dev Compose setup**: Added `compose-dev.yml` for local builds during development
 
-### 🎨 Visual Changes
+---
 
-- New login page with modern design
-- Amber borders and badges for shared resources
-- Star icons for favorite resources
-- Copy icons for duplicating shared resources
-- Toggle switch for shared resources visibility
-- Improved empty states and loading indicators
+## 🚀 Version 1.13.0 - Multi-User Support & Authentication
 
-### ⚠️ Breaking Changes
+**Date:** June 9, 2026
 
-**None for existing users** - The default self-hosted mode maintains full backward compatibility.
+### ✨ New Features
 
-For new public deployments, note:
+- **Dual Deployment Modes**: Self-Hosted (no auth, default) and Public (multi-user) modes via `DEPLOYMENT_MODE` env var
+- **Authentication System**: Email OTP via Mailgun, plus social login via Google, GitHub, and GitLab OIDC/OAuth
+- **Data Isolation & Permissions**: Per-user storage directories, shared read-only system resources, permission enforcement in public mode
+- **New UI**: Login page, amber badges for shared resources, favorites system, global toggle to show/hide shared resources, copy-to-customize
+- **New API Endpoints**: ~15 endpoints for auth (OTP, OIDC, session), preferences CRUD, and resource copying; `is_shared`/`owner_id` metadata on all resources
+- **Security**: JWT-based sessions (24h), rate limiting (5 OTP/hr per email), UUID v4 user IDs
 
-- Authentication is required (cannot be disabled in public mode)
-- Mailgun API key is required for email OTP functionality
-- JWT secret must be configured for session security
-
-### 🙏 Acknowledgments
-
-This major release enables Vagrantfile Generator to serve both private teams and public users with the same codebase, maintaining simplicity while adding enterprise-grade multi-user capabilities.
+> **Backward compatible** — existing self-hosted installations work without changes.
 
 ---
 

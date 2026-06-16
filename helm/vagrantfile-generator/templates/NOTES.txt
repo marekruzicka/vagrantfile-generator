@@ -1,5 +1,5 @@
 ╔═══════════════════════════════════════════════════════════════════════════════╗
-║                        Vagrantfile Generator                                   ║
+║                        Vagrantfile Generator                                  ║
 ╚═══════════════════════════════════════════════════════════════════════════════╝
 
 Thank you for installing {{ .Chart.Name }}!
@@ -29,11 +29,16 @@ To check the deployment status:
 
 ⚠️  IMPORTANT CONFIGURATION NOTES:
 
-1. JWT Secret:
-   {{ if eq .Values.config.jwt.secret "change-this-to-a-secure-secret-key-min-32-chars" -}}
+1. JWT and Session Cookie Secrets:
+   {{ if eq .Values.config.jwt.secret "change-this-to-a-secure-jwt-secret-min-32-chars" -}}
    ❌ You are using the default JWT secret. Please update it in production!
    {{- else -}}
    ✅ Custom JWT secret configured.
+   {{- end }}
+   {{ if eq .Values.config.session.cookieSecret "change-this-to-a-secure-session-cookie-secret-min-32-chars" -}}
+   ❌ You are using the default session cookie secret. Please update it in production!
+   {{- else -}}
+   ✅ Custom session cookie secret configured.
    {{- end }}
 
 2. Authentication Providers:

@@ -192,8 +192,10 @@ class RequestLoggingMiddleware(BaseHTTPMiddleware):
 app.add_middleware(RequestLoggingMiddleware)
 
 # Add session middleware for OAuth state management
-# Use JWT secret for session encryption, fallback to a development secret
-session_secret = os.getenv("JWT_SECRET_KEY", "dev-secret-key-change-in-production")
+# Uses a dedicated cookie-signing secret, separate from JWT token signing.
+session_secret = os.getenv(
+    "SESSION_COOKIE_SECRET", "dev-session-cookie-secret-change-in-production"
+)
 app.add_middleware(
     SessionMiddleware,
     secret_key=session_secret,

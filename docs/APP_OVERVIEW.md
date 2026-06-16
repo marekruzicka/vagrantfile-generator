@@ -28,6 +28,6 @@ Preview the generated Vagrantfile for a project before using it. This helps veri
 #### Notes
 
 - Screenshots are taken from the running app; your data may vary.
-- For instructions on running the app locally (DEV / PROD) see `docs/ENVIRONMENTS.md`.
+- For instructions on running the app locally see `docs/dev/local-setup.md`.
 - For recent changes see `CHANGELOG.md`.
 

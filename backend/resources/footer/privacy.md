@@ -36,7 +36,7 @@ All browser storage used by this application is strictly functional — there ar
 
 - To end your session: use the app `Logout` control which clears the token and profile from your browser.
 - To remove local preferences: clear your browser site data or use the `Clear storage` option in the app settings (if available).
-- To request deletion of server-side profile data, contact the site administrator for the deployment (this is a self‑hosted application — administrators operate deployments and perform data deletion on request).
+- To request deletion of server-side profile data, contact the site administrator for the deployment.
 
 ## Third-party providers
 

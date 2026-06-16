@@ -46,44 +46,6 @@ coverage.xml
 .hypothesis/
 .pytest_cache/
 
-# Translations
-*.mo
-*.pot
-
-# Django stuff:
-*.log
-local_settings.py
-db.sqlite3
-
-# Flask stuff:
-instance/
-.webassets-cache
-
-# Scrapy stuff:
-.scrapy
-
-# Sphinx documentation
-docs/_build/
-
-# PyBuilder
-target/
-
-# Jupyter Notebook
-.ipynb_checkpoints
-
-# IPython
-profile_default/
-ipython_config.py
-
-# pyenv
-.python-version
-
-# celery beat schedule file
-celerybeat-schedule
-
-# SageMath parsed files
-*.sage.py
-
 # Environments
 .env
 .env.local
@@ -94,16 +56,6 @@ ENV/
 env.bak/
 venv.bak/
 
-# Spyder project settings
-.spyderproject
-.spyproject
-
-# Rope project settings
-.ropeproject
-
-# mkdocs documentation
-/site
-
 # mypy
 .mypy_cache/
 .dmypy.json
@@ -113,6 +65,9 @@ dmypy.json
 node_modules/
 frontend/dist/
 frontend/src/styles/output.css
+frontend/.auth/
+frontend/playwright-report/
+frontend/test-results/
 
 # IDE
 .idea/
@@ -124,15 +79,18 @@ frontend/src/styles/output.css
 Thumbs.db
 
 # Project specific
-refactor.md
-multiuser.md
+test-results/
 
 # User data (runtime storage - not committed)
 backend/data/users/
+backend/data/auth/
 
 # Helm production values (contain secrets - never commit)
 helm/**/values-production*.yaml
 helm/**/values-*.local.yaml
-STATUS.md
+
+# Helm packaged charts
+*.tgz
 .playwright-cli
 cleanup.md
+.pi

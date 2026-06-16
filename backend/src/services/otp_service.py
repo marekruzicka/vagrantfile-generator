@@ -5,6 +5,7 @@ Handles OTP generation, storage, verification, and cleanup.
 """
 
 import os
+import re
 import json
 import secrets
 import logging
@@ -18,10 +19,51 @@ from .file_service import FileService
 
 logger = logging.getLogger(__name__)
 
-# Built-in test user configuration
-TEST_USER_EMAIL = os.getenv("TEST_USER_EMAIL", "test@example.com")
-TEST_USER_OTP = os.getenv("TEST_USER_OTP", "123456")
+# Test user configuration
+#   TEST_USER_ENABLED=true
+#   TEST_USER_EMAIL_1=test@example.com
+#   TEST_USER_OTP_1=123456
+#   TEST_USER_EMAIL_2=test2@example.com
+#   TEST_USER_OTP_2=123456
+# TEST_USER_ENABLED gates all static test users.
 TEST_USER_ENABLED = os.getenv("TEST_USER_ENABLED", "false").lower() == "true"
+
+
+def load_test_users() -> dict[str, str]:
+    """Load static test users from environment variables.
+
+    Reads indexed TEST_USER_EMAIL_<N> / TEST_USER_OTP_<N> pairs.
+    TEST_USER_ENABLED gates all static test users.
+    """
+    if not TEST_USER_ENABLED:
+        return {}
+
+    users: dict[str, str] = {}
+
+    indexed_pattern = re.compile(r"^TEST_USER_EMAIL_(\d+)$")
+    indexes = sorted(
+        int(match.group(1))
+        for key in os.environ
+        if (match := indexed_pattern.match(key))
+    )
+
+    for index in indexes:
+        email = os.getenv(f"TEST_USER_EMAIL_{index}")
+        otp = os.getenv(f"TEST_USER_OTP_{index}")
+
+        if not email:
+            continue
+        if not otp:
+            logger.warning(
+                "Ignoring TEST_USER_EMAIL_%s because TEST_USER_OTP_%s is not set",
+                index,
+                index,
+            )
+            continue
+
+        users[normalize_email(email)] = otp
+
+    return users
 
 
 class OTPService:
@@ -36,22 +78,24 @@ class OTPService:
         self.file_service = FileService()
 
         # Test user configuration
-        self.test_user_email = (
-            normalize_email(TEST_USER_EMAIL) if TEST_USER_ENABLED else None
-        )
-        self.test_user_otp = TEST_USER_OTP if TEST_USER_ENABLED else None
+        self.test_users = load_test_users()
 
-        if TEST_USER_ENABLED:
-            logger.warning(f"Test user enabled: {self.test_user_email} with static OTP")
+        if self.test_users:
+            logger.warning(
+                "Static OTP test users enabled: %s",
+                ", ".join(sorted(self.test_users.keys())),
+            )
 
         # Ensure storage directory exists
         self.storage_path.parent.mkdir(parents=True, exist_ok=True)
 
     def is_test_user(self, email: str) -> bool:
-        """Check if email is the test user."""
-        if not self.test_user_email:
-            return False
-        return normalize_email(email) == self.test_user_email
+        """Check if email is a configured static OTP test user."""
+        return normalize_email(email) in self.test_users
+
+    def get_test_user_otp(self, email: str) -> Optional[str]:
+        """Get static OTP for a configured test user, if any."""
+        return self.test_users.get(normalize_email(email))
 
     def generate_otp(self, email: str) -> OTPRequest:
         """
@@ -71,9 +115,10 @@ class OTPService:
 
         email = normalize_email(email)
 
-        # Use static OTP for test user
-        if self.is_test_user(email) and self.test_user_otp:
-            code = self.test_user_otp
+        # Use static OTP for configured test users
+        test_user_otp = self.get_test_user_otp(email)
+        if test_user_otp:
+            code = test_user_otp
             logger.info(f"Using static OTP for test user {email}")
         else:
             # Generate random OTP code

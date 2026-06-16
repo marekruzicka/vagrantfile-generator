@@ -16,3 +16,7 @@
 .idea/
 *.tmproj
 .vscode/
+
+# Production/local values with secrets
+values-production*.yaml
+values-*.local.yaml

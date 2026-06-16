@@ -232,12 +232,43 @@ function vagrantApp() {
     // Init
     async init() {
       this.loadConfiguration()
+
+      // Guard: skip data-loading API calls if auth redirect is pending
+      if (!await this.shouldLoadData()) {
+        return
+      }
+
       await this.loadPreferences()
       await this.loadProjects()
       await this.loadBoxes()
       await this.loadPlugins()
       await this.loadProvisioners()
       await this.loadTriggers()
+    },
+
+    // Guard against race condition between Alpine x-init and auth redirect
+    async shouldLoadData() {
+      // If deploymentManager isn't available yet, skip data loads
+      if (!window.deploymentManager) {
+        return false
+      }
+
+      // Check deployment mode
+      try {
+        const isPublic = await window.deploymentManager.isPublicMode()
+        if (isPublic) {
+          // In public mode, only load data if we have a valid auth token
+          const token = window.authManager ? window.authManager.getToken() : null
+          if (!token) {
+            return false
+          }
+        }
+      } catch (e) {
+        console.warn('shouldLoadData: deployment mode check failed, skipping data loads', e)
+        return false
+      }
+
+      return true
     },
 
     // Configuration management
