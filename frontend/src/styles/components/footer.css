@@ -79,10 +79,10 @@
 
   /* Mobile navigation improvements */
   .footer-component .footer-nav {
-    width: 100%;
+    width: auto;
     display: flex;
-    justify-content: flex-end; /* ensure nav sits on the right */
-    padding-right: 0.5rem;
+    justify-content: flex-end; /* keep nav in the right column */
+    padding-right: 0;
   }
 
   .footer-component .footer-nav ul {
@@ -100,10 +100,10 @@
 
   /* Improved mobile text readability */
   .footer-component .footer-text {
-    text-align: center;
+    text-align: left;
     font-size: 0.875rem;
     line-height: 1.5;
-    margin-bottom: 1.5rem;
+    margin-bottom: 0;
   }
 }
 
@@ -178,55 +178,35 @@
 
 /* Footer main content area with improved responsive behavior */
 .footer-component .footer-content {
-  display: flex;
-  flex-direction: column;
-  gap: 1.5rem;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
   align-items: center;
+  width: 100%;
+  gap: 1rem;
 }
 
-/* Tablet responsiveness */
-@media (min-width: 640px) and (max-width: 1023px) {
+@media (min-width: 640px) {
   .footer-component .footer-content {
-    flex-direction: column;
-    align-items: center;
-    gap: 1rem;
-    text-align: center;
+    gap: 1.5rem;
   }
 }
 
-/* Desktop layout */
 @media (min-width: 1024px) {
   .footer-component .footer-content {
-    flex-direction: row;
-    align-items: center;
-    justify-content: space-between;
     gap: 2rem;
   }
 }
 
 /* Copyright text styling */
 .footer-component .footer-text {
-  order: 1;
-}
-
-@media (min-width: 640px) {
-  .footer-component .footer-text {
-    order: 0;
-    flex-shrink: 0;
-  }
+  /* styling handled by Tailwind classes */
 }
 
 /* ===== NAVIGATION STYLES ===== */
 
 /* Navigation container */
 .footer-component .footer-nav {
-  order: 0;
-}
-
-@media (min-width: 640px) {
-  .footer-component .footer-nav {
-    order: 1;
-  }
+  /* styling handled by Tailwind classes */
 }
 
 /* Navigation list */

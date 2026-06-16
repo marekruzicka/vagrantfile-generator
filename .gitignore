@@ -88,6 +88,7 @@ backend/data/auth/
 # Helm production values (contain secrets - never commit)
 helm/**/values-production*.yaml
 helm/**/values-*.local.yaml
+helm/**/values-*
 
 # Helm packaged charts
 *.tgz
