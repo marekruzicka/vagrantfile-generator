@@ -20,7 +20,10 @@ class EmailService:
         self.api_key = os.getenv("MAILGUN_API_KEY")
         self.domain = os.getenv("MAILGUN_DOMAIN")
         self.from_email = os.getenv("MAILGUN_FROM_EMAIL", f"noreply@{self.domain}")
-        self.base_url = f"https://api.mailgun.net/v3/{self.domain}/messages"
+        api_url = os.getenv(
+            "MAILGUN_API_URL", "https://api.mailgun.net"
+        ).rstrip("/")
+        self.base_url = f"{api_url}/v3/{self.domain}/messages"
     
     def is_configured(self) -> bool:
         """

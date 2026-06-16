@@ -1,5 +1,15 @@
 # Changelog
 
+## Version 1.14.1
+
+**Date:** June 16, 2026
+
+### 🐛 Bug Fixes
+
+- **Mailgun EU region endpoint**: Fixed `401 Forbidden` when sending OTP emails via Mailgun accounts registered in the EU region. The backend now respects the `MAILGUN_API_URL` environment variable (default `https://api.mailgun.net`, set to `https://api.eu.mailgun.net` for EU accounts). Updated Helm chart `config.mailgun.apiUrl` to expose the setting, and configured production values to use the EU endpoint.
+
+---
+
 ## Version 1.14.0
 
 **Date:** June 16, 2026

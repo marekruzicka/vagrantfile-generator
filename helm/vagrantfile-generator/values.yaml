@@ -191,6 +191,8 @@ config:
     domain: ""
     # -- From email address
     fromEmail: ""
+    # -- Mailgun API base URL (use https://api.eu.mailgun.net for EU region)
+    apiUrl: "https://api.mailgun.net"
 
   # -- OIDC Provider Configuration
   oidc:
