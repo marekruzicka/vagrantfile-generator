@@ -1,0 +1,14 @@
+# Changelog
+
+## [0.4.0] - 2026-06-19
+
+### Features
+- feat(helm): support existingClaim and static PV binding
+
+### Fixed
+- fix: retry helm-semver after deleting stale tag
+- fix: retry helm-semver release with PAT for git push
+- fix: retry helm-semver release with GHCR auth
+- fix: trigger initial helm-semver chart release
+- fix: Mailgun EU region endpoint - add configurable MAILGUN_API_URL
+

@@ -2,13 +2,13 @@ apiVersion: v2
 name: vagrantfile-generator
 description: A Helm chart for Vagrantfile Generator - web-based tool for generating Vagrantfiles
 type: application
-version: 0.3.0
+version: 0.4.0
 appVersion: "1.14.1"
 keywords:
-  - vagrant
-  - vagrantfile
-  - generator
-  - devops
+    - vagrant
+    - vagrantfile
+    - generator
+    - devops
 home: https://github.com/marekruzicka/vagrantfile-generator
 maintainers:
-  - name: Marek Ruzicka
+    - name: Marek Ruzicka
