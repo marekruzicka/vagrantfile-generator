@@ -81,7 +81,10 @@ spec:
               mountPath: /app/data
       volumes:
         - name: data
-          {{- if .Values.backend.persistence.enabled }}
+          {{- if and .Values.backend.persistence.enabled .Values.backend.persistence.existingClaim }}
+          persistentVolumeClaim:
+            claimName: {{ .Values.backend.persistence.existingClaim }}
+          {{- else if .Values.backend.persistence.enabled }}
           persistentVolumeClaim:
             claimName: {{ include "vagrantfile-generator.backend.name" . }}-data
           {{- else }}

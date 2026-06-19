@@ -62,8 +62,12 @@ backend:
   # -- Persistent volume claim settings
   persistence:
     enabled: true
+    # -- Use an existing PVC instead of creating a new one (e.g. for static PVs with Retain policy)
+    existingClaim: ""
     # -- Storage class (empty string uses cluster default)
     storageClass: ""
+    # -- Bind to a specific PV by name (for static PV binding)
+    volumeName: ""
     # -- Access mode
     accessMode: ReadWriteOnce
     # -- Storage size
