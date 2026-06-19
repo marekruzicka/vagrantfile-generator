@@ -27,7 +27,7 @@ OCI_PATH     ?= oci://$(OCI_REGISTRY)/vgf
 # Extra flags for self-signed / internal registries
 HELM_INSECURE ?= --insecure
 
-.PHONY: helm-lint helm-package helm-push helm-release helm-login helm-dry-run clean-helm
+.PHONY: helm-lint helm-package helm-push helm-release helm-login helm-dry-run clean-helm helm-semver-install helm-semver-dry-run helm-semver-release-local
 
 # ---------------------------------------------------------------------------
 # Targets
@@ -75,3 +75,41 @@ helm-dry-run:
 clean-helm:
 	@echo "Removing packaged charts..."
 	rm -f $(CHART_NAME)-*.tgz
+
+# ---------------------------------------------------------------------------
+# helm-semver (automated semver release tool)
+# ---------------------------------------------------------------------------
+# Requires: helm-semver (https://github.com/rhysmcneill/helm-semver)
+#
+# Install with: make helm-semver-install
+# Or run via Docker: docker run --rm -v $(PWD):/workspace ghcr.io/rhysmcneill/helm-semver:latest release ...
+
+HELM_SEMVER ?= $(shell command -v helm-semver 2>/dev/null || echo "docker run --rm -v $(PWD):/workspace ghcr.io/rhysmcneill/helm-semver:latest")
+
+## Install helm-semver binary locally (Linux/macOS)
+helm-semver-install:
+	@if command -v helm-semver >/dev/null 2>&1; then \
+		echo "helm-semver already installed: $$(helm-semver version)"; \
+	else \
+		echo "Installing helm-semver..."; \
+		OS=$$(uname -s | tr '[:upper:]' '[:lower:]'); \
+		ARCH=$$(uname -m | sed 's/x86_64/amd64/' | sed 's/aarch64/arm64/'); \
+		URL="https://github.com/rhysmcneill/helm-semver/releases/latest/download/helm-semver-$$OS-$$ARCH"; \
+		curl -fsSL "$$URL" -o /usr/local/bin/helm-semver && chmod +x /usr/local/bin/helm-semver; \
+		echo "helm-semver installed successfully"; \
+	fi
+
+## Dry-run: preview what helm-semver would release to local registry
+helm-semver-dry-run:
+	$(HELM_SEMVER) release \
+		--charts-dir helm \
+		--registry $(OCI_PATH) \
+		--registry-type oci \
+		--dry-run
+
+## Release chart to local registry using helm-semver (for testing)
+helm-semver-release-local:
+	$(HELM_SEMVER) release \
+		--charts-dir helm \
+		--registry $(OCI_PATH) \
+		--registry-type oci

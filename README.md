@@ -85,6 +85,7 @@ See [docs/dev/local-setup.md](./docs/dev/local-setup.md) for full development se
 - **Shared Resources**: See [docs/user/SHARED_RESOURCES.md](./docs/user/SHARED_RESOURCES.md)
 - **Development**: See [docs/dev/local-setup.md](./docs/dev/local-setup.md) for native development setup
 - **Environments**: See [docs/dev/environments.md](./docs/dev/environments.md) for dev, Compose, and Helm roles
+- **Helm Chart**: Published to `oci://ghcr.io/marekruzicka/helm-charts/vagrantfile-generator`. Releases are automated via [helm-semver](https://github.com/rhysmcneill/helm-semver) — see [helm.mk](./helm.mk) for local usage.
 - **Issues**: Report bugs and feature requests through [GitHub Issues](https://github.com/marekruzicka/vagrantfile-generator/issues)
 
 ## License
