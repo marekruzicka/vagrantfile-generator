@@ -1,0 +1,29 @@
+name: Release Helm Chart
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "helm/**"
+
+jobs:
+  release-chart:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write # needed for helm-semver to push version bump commits and tags
+      packages: write # needed to push chart to GHCR
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # helm-semver needs full git history for commit scanning
+
+      - name: Release chart to GHCR
+        uses: rhysmcneill/helm-semver@v1
+        with:
+          charts-dir: helm
+          registry: oci://ghcr.io/${{ github.repository_owner }}/helm-charts
+          changelog: "true"
+          github-token: ${{ secrets.GITHUB_TOKEN }}

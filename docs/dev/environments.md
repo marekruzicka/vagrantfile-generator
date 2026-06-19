@@ -7,7 +7,7 @@ Vagrantfile Generator has separate paths for development, self-hosted quick star
 | Native dev          | `setup-local-dev.sh`, VS Code tasks | Active development             |
 | Self-hosted Compose | `compose.yml`                       | End-user quick-start (prebuilt images) |
 | Compose dev build   | `compose-dev.yml` + Makefile        | Local image build/smoke test   |
-| Public production   | Helm chart                          | Hosted Kubernetes deployment   |
+| Public production   | Helm chart ([helm-semver](https://github.com/rhysmcneill/helm-semver)) | Hosted Kubernetes deployment   |
 
 ## Native Dev
 
@@ -55,7 +55,13 @@ make clean  # removes volumes too
 
 ## Public Production
 
-Use the Helm chart for Kubernetes deployments with authentication enabled. Requires:
+Use the Helm chart for Kubernetes deployments with authentication enabled.
+
+Chart releases are automated via [helm-semver](https://github.com/rhysmcneill/helm-semver):
+- **CI (GHCR)**: Every push to `main` touching `helm/` triggers a chart release to `oci://ghcr.io/marekruzicka/helm-charts`.
+- **Local (testing)**: Run `make helm-semver-release-local` to release to a local OCI registry.
+
+Requires:
 
 - `DEPLOYMENT_MODE=public`
 - `JWT_SECRET` and `SESSION_COOKIE_SECRET`

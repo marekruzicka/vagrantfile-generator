@@ -130,3 +130,45 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
+  sync-chart-appversion:
+    needs: build-and-push
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write # needed to push commits and tags
+      packages: write # needed to push chart to GHCR
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # helm-semver needs full git history for commit scanning
+
+      - name: Sync appVersion and release Helm chart
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          VERSION="${{ needs.build-and-push.outputs.version }}"
+          CHART_FILE="helm/vagrantfile-generator/Chart.yaml"
+
+          # 1. Bump appVersion in Chart.yaml
+          echo "Updating appVersion in $CHART_FILE to $VERSION"
+          sed -i "s/^appVersion:.*/appVersion: \"$VERSION\"/" "$CHART_FILE"
+
+          # 2. Commit the appVersion bump so helm-semver can detect it
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add "$CHART_FILE"
+          git commit -m "fix: sync chart appVersion to $VERSION"
+
+          # 3. Run helm-semver: bumps chart version, packages, pushes to GHCR,
+          #    commits the version bump + changelog, creates git tag, and pushes.
+          docker run --rm \
+            -v "$PWD:/workspace" \
+            -e GITHUB_TOKEN \
+            ghcr.io/rhysmcneill/helm-semver:latest \
+            release \
+            --charts-dir helm \
+            --registry oci://ghcr.io/${{ github.repository_owner }}/helm-charts \
+            --git-author-name "github-actions[bot]" \
+            --git-author-email "github-actions[bot]@users.noreply.github.com"
+
