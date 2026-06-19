@@ -25,5 +25,7 @@ jobs:
         with:
           charts-dir: helm
           registry: oci://ghcr.io/${{ github.repository_owner }}/helm-charts
+          registry-username: ${{ github.repository_owner }}
+          registry-password: ${{ secrets.GITHUB_TOKEN }}
           changelog: "true"
           github-token: ${{ secrets.GITHUB_TOKEN }}

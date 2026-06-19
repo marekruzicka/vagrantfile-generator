@@ -169,6 +169,8 @@ jobs:
             release \
             --charts-dir helm \
             --registry oci://ghcr.io/${{ github.repository_owner }}/helm-charts \
+            --registry-username "${{ github.repository_owner }}" \
+            --registry-password "${{ secrets.GITHUB_TOKEN }}" \
             --git-author-name "github-actions[bot]" \
             --git-author-email "github-actions[bot]@users.noreply.github.com"
 
