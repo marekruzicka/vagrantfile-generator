@@ -164,13 +164,14 @@ jobs:
           #    commits the version bump + changelog, creates git tag, and pushes.
           docker run --rm \
             -v "$PWD:/workspace" \
-            -e GITHUB_TOKEN \
+            -e GIT_TOKEN="${{ secrets.CHART_RELEASE_PAT }}" \
             ghcr.io/rhysmcneill/helm-semver:latest \
             release \
             --charts-dir helm \
             --registry oci://ghcr.io/${{ github.repository_owner }}/helm-charts \
             --registry-username "${{ github.repository_owner }}" \
             --registry-password "${{ secrets.GITHUB_TOKEN }}" \
+            --git-token "${{ secrets.CHART_RELEASE_PAT }}" \
             --git-author-name "github-actions[bot]" \
             --git-author-email "github-actions[bot]@users.noreply.github.com"
 

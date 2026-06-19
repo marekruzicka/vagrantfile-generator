@@ -28,4 +28,4 @@ jobs:
           registry-username: ${{ github.repository_owner }}
           registry-password: ${{ secrets.GITHUB_TOKEN }}
           changelog: "true"
-          github-token: ${{ secrets.GITHUB_TOKEN }}
+          github-token: ${{ secrets.CHART_RELEASE_PAT }}
