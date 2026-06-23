@@ -112,7 +112,7 @@ class AuthManager {
         if (!user) {
             // Not authenticated in public mode - redirect to landing page
             console.log('Not authenticated - redirecting to landing');
-            window.location.href = '/landing.html';
+            window.location.href = '/';
         } else {
             console.log('Authenticated as:', user.email);
         }
@@ -169,8 +169,8 @@ class AuthManager {
         // Clear local auth state
         this.clearAuth();
 
-        // Redirect to login
-        window.location.href = '/landing.html';
+        // Redirect to landing page
+        window.location.href = '/';
     }
 
     /**

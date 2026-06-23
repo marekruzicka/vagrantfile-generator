@@ -7,14 +7,27 @@ import { SettingsPage } from './pages/SettingsPage'
 async function loginOnPage(page: Page, email: string, otp = '123456') {
   await page.goto('/')
   const projectsHeading = page.getByRole('heading', { name: /your vagrant projects/i })
-
   const emailField = page.locator('#email')
-  await Promise.race([
-    projectsHeading.waitFor({ state: 'visible', timeout: 8_000 }).catch(() => undefined),
-    emailField.waitFor({ state: 'visible', timeout: 8_000 }).catch(() => undefined),
-  ])
 
-  if (await projectsHeading.isVisible().catch(() => false)) {
+  // Poll for page state — landing page at / may async-redirect to /index.html
+  // when an auth token is already present (loginApp.init()).
+  // Give the auth check time to settle before falling back to the login flow.
+  const deadline = Date.now() + 20_000
+  let onSPA = false
+  while (Date.now() < deadline) {
+    if (await projectsHeading.isVisible().catch(() => false)) {
+      onSPA = true
+      break
+    }
+    // Only accept the landing-page login form if enough time has passed
+    // for the auth redirect to fire (avoids racing loginApp.init()).
+    if (Date.now() > deadline - 15_000 && await emailField.isVisible().catch(() => false)) {
+      break
+    }
+    await page.waitForTimeout(250)
+  }
+
+  if (onSPA) {
     const bannerText = await page.getByRole('banner').innerText()
     if (bannerText.includes(email)) return
     await page.getByRole('button', { name: /logout/i }).click()
