@@ -62,7 +62,10 @@ test.describe('4. Networking', () => {
     }
     let initiallyChecked = false
 
-    await page.goto('/')
+    // Navigate directly to SPA entrypoint; landing page at / auto-redirects
+    // via loginApp.init() and that async redirect destroys execution context.
+    await page.goto('/index.html')
+    await page.waitForLoadState('networkidle')
     initiallyChecked = await page.evaluate(() => {
       const config = JSON.parse(localStorage.getItem('vagrantfile-generator-config') || '{}')
       return !!config.allowPublicIPsInPrivateNetworks

@@ -3,7 +3,10 @@
  *
  * Verifies the shouldLoadData() guard added to app.js prevents in-flight
  * API calls from aborting when main.js's DOMContentLoaded handler redirects
- * to login in public mode with no auth token.
+ * to the landing page in public mode with no auth token.
+ *
+ * Landing page is served at / (and /landing.html via redirect).
+ * The SPA lives at /index.html; visiting it without auth triggers the redirect.
  */
 import { expect, test } from '@playwright/test'
 
@@ -68,15 +71,17 @@ test.describe('Public-mode unauthenticated redirect', () => {
 
     // ---- Act ---------------------------------------------------------------
 
-    await page.goto('/')
+    // Navigate to the SPA entrypoint (not the landing page at /).
+    // The SPA should detect public mode + no auth and redirect.
+    await page.goto('/index.html')
 
     // Wait for the auth redirect to settle.
     await page.waitForLoadState('networkidle')
 
     // ---- Assert ------------------------------------------------------------
 
-    // 1. We should end up on the landing page.
-    await expect(page).toHaveURL(/\/landing\.html$/, { timeout: 15_000 })
+    // 1. We should end up on the landing page (either at /landing.html or /).
+    await expect(page).toHaveURL(/\/(landing\.html)?$/, { timeout: 15_000 })
 
     // 2. No protected endpoint should have been called.
     expect(calledEndpoints.size).toBe(0)

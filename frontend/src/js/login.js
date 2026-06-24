@@ -27,7 +27,7 @@ function loginApp() {
                 const isValid = await this.verifyToken(token);
                 if (isValid) {
                     // Redirect to main app
-                    window.location.href = '/';
+                    window.location.href = '/index.html';
                 }
             }
         },
@@ -122,7 +122,7 @@ function loginApp() {
                 console.log('Login successful');
 
                 // Redirect to main app
-                window.location.href = '/';
+                window.location.href = '/index.html';
             } catch (err) {
                 console.error('Error verifying OTP:', err);
                 this.error = 'Network error. Please try again.';

@@ -1,0 +1,39 @@
+name: Auto-tag from CHANGELOG
+
+on:
+  push:
+    branches: [master]
+    paths:
+      - 'CHANGELOG.md'
+
+jobs:
+  create-tag:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Create tag if new version in CHANGELOG
+        env:
+          CHART_RELEASE_PAT: ${{ secrets.CHART_RELEASE_PAT }}
+        run: |
+          VERSION=$(grep -m1 '^## Version' CHANGELOG.md | awk '{print $3}')
+          if [ -z "$VERSION" ]; then
+            echo "No version header found in CHANGELOG.md — nothing to tag"
+            exit 0
+          fi
+
+          TAG="v${VERSION}"
+          if git rev-parse "$TAG" >/dev/null 2>&1; then
+            echo "Tag $TAG already exists — skipping"
+            exit 0
+          fi
+
+          echo "Creating tag $TAG"
+          git tag "$TAG"
+          git remote set-url origin "https://x-access-token:${CHART_RELEASE_PAT}@github.com/${GITHUB_REPOSITORY}.git"
+          git push origin "$TAG"
+          echo "Pushed tag $TAG — release workflow should now trigger"

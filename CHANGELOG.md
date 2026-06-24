@@ -1,5 +1,17 @@
 # Changelog
 
+## Version 1.14.2
+
+**Date:** June 23, 2026
+
+### 🔍 SEO
+
+- **SPA noindex**: Added `X-Robots-Tag: noindex, nofollow` to the SPA catch-all Nginx route so crawlers don’t index thin or private app-internal pages.
+- **SEO explainer removed**: Dropped the keyword-heavy “What is a Vagrantfile Generator?” section from the public landing page for a cleaner visitor experience.
+- **Auth redirects**: Unauthenticated users and logout now redirect to `/` (landing page), while post-login redirects directly to `/index.html` (SPA shell).
+
+---
+
 ## Version 1.14.1
 
 **Date:** June 16, 2026

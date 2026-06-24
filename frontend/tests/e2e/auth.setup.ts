@@ -11,13 +11,17 @@ async function waitForEntryState(
   emailField: Locator
 ): Promise<EntryState> {
   const deadline = Date.now() + 20_000
+  const redirectGraceMs = 5_000  // allow landing page's loginApp.init() auth-check + redirect
+  const start = Date.now()
 
   while (Date.now() < deadline) {
     if (await projectsHeading.isVisible().catch(() => false)) {
       return 'projects'
     }
 
-    if (await emailField.isVisible().catch(() => false)) {
+    // Only accept login form after grace period expires — avoids racing the
+    // async auth-check → redirect in loginApp.init() when a token is present.
+    if (Date.now() - start > redirectGraceMs && await emailField.isVisible().catch(() => false)) {
       return 'login'
     }
 
