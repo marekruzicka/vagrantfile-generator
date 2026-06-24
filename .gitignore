@@ -94,4 +94,5 @@ helm/**/values-*
 *.tgz
 .playwright-cli
 cleanup.md
+SEO.md
 .pi
