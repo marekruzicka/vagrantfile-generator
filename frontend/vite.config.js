@@ -1,4 +1,5 @@
 import { defineConfig } from 'vite'
+import { resolve } from 'path'
 
 const internalApiTarget = process.env.VITE_API_URL || 'http://localhost:8000'
 const browserApiUrl = process.env.VITE_BROWSER_API_URL || ''
@@ -8,6 +9,12 @@ export default defineConfig({
   build: {
     outDir: '../dist',
     emptyOutDir: true,
+    rollupOptions: {
+      input: {
+        main: resolve(__dirname, 'src/index.html'),
+        landing: resolve(__dirname, 'src/landing.html'),
+      },
+    },
   },
   server: {
     port: 5173,

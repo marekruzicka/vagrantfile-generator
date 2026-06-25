@@ -1,5 +1,15 @@
 # Changelog
 
+## Version 1.14.3
+
+**Date:** June 25, 2026
+
+### 🔍 SEO
+
+- **Frontend SEO polish**: Added the landing page to the Vite build, separated app-shell metadata from public landing SEO metadata, fixed sitemap and web manifest details, added structured data and a dedicated social preview image, and preserved OTP login behavior with regression coverage.
+
+---
+
 ## Version 1.14.2
 
 **Date:** June 23, 2026
