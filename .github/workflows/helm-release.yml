@@ -34,7 +34,7 @@ jobs:
 
       - name: Detect changed files
         id: changed-files
-        run: |
+        run: | #shell
           BEFORE="${{ github.event.before }}"
           AFTER="${{ github.sha }}"
           ZERO_SHA="0000000000000000000000000000000000000000"

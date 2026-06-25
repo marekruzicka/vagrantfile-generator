@@ -147,7 +147,7 @@ jobs:
           token: ${{ secrets.CHART_RELEASE_PAT }}
 
       - name: Sync chart appVersion
-        run: |
+        run: | #shell
           VERSION="${{ needs.build-and-push.outputs.version }}"
           CHART_FILE="helm/vagrantfile-generator/Chart.yaml"
 
