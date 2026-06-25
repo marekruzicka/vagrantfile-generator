@@ -22,7 +22,7 @@ backend:
   # -- Container image settings
   image:
     repository: ghcr.io/marekruzicka/vagrantfile-generator-be
-    tag: latest
+    tag: ""
     pullPolicy: IfNotPresent
 
   # -- Number of replicas (DO NOT CHANGE - backend writes to disk)
@@ -107,7 +107,7 @@ frontend:
   # -- Container image settings
   image:
     repository: ghcr.io/marekruzicka/vagrantfile-generator-fe
-    tag: latest
+    tag: ""
     pullPolicy: IfNotPresent
 
   # -- Number of replicas (frontend is stateless, can scale)
