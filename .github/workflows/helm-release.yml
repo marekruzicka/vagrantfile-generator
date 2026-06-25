@@ -1,11 +1,18 @@
 name: Release Helm Chart
 
+# Single Helm publishing flow.
+# Triggered by either chart-only changes under helm/** or by release.yml syncing
+# Chart.yaml appVersion after an app release.
 on:
   push:
     branches:
       - master
     paths:
       - "helm/**"
+
+concurrency:
+  group: helm-release-${{ github.ref }}
+  cancel-in-progress: false
 
 jobs:
   release-chart:
