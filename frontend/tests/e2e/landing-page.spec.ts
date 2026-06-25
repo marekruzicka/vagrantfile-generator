@@ -43,9 +43,11 @@ test.describe('Landing page scroll-to-dismiss', () => {
     await page.goto('/landing.html')
     await page.waitForLoadState('networkidle')
 
-    // Login card should be visible.
+    // Login card and email OTP form should be visible.
     const loginCard = page.locator('.login-card-enter')
     await expect(loginCard).toBeVisible({ timeout: 10_000 })
+    await expect(page.getByLabel(/email address/i)).toBeVisible()
+    await expect(page.getByRole('button', { name: /send login code/i })).toBeVisible()
 
     // "Learn more" hint should be visible.
     const learnMore = page.getByText(/learn more about vagrantfile generator/i)
