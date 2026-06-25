@@ -1,5 +1,10 @@
 # Changelog
 
+## [0.4.2] - 2026-06-25
+
+### Bug Fixes
+* fix: update image tag handling for backend and frontend deployments to follow appVersion by default
+
 ## [0.4.1] - 2026-06-25
 
 ### Bug Fixes
