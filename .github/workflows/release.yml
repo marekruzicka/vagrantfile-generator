@@ -41,10 +41,10 @@ jobs:
           fetch-depth: 0
 
       - name: Set up QEMU (for multi-arch builds)
-        uses: docker/setup-qemu-action@v2
+        uses: docker/setup-qemu-action@v3
 
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v2
+        uses: docker/setup-buildx-action@v3
 
       - name: Determine version and tag
         id: vars
@@ -63,11 +63,11 @@ jobs:
             TAG="$REF"
             VERSION="${TAG#v}"
           fi
-          echo "TAG=$TAG" >> $GITHUB_OUTPUT
-          echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
+          echo "TAG=$TAG" >> "$GITHUB_OUTPUT"
+          echo "VERSION=$VERSION" >> "$GITHUB_OUTPUT"
 
       - name: Log in to GHCR
-        uses: docker/login-action@v2
+        uses: docker/login-action@v3
         with:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
@@ -115,9 +115,11 @@ jobs:
           # trim leading blank lines
           sed -i '1{/^$/d;}' release_notes.md
           # write to GITHUB_OUTPUT
-          echo "notes<<EOF" >> $GITHUB_OUTPUT
-          cat release_notes.md >> $GITHUB_OUTPUT
-          echo "EOF" >> $GITHUB_OUTPUT
+          {
+            echo "notes<<EOF"
+            cat release_notes.md
+            echo "EOF"
+          } >> "$GITHUB_OUTPUT"
 
       - name: Create or update GitHub release
         uses: softprops/action-gh-release@v2
@@ -134,44 +136,33 @@ jobs:
     needs: build-and-push
     runs-on: ubuntu-latest
     permissions:
-      contents: write # needed to push commits and tags
-      packages: write # needed to push chart to GHCR
+      contents: write # needed to push the appVersion sync commit
 
     steps:
-      - name: Checkout
+      - name: Checkout master
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0 # helm-semver needs full git history for commit scanning
+          ref: master
+          fetch-depth: 0
+          token: ${{ secrets.CHART_RELEASE_PAT }}
 
-      - name: Sync appVersion and release Helm chart
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
+      - name: Sync chart appVersion
+        run: | #shell
           VERSION="${{ needs.build-and-push.outputs.version }}"
           CHART_FILE="helm/vagrantfile-generator/Chart.yaml"
 
-          # 1. Bump appVersion in Chart.yaml
           echo "Updating appVersion in $CHART_FILE to $VERSION"
           sed -i "s/^appVersion:.*/appVersion: \"$VERSION\"/" "$CHART_FILE"
 
-          # 2. Commit the appVersion bump so helm-semver can detect it
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add "$CHART_FILE"
-          git commit -m "fix: sync chart appVersion to $VERSION"
 
-          # 3. Run helm-semver: bumps chart version, packages, pushes to GHCR,
-          #    commits the version bump + changelog, creates git tag, and pushes.
-          docker run --rm \
-            -v "$PWD:/workspace" \
-            -e GIT_TOKEN="${{ secrets.CHART_RELEASE_PAT }}" \
-            ghcr.io/rhysmcneill/helm-semver:latest \
-            release \
-            --charts-dir helm \
-            --registry oci://ghcr.io/${{ github.repository_owner }}/helm-charts \
-            --registry-username "${{ github.repository_owner }}" \
-            --registry-password "${{ secrets.GITHUB_TOKEN }}" \
-            --git-token "${{ secrets.CHART_RELEASE_PAT }}" \
-            --git-author-name "github-actions[bot]" \
-            --git-author-email "github-actions[bot]@users.noreply.github.com"
+          if git diff --cached --quiet; then
+            echo "Chart appVersion already up to date"
+            exit 0
+          fi
+
+          git commit -m "fix(helm): sync chart appVersion to $VERSION"
+          git push origin HEAD:master
 

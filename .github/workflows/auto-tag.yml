@@ -19,7 +19,7 @@ jobs:
       - name: Create tag if new version in CHANGELOG
         env:
           CHART_RELEASE_PAT: ${{ secrets.CHART_RELEASE_PAT }}
-        run: |
+        run: | #shell
           VERSION=$(grep -m1 '^## Version' CHANGELOG.md | awk '{print $3}')
           if [ -z "$VERSION" ]; then
             echo "No version header found in CHANGELOG.md — nothing to tag"

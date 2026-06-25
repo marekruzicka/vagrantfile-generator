@@ -1,5 +1,12 @@
 name: Release Helm Chart
 
+# Single Helm publishing flow.
+# Triggered by either chart-only changes under helm/** or by release.yml syncing
+# Chart.yaml appVersion after an app release.
+#
+# If a push changes both CHANGELOG.md and helm/**, skip the immediate chart-only
+# release. auto-tag.yml will create the app tag, release.yml will sync Chart.yaml
+# appVersion, and that follow-up helm/** commit will trigger this workflow once.
 on:
   push:
     branches:
@@ -7,8 +14,49 @@ on:
     paths:
       - "helm/**"
 
+concurrency:
+  group: helm-release-${{ github.ref }}
+  cancel-in-progress: false
+
 jobs:
+  detect-changes:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    outputs:
+      changelog-changed: ${{ steps.changed-files.outputs.changelog-changed }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Detect changed files
+        id: changed-files
+        run: | #shell
+          BEFORE="${{ github.event.before }}"
+          AFTER="${{ github.sha }}"
+          ZERO_SHA="0000000000000000000000000000000000000000"
+
+          if [ "$BEFORE" = "$ZERO_SHA" ]; then
+            git diff-tree --no-commit-id --name-only -r "$AFTER" > changed-files.txt
+          else
+            git diff --name-only "$BEFORE" "$AFTER" > changed-files.txt
+          fi
+
+          echo "Changed files:"
+          cat changed-files.txt
+
+          if grep -qx 'CHANGELOG.md' changed-files.txt; then
+            echo "changelog-changed=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "changelog-changed=false" >> "$GITHUB_OUTPUT"
+          fi
+
   release-chart:
+    needs: detect-changes
+    if: needs.detect-changes.outputs.changelog-changed != 'true'
     runs-on: ubuntu-latest
     permissions:
       contents: write # needed for helm-semver to push version bump commits and tags
