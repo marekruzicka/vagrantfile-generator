@@ -1,8 +1,8 @@
 <div x-show="showAddProjectPluginModal" class="modal-overlay" @click.self="showAddProjectPluginModal = false">
   <div class="modal-content max-w-3xl">
-    <div class="flex items-center justify-between p-6 border-b border-gray-200">
-      <h3 class="text-lg font-semibold text-gray-900">Add Plugins to Project</h3>
-      <button @click="showAddProjectPluginModal = false" class="text-gray-400 hover:text-gray-600">
+    <div class="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
+      <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100">Add Plugins to Project</h3>
+      <button @click="showAddProjectPluginModal = false" class="text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300">
         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
         </svg>
@@ -13,18 +13,18 @@
       <div class="space-y-6">
         <!-- Plugin Selection with Checkboxes -->
         <div>
-          <label class="block text-sm font-medium text-gray-700 mb-3">
+          <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
             Select Plugins <span class="text-red-500">*</span>
           </label>
-          <div class="max-h-96 overflow-y-auto border border-gray-300 rounded-lg">
+          <div class="max-h-96 overflow-y-auto border border-gray-300 dark:border-gray-600 rounded-lg">
             <template x-for="plugin in availablePlugins" :key="plugin.id">
               <div x-show="!currentProject?.global_plugins || !currentProject.global_plugins.includes(plugin.id)"
-                   class="flex items-start p-3 hover:bg-purple-50 border-b border-gray-100 last:border-b-0 cursor-pointer"
+                   class="flex items-start p-3 hover:bg-purple-50 dark:hover:bg-purple-900/30 border-b border-gray-100 dark:border-gray-700 last:border-b-0 cursor-pointer"
                    @click="togglePluginForAdd(plugin.id)">
                 <input type="checkbox" 
                        :checked="projectPluginForm.selectedPluginIds.includes(plugin.id)"
                        @click.stop="togglePluginForAdd(plugin.id)"
-                       class="mt-1 w-4 h-4 text-purple-600 border-gray-300 rounded focus:ring-purple-500">
+                       class="mt-1 w-4 h-4 text-purple-600 border-gray-300 dark:border-gray-600 rounded focus:ring-purple-500">
                 <div class="ml-3 flex-1">
                   <div class="flex items-center space-x-2">
                     <div class="w-8 h-8 bg-gradient-to-br from-purple-500 to-pink-600 rounded flex items-center justify-center flex-shrink-0">
@@ -34,35 +34,35 @@
                     </div>
                     <div class="flex-1">
                       <div class="flex items-center space-x-2">
-                        <span class="text-sm font-semibold text-gray-900" x-text="plugin.name"></span>
+                        <span class="text-sm font-semibold text-gray-900 dark:text-gray-100" x-text="plugin.name"></span>
                         <span x-show="plugin.is_deprecated" 
-                              class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                              class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-red-100 dark:bg-red-900/40 text-red-800 dark:text-red-300">
                           Deprecated
                         </span>
                         <span x-show="!plugin.is_deprecated" 
-                              class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                              class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 dark:bg-green-900/40 text-green-800 dark:text-green-300">
                           Active
                         </span>
                       </div>
-                      <div class="text-xs text-gray-600 mt-1">
+                      <div class="text-xs text-gray-600 dark:text-gray-400 mt-1">
                         <span class="font-medium">Version:</span> 
                         <span x-text="plugin.default_version || 'latest'"></span>
                       </div>
-                      <p x-show="plugin.description" class="text-xs text-gray-500 mt-1" x-text="plugin.description"></p>
+                      <p x-show="plugin.description" class="text-xs text-gray-500 dark:text-gray-400 mt-1" x-text="plugin.description"></p>
                     </div>
                   </div>
                 </div>
               </div>
             </template>
           </div>
-          <p class="text-xs text-gray-500 mt-2">
+          <p class="text-xs text-gray-500 dark:text-gray-400 mt-2">
             <span x-text="projectPluginForm.selectedPluginIds.length"></span> plugin(s) selected
           </p>
           
           <!-- All plugins already added message -->
           <div x-show="currentProject?.global_plugins?.length > 0 && availablePlugins.every(p => currentProject.global_plugins.includes(p.id))" 
-               class="text-center py-8 text-gray-500">
-            <svg class="w-12 h-12 mx-auto mb-2 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
+               class="text-center py-8 text-gray-500 dark:text-gray-400">
+            <svg class="w-12 h-12 mx-auto mb-2 text-gray-400 dark:text-gray-500" fill="currentColor" viewBox="0 0 20 20">
               <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
             </svg>
             <p>All available plugins have been added to this project.</p>
@@ -70,8 +70,8 @@
           
           <!-- No plugins available message -->
           <div x-show="availablePlugins.length === 0" 
-               class="text-center py-8 text-gray-500">
-            <svg class="w-12 h-12 mx-auto mb-2 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
+               class="text-center py-8 text-gray-500 dark:text-gray-400">
+            <svg class="w-12 h-12 mx-auto mb-2 text-gray-400 dark:text-gray-500" fill="currentColor" viewBox="0 0 20 20">
               <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"></path>
             </svg>
             <p>No plugins are available.</p>
@@ -79,8 +79,8 @@
         </div>
 
         <!-- Create New Plugin Option -->
-        <div class="border-t border-gray-200 pt-4">
-          <p class="text-sm text-gray-600 mb-2">Don't see the plugin you need?</p>
+        <div class="border-t border-gray-200 dark:border-gray-700 pt-4">
+          <p class="text-sm text-gray-600 dark:text-gray-400 mb-2">Don't see the plugin you need?</p>
           <button type="button" 
                   @click="showAddProjectPluginModal = false; openAddPluginModal()" 
                   class="text-sm text-purple-600 hover:text-purple-700 font-medium">
@@ -90,7 +90,7 @@
       </div>
 
       <!-- Form Actions -->
-      <div class="flex justify-end space-x-3 pt-6 border-t border-gray-200 mt-6">
+      <div class="flex justify-end space-x-3 pt-6 border-t border-gray-200 dark:border-gray-700 mt-6">
         <button type="button" @click="showAddProjectPluginModal = false" class="btn btn-secondary">
           Cancel
         </button>

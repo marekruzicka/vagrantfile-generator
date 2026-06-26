@@ -1,27 +1,27 @@
 <!-- Bulk Edit VMs Modal -->
 <div x-show="showBulkEditModal" class="modal-overlay" @click.self="showBulkEditModal = false">
-    <div class="modal-content max-w-4xl bg-white">
-        <div class="flex items-center justify-between p-6 border-b border-gray-200 bg-white">
-            <h3 class="text-lg font-semibold text-gray-900">
+    <div class="modal-content max-w-4xl bg-white dark:bg-gray-800">
+        <div class="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
+            <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100">
                 Bulk Edit VMs 
-                <span class="text-sm font-normal text-gray-500">
+                <span class="text-sm font-normal text-gray-500 dark:text-gray-400">
                     (<span x-text="selectedVMs.length"></span> selected)
                 </span>
             </h3>
-            <button @click="showBulkEditModal = false" class="text-gray-400 hover:text-gray-600">
+            <button @click="showBulkEditModal = false" class="text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300">
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
                 </svg>
             </button>
         </div>
 
-        <form @submit.prevent="bulkUpdateVMs(bulkEditForm)" novalidate class="p-6 bg-white">
+        <form @submit.prevent="bulkUpdateVMs(bulkEditForm)" novalidate class="p-6 bg-white dark:bg-gray-800">
             <!-- Info message about bulk editing -->
-            <div class="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-6">
-                <p class="text-sm text-blue-800">
+            <div class="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-3 mb-6">
+                <p class="text-sm text-blue-800 dark:text-blue-300">
                     <strong>Bulk Editing:</strong> Editing <span x-text="selectedVMs.length"></span> VMs:
                     <template x-for="vmName in selectedVMs" :key="vmName">
-                        <span class="inline-block bg-blue-100 text-blue-800 px-2 py-1 rounded text-xs mr-1 mt-1" 
+                        <span class="inline-block bg-blue-100 dark:bg-blue-900/40 text-blue-800 dark:text-blue-300 px-2 py-1 rounded text-xs mr-1 mt-1" 
                               x-text="vmName"></span>
                     </template>
                 </p>
@@ -30,22 +30,22 @@
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
                 <!-- General Settings -->
                 <div class="space-y-6">
-                    <h4 class="text-lg font-medium text-gray-900 border-b border-gray-200 pb-2">General Settings</h4>
+                    <h4 class="text-lg font-medium text-gray-900 dark:text-gray-100 border-b border-gray-200 dark:border-gray-700 pb-2">General Settings</h4>
                     
                     <div class="grid grid-cols-2 gap-4">
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">CPUs</label>
-                            <input type="number" x-model.number="bulkEditForm.cpus" min="1" max="16" class="w-full border border-gray-300 rounded-md px-3 py-2" placeholder="Leave empty to ignore">
+                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">CPUs</label>
+                            <input type="number" x-model.number="bulkEditForm.cpus" min="1" max="16" class="w-full border border-gray-300 dark:border-gray-600 rounded-md px-3 py-2" placeholder="Leave empty to ignore">
                         </div>
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Memory (MB)</label>
-                            <input type="number" x-model.number="bulkEditForm.memory" min="256" step="256" class="w-full border border-gray-300 rounded-md px-3 py-2" placeholder="Leave empty to ignore">
+                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Memory (MB)</label>
+                            <input type="number" x-model.number="bulkEditForm.memory" min="256" step="256" class="w-full border border-gray-300 dark:border-gray-600 rounded-md px-3 py-2" placeholder="Leave empty to ignore">
                         </div>
                     </div>
 
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Box</label>
-                        <select x-model="bulkEditForm.box" class="w-full border border-gray-300 rounded-md px-3 py-2">
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Box</label>
+                        <select x-model="bulkEditForm.box" class="w-full border border-gray-300 dark:border-gray-600 rounded-md px-3 py-2">
                             <option value="">Leave empty to ignore</option>
                             <template x-for="box in availableBoxes" :key="box.name">
                                 <option :value="box.name" x-text="`${box.name} - ${box.description}`"></option>
@@ -54,13 +54,13 @@
                     </div>
 
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Labels (comma-separated)</label>
-                        <input type="text" x-model="bulkEditForm.labels" class="w-full border border-gray-300 rounded-md px-3 py-2" placeholder="development, testing, production...">
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Labels (comma-separated)</label>
+                        <input type="text" x-model="bulkEditForm.labels" class="w-full border border-gray-300 dark:border-gray-600 rounded-md px-3 py-2" placeholder="development, testing, production...">
                         <div x-show="projectLabels && projectLabels.length > 0" class="mt-2">
-                            <p class="text-xs text-gray-500 mb-1">Quick select from existing labels:</p>
+                            <p class="text-xs text-gray-500 dark:text-gray-400 mb-1">Quick select from existing labels:</p>
                             <div class="flex flex-wrap gap-1">
                                 <template x-for="label in projectLabels" :key="label">
-                                    <button type="button" @click="toggleBulkLabel(label)" class="px-2 py-1 rounded text-xs border transition-colors" :class="(bulkEditForm.labels && bulkEditForm.labels.includes(label)) ? 'bg-green-500 text-white border-green-500' : 'bg-gray-100 text-gray-700 border-gray-300 hover:bg-gray-200'">
+                                    <button type="button" @click="toggleBulkLabel(label)" class="px-2 py-1 rounded text-xs border transition-colors" :class="(bulkEditForm.labels && bulkEditForm.labels.includes(label)) ? 'bg-green-500 text-white border-green-500' : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-600 hover:bg-gray-200'">
                                         <span x-text="label"></span>
                                     </button>
                                 </template>
@@ -71,12 +71,12 @@
 
                 <!-- Network Configuration -->
                 <div class="space-y-6">
-                    <h4 class="text-lg font-medium text-gray-900 border-b border-gray-200 pb-2">Network Interfaces</h4>
-                    <p class="text-sm text-gray-600">Add network interfaces that will be applied to all selected VMs.</p>
+                    <h4 class="text-lg font-medium text-gray-900 dark:text-gray-100 border-b border-gray-200 dark:border-gray-700 pb-2">Network Interfaces</h4>
+                    <p class="text-sm text-gray-600 dark:text-gray-400">Add network interfaces that will be applied to all selected VMs.</p>
                     
                     <div>
                         <div class="flex items-center justify-between mb-4">
-                            <label class="block text-sm font-medium text-gray-700">New Interfaces</label>
+                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">New Interfaces</label>
                             <button type="button" @click="addNetworkInterface(bulkEditForm)" 
                                     class="text-sm bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600 transition-colors">
                                 <svg class="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -88,9 +88,9 @@
                         
                         <div x-show="bulkEditForm.network_interfaces && bulkEditForm.network_interfaces.length > 0" class="space-y-3">
                             <template x-for="(interface, index) in bulkEditForm.network_interfaces" :key="index">
-                                <div class="border border-gray-200 rounded-lg p-4 bg-gray-50">
+                                <div class="border border-gray-200 dark:border-gray-700 rounded-lg p-4 bg-gray-50 dark:bg-gray-900">
                                     <div class="flex items-center justify-between mb-3">
-                                        <span class="text-sm font-medium text-gray-700" 
+                                        <span class="text-sm font-medium text-gray-700 dark:text-gray-300" 
                                               x-text="`Interface ${index + 1}: ${getNetworkTypeDisplay(interface.type)}`"></span>
                                         <button type="button" @click="removeNetworkInterface(index, bulkEditForm)" 
                                                 class="text-red-500 hover:text-red-700">
@@ -102,8 +102,8 @@
                                     
                                     <div class="grid grid-cols-1 gap-3">
                                         <div>
-                                            <label class="block text-xs font-medium text-gray-600 mb-1">Type</label>
-                                            <select x-model="interface.type" class="w-full text-sm px-2 py-1 border border-gray-300 rounded">
+                                            <label class="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Type</label>
+                                            <select x-model="interface.type" class="w-full text-sm px-2 py-1 border border-gray-300 dark:border-gray-600 rounded">
                                                 <option value="private_network">Private Network</option>
                                                 <option value="public_network">Public Network</option>
                                                 <option value="forwarded_port">Port Forwarding</option>
@@ -112,8 +112,8 @@
                                         
                                         <!-- Private Network Options -->
                                         <div x-show="interface.type === 'private_network'">
-                                            <label class="block text-xs font-medium text-gray-600 mb-1">IP Assignment</label>
-                                            <select x-model="interface.ip_assignment" class="w-full text-sm px-2 py-1 border border-gray-300 rounded">
+                                            <label class="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">IP Assignment</label>
+                                            <select x-model="interface.ip_assignment" class="w-full text-sm px-2 py-1 border border-gray-300 dark:border-gray-600 rounded">
                                                 <option value="dhcp">DHCP</option>
                                                 <option value="static">Static IP</option>
                                             </select>
@@ -123,47 +123,47 @@
                                         <div x-show="interface.type === 'private_network' && interface.ip_assignment === 'static'">
                                             <div class="grid grid-cols-2 gap-3">
                                                 <div>
-                                                    <label class="block text-xs font-medium text-gray-600 mb-1">IP Address</label>
+                                                    <label class="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">IP Address</label>
                                                     <input type="text" x-model="interface.ip_address" 
                                                            placeholder="192.168.33.10"
-                                                           class="w-full text-sm px-2 py-1 border border-gray-300 rounded">
+                                                           class="w-full text-sm px-2 py-1 border border-gray-300 dark:border-gray-600 rounded">
                                                 </div>
                                                 <div>
-                                                    <label class="block text-xs font-medium text-gray-600 mb-1">Netmask</label>
+                                                    <label class="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Netmask</label>
                                                     <input type="text" x-model="interface.netmask" 
                                                            placeholder="255.255.255.0"
-                                                           class="w-full text-sm px-2 py-1 border border-gray-300 rounded">
+                                                           class="w-full text-sm px-2 py-1 border border-gray-300 dark:border-gray-600 rounded">
                                                 </div>
                                             </div>
                                         </div>
                                         
                                         <!-- Public Network Options -->
                                         <div x-show="interface.type === 'public_network'">
-                                            <label class="block text-xs font-medium text-gray-600 mb-1">Bridge Interface (optional)</label>
+                                            <label class="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Bridge Interface (optional)</label>
                                             <input type="text" x-model="interface.bridge" 
                                                    placeholder="eth0, wlan0, etc."
-                                                   class="w-full text-sm px-2 py-1 border border-gray-300 rounded">
-                                            <p class="text-xs text-gray-500 mt-1">Leave empty for auto-selection</p>
+                                                   class="w-full text-sm px-2 py-1 border border-gray-300 dark:border-gray-600 rounded">
+                                            <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Leave empty for auto-selection</p>
                                         </div>
                                         
                                         <!-- Port Forwarding Options -->
                                         <div x-show="interface.type === 'forwarded_port'">
                                             <div class="grid grid-cols-3 gap-3">
                                                 <div>
-                                                    <label class="block text-xs font-medium text-gray-600 mb-1">Host Port</label>
+                                                    <label class="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Host Port</label>
                                                     <input type="number" x-model.number="interface.host_port" 
                                                            min="1" max="65535" placeholder="8080"
-                                                           class="w-full text-sm px-2 py-1 border border-gray-300 rounded">
+                                                           class="w-full text-sm px-2 py-1 border border-gray-300 dark:border-gray-600 rounded">
                                                 </div>
                                                 <div>
-                                                    <label class="block text-xs font-medium text-gray-600 mb-1">Guest Port</label>
+                                                    <label class="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Guest Port</label>
                                                     <input type="number" x-model.number="interface.guest_port" 
                                                            min="1" max="65535" placeholder="80"
-                                                           class="w-full text-sm px-2 py-1 border border-gray-300 rounded">
+                                                           class="w-full text-sm px-2 py-1 border border-gray-300 dark:border-gray-600 rounded">
                                                 </div>
                                                 <div>
-                                                    <label class="block text-xs font-medium text-gray-600 mb-1">Protocol</label>
-                                                    <select x-model="interface.protocol" class="w-full text-sm px-2 py-1 border border-gray-300 rounded">
+                                                    <label class="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Protocol</label>
+                                                    <select x-model="interface.protocol" class="w-full text-sm px-2 py-1 border border-gray-300 dark:border-gray-600 rounded">
                                                         <option value="tcp">TCP</option>
                                                         <option value="udp">UDP</option>
                                                     </select>
@@ -172,7 +172,7 @@
                                         </div>
                                     </div>
                                     
-                                    <div class="mt-2 text-xs text-gray-600">
+                                    <div class="mt-2 text-xs text-gray-600 dark:text-gray-400">
                                         <span class="font-medium">Config:</span> 
                                         <span x-text="getNetworkConfigDisplay(interface)"></span>
                                     </div>
@@ -181,14 +181,14 @@
                         </div>
                         
                         <div x-show="!bulkEditForm.network_interfaces || bulkEditForm.network_interfaces.length === 0" 
-                             class="text-sm text-gray-500 italic bg-gray-50 p-4 rounded-lg text-center">
+                             class="text-sm text-gray-500 dark:text-gray-400 italic bg-gray-50 dark:bg-gray-900 p-4 rounded-lg text-center">
                             No network interfaces to add. Click "Add Interface" to add one.
                         </div>
                     </div>
                 </div>
             </div>
 
-            <div class="flex justify-end space-x-3 pt-6 border-t border-gray-200 mt-8">
+            <div class="flex justify-end space-x-3 pt-6 border-t border-gray-200 dark:border-gray-700 mt-8">
                 <button type="button" @click="showBulkEditModal = false" class="btn btn-secondary">Cancel</button>
                 <button type="submit" class="btn btn-primary">Update VMs</button>
             </div>

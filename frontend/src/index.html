@@ -28,6 +28,7 @@
 
     <!-- Theme color for mobile browsers -->
     <meta name="theme-color" content="#3b82f6" />
+    <script src="js/theme.js"></script>
 
     <script src="js/runtime-config.js"></script>
     <script
@@ -61,7 +62,7 @@
     <script src="js/cookie-consent.js"></script>
   </head>
   <body
-    class="bg-gradient-to-br from-slate-50 to-blue-50 min-h-screen flex flex-col"
+    class="bg-gradient-to-br from-slate-50 dark:from-gray-900 to-blue-50 dark:to-gray-800 min-h-screen flex flex-col"
     x-data="vagrantApp()"
     x-init="init()"
   >
@@ -87,7 +88,7 @@
             <div class="flex items-center space-x-4">
               <button
                 @click="showProjects()"
-                class="text-gray-500 hover:text-gray-700 p-2 rounded-lg hover:bg-gray-100 transition-colors"
+                class="text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
               >
                 <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
                   <path
@@ -98,8 +99,8 @@
                 </svg>
               </button>
               <div>
-                <h2 class="text-3xl font-bold text-gray-900">Settings</h2>
-                <p class="text-gray-600 mt-1">
+                <h2 class="text-3xl font-bold text-gray-900 dark:text-gray-100">Settings</h2>
+                <p class="text-gray-600 dark:text-gray-400 mt-1">
                   Configure Vagrant boxes and application preferences
                 </p>
               </div>
@@ -111,10 +112,10 @@
         <div class="card">
           <div class="flex items-center justify-between">
             <div>
-              <h3 class="text-lg font-semibold text-gray-900">
+              <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100">
                 Shared Resources
               </h3>
-              <p class="text-sm text-gray-500 mt-1">
+              <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">
                 Control visibility of shared plugins, boxes, provisioners, and
                 triggers
               </p>
@@ -127,10 +128,10 @@
                 class="sr-only peer"
               />
               <div
-                class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"
+                class="w-11 h-6 bg-gray-200 dark:bg-gray-600 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"
               ></div>
               <span
-                class="ml-3 text-sm font-medium text-gray-900"
+                class="ml-3 text-sm font-medium text-gray-900 dark:text-gray-100"
                 x-text="showSharedResources ? 'Showing' : 'Hidden'"
               ></span>
             </label>
@@ -143,7 +144,7 @@
             <div class="flex items-center space-x-4">
               <button
                 @click="sectionsOpen.settingsBoxes = !sectionsOpen.settingsBoxes"
-                class="text-gray-500 hover:text-gray-700 transition-colors p-1"
+                class="text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 transition-colors p-1"
               >
                 <svg
                   class="w-5 h-5 transition-transform"
@@ -163,11 +164,11 @@
                 class="cursor-pointer"
               >
                 <h3
-                  class="text-2xl font-bold text-gray-900 hover:text-gray-700 transition-colors"
+                  class="text-2xl font-bold text-gray-900 dark:text-gray-100 hover:text-gray-700 dark:hover:text-gray-200 transition-colors"
                 >
                   Vagrant Boxes
                 </h3>
-                <p class="text-gray-600 mt-1">
+                <p class="text-gray-600 dark:text-gray-400 mt-1">
                   Manage available box images for virtual machines
                 </p>
               </div>
@@ -177,7 +178,7 @@
               class="flex items-center space-x-3"
             >
               <span
-                class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800"
+                class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 dark:bg-blue-900/40 text-blue-800 dark:text-blue-300"
               >
                 <span
                   x-text="`${availableBoxes.length} boxes available`"
@@ -213,8 +214,8 @@
           >
             <template x-for="box in availableBoxes" :key="box.id">
               <div
-                class="border border-gray-200 rounded-lg p-4 hover:border-blue-300 transition-colors"
-                :class="box.is_shared ? 'border-amber-200 bg-amber-50/20' : ''"
+                class="border border-gray-200 dark:border-gray-700 rounded-lg p-4 hover:border-blue-300 transition-colors"
+                :class="box.is_shared ? 'border-amber-200 dark:border-amber-700 bg-amber-50/20 dark:bg-amber-900/20' : ''"
               >
                 <div class="flex items-start justify-between mb-3">
                   <div class="flex items-center space-x-3 flex-1">
@@ -239,7 +240,7 @@
                     <div class="flex-1 min-w-0">
                       <div class="flex items-center gap-2 flex-wrap">
                         <h4
-                          class="text-lg font-semibold text-gray-900"
+                          class="text-lg font-semibold text-gray-900 dark:text-gray-100"
                           x-text="box.name"
                         ></h4>
                         <span
@@ -260,7 +261,7 @@
                         </span>
                       </div>
                       <p
-                        class="text-sm text-gray-500"
+                        class="text-sm text-gray-500 dark:text-gray-400"
                         x-text="box.provider"
                       ></p>
                     </div>
@@ -270,7 +271,7 @@
                     <button
                       x-show="box.is_shared"
                       @click="toggleFavorite('boxes', box.id)"
-                      :class="isFavorite('boxes', box.id) ? 'text-yellow-500' : 'text-gray-400'"
+                      :class="isFavorite('boxes', box.id) ? 'text-yellow-500' : 'text-gray-400 dark:text-gray-500'"
                       class="p-1 hover:text-yellow-500 transition-colors"
                       :title="isFavorite('boxes', box.id) ? 'Remove from favorites' : 'Add to favorites'"
                     >
@@ -292,7 +293,7 @@
                     <button
                       x-show="box.is_shared"
                       @click="copySharedResource('boxes', box.id)"
-                      class="p-1 text-gray-400 hover:text-blue-600 transition-colors"
+                      class="p-1 text-gray-400 dark:text-gray-500 hover:text-blue-600 transition-colors"
                       title="Copy to My Resources"
                     >
                       <svg
@@ -313,7 +314,7 @@
                     <button
                       x-show="!box.is_shared"
                       @click="openEditBoxModal(box)"
-                      class="p-1 text-gray-400 hover:text-blue-600 transition-colors"
+                      class="p-1 text-gray-400 dark:text-gray-500 hover:text-blue-600 transition-colors"
                     >
                       <svg
                         class="w-4 h-4"
@@ -328,7 +329,7 @@
                     <button
                       x-show="!box.is_shared"
                       @click="confirmDeleteBox(box)"
-                      class="p-1 text-gray-400 hover:text-red-600 transition-colors"
+                      class="p-1 text-gray-400 dark:text-gray-500 hover:text-red-600 transition-colors"
                     >
                       <svg
                         class="w-4 h-4"
@@ -350,16 +351,16 @@
                   </div>
                 </div>
                 <p
-                  class="text-gray-600 text-sm mb-3"
+                  class="text-gray-600 dark:text-gray-400 text-sm mb-3"
                   x-text="box.description"
                 ></p>
                 <div class="flex items-center justify-between">
                   <span
-                    class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800"
+                    class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 dark:bg-green-900/40 text-green-800 dark:text-green-300"
                   >
                     Available
                   </span>
-                  <div x-show="box.version" class="text-xs text-gray-500">
+                  <div x-show="box.version" class="text-xs text-gray-500 dark:text-gray-400">
                     v<span x-text="box.version"></span>
                   </div>
                 </div>
@@ -376,7 +377,7 @@
               class="mx-auto h-24 w-24 bg-gradient-to-br from-gray-100 to-gray-200 rounded-full flex items-center justify-center mb-6"
             >
               <svg
-                class="h-12 w-12 text-gray-400"
+                class="h-12 w-12 text-gray-400 dark:text-gray-500"
                 fill="none"
                 viewBox="0 0 24 24"
                 stroke="currentColor"
@@ -389,10 +390,10 @@
                 ></path>
               </svg>
             </div>
-            <h3 class="text-lg font-medium text-gray-900 mb-2">
+            <h3 class="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">
               No boxes available
             </h3>
-            <p class="text-gray-500 mb-6">
+            <p class="text-gray-500 dark:text-gray-400 mb-6">
               Add your first Vagrant box to get started.
             </p>
             <button @click="openAddBoxModal()" class="btn btn-primary">
@@ -414,7 +415,7 @@
             <div class="flex items-center space-x-4">
               <button
                 @click="sectionsOpen.settingsPlugins = !sectionsOpen.settingsPlugins"
-                class="text-gray-500 hover:text-gray-700 transition-colors p-1"
+                class="text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 transition-colors p-1"
               >
                 <svg
                   class="w-5 h-5 transition-transform"
@@ -434,11 +435,11 @@
                 class="cursor-pointer"
               >
                 <h3
-                  class="text-2xl font-bold text-gray-900 hover:text-gray-700 transition-colors"
+                  class="text-2xl font-bold text-gray-900 dark:text-gray-100 hover:text-gray-700 dark:hover:text-gray-200 transition-colors"
                 >
                   Vagrant Plugins
                 </h3>
-                <p class="text-gray-600 mt-1">
+                <p class="text-gray-600 dark:text-gray-400 mt-1">
                   Manage available Vagrant plugins for enhanced functionality
                 </p>
               </div>
@@ -448,7 +449,7 @@
               class="flex items-center space-x-3"
             >
               <span
-                class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-purple-100 text-purple-800"
+                class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-purple-100 dark:bg-purple-900/40 text-purple-800 dark:text-purple-300"
               >
                 <span
                   x-text="`${availablePlugins.length} plugins available`"
@@ -484,8 +485,8 @@
           >
             <template x-for="plugin in availablePlugins" :key="plugin.id">
               <div
-                class="border border-gray-200 rounded-lg p-4 hover:border-purple-300 transition-colors"
-                :class="{ 'opacity-60': plugin.is_deprecated, 'border-amber-200 bg-amber-50/20': plugin.is_shared }"
+                class="border border-gray-200 dark:border-gray-700 rounded-lg p-4 hover:border-purple-300 transition-colors"
+                :class="{ 'opacity-60': plugin.is_deprecated, 'border-amber-200 dark:border-amber-700 bg-amber-50/20 dark:bg-amber-900/20': plugin.is_shared }"
               >
                 <div class="flex items-start justify-between mb-3">
                   <div class="flex items-center space-x-3 flex-1">
@@ -507,7 +508,7 @@
                     <div class="flex-1 min-w-0">
                       <div class="flex items-center gap-2 flex-wrap">
                         <h4
-                          class="text-lg font-semibold text-gray-900"
+                          class="text-lg font-semibold text-gray-900 dark:text-gray-100"
                           x-text="plugin.name"
                         ></h4>
                         <span
@@ -528,7 +529,7 @@
                         </span>
                       </div>
                       <p
-                        class="text-xs text-gray-500"
+                        class="text-xs text-gray-500 dark:text-gray-400"
                         x-text="plugin.default_version ? (plugin.default_version.startsWith('v') ? plugin.default_version : `v${plugin.default_version}`) : 'latest'"
                       ></p>
                     </div>
@@ -538,7 +539,7 @@
                     <button
                       x-show="plugin.is_shared"
                       @click="toggleFavorite('plugins', plugin.id)"
-                      :class="isFavorite('plugins', plugin.id) ? 'text-yellow-500' : 'text-gray-400'"
+                      :class="isFavorite('plugins', plugin.id) ? 'text-yellow-500' : 'text-gray-400 dark:text-gray-500'"
                       class="p-1 hover:text-yellow-500 transition-colors"
                       :title="isFavorite('plugins', plugin.id) ? 'Remove from favorites' : 'Add to favorites'"
                     >
@@ -560,7 +561,7 @@
                     <button
                       x-show="plugin.is_shared"
                       @click="copySharedResource('plugins', plugin.id)"
-                      class="p-1 text-gray-400 hover:text-purple-600 transition-colors"
+                      class="p-1 text-gray-400 dark:text-gray-500 hover:text-purple-600 transition-colors"
                       title="Copy to My Resources"
                     >
                       <svg
@@ -581,7 +582,7 @@
                     <button
                       x-show="!plugin.is_shared"
                       @click="openEditPluginModal(plugin)"
-                      class="p-1 text-gray-400 hover:text-purple-600 transition-colors"
+                      class="p-1 text-gray-400 dark:text-gray-500 hover:text-purple-600 transition-colors"
                     >
                       <svg
                         class="w-4 h-4"
@@ -596,7 +597,7 @@
                     <button
                       x-show="!plugin.is_shared"
                       @click="confirmDeletePlugin(plugin)"
-                      class="p-1 text-gray-400 hover:text-red-600 transition-colors"
+                      class="p-1 text-gray-400 dark:text-gray-500 hover:text-red-600 transition-colors"
                     >
                       <svg
                         class="w-4 h-4"
@@ -618,13 +619,13 @@
                   </div>
                 </div>
                 <p
-                  class="text-gray-600 text-sm mb-3"
+                  class="text-gray-600 dark:text-gray-400 text-sm mb-3"
                   x-text="plugin.description || 'No description available'"
                 ></p>
                 <div class="flex items-center justify-between">
                   <span
                     class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium"
-                    :class="plugin.is_deprecated ? 'bg-red-100 text-red-800' : 'bg-green-100 text-green-800'"
+                    :class="plugin.is_deprecated ? 'bg-red-100 dark:bg-red-900/40 text-red-800 dark:text-red-300' : 'bg-green-100 dark:bg-green-900/40 text-green-800 dark:text-green-300'"
                   >
                     <span
                       x-text="plugin.is_deprecated ? 'Deprecated' : 'Active'"
@@ -635,7 +636,7 @@
                       x-show="plugin.source_url"
                       :href="plugin.source_url"
                       target="_blank"
-                      class="text-xs text-gray-500 hover:text-purple-600"
+                      class="text-xs text-gray-500 dark:text-gray-400 hover:text-purple-600"
                       title="Source Code"
                     >
                       <svg
@@ -654,7 +655,7 @@
                       x-show="plugin.documentation_url"
                       :href="plugin.documentation_url"
                       target="_blank"
-                      class="text-xs text-gray-500 hover:text-purple-600"
+                      class="text-xs text-gray-500 dark:text-gray-400 hover:text-purple-600"
                       title="Documentation"
                     >
                       <svg
@@ -684,7 +685,7 @@
               class="mx-auto h-24 w-24 bg-gradient-to-br from-gray-100 to-gray-200 rounded-full flex items-center justify-center mb-6"
             >
               <svg
-                class="h-12 w-12 text-gray-400"
+                class="h-12 w-12 text-gray-400 dark:text-gray-500"
                 fill="none"
                 viewBox="0 0 24 24"
                 stroke="currentColor"
@@ -697,10 +698,10 @@
                 ></path>
               </svg>
             </div>
-            <h3 class="text-lg font-medium text-gray-900 mb-2">
+            <h3 class="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">
               No plugins available
             </h3>
-            <p class="text-gray-500 mb-6">
+            <p class="text-gray-500 dark:text-gray-400 mb-6">
               Add your first Vagrant plugin to enhance functionality.
             </p>
             <button @click="openAddPluginModal()" class="btn btn-primary">
@@ -722,7 +723,7 @@
             <div class="flex items-center space-x-4">
               <button
                 @click="sectionsOpen.settingsProvisioners = !sectionsOpen.settingsProvisioners"
-                class="text-gray-500 hover:text-gray-700 transition-colors p-1"
+                class="text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 transition-colors p-1"
               >
                 <svg
                   class="w-5 h-5 transition-transform"
@@ -742,11 +743,11 @@
                 class="cursor-pointer"
               >
                 <h3
-                  class="text-2xl font-bold text-gray-900 hover:text-gray-700 transition-colors"
+                  class="text-2xl font-bold text-gray-900 dark:text-gray-100 hover:text-gray-700 dark:hover:text-gray-200 transition-colors"
                 >
                   Global Provisioners
                 </h3>
-                <p class="text-gray-600 mt-1">
+                <p class="text-gray-600 dark:text-gray-400 mt-1">
                   Configure provisioners that run on all VMs
                 </p>
               </div>
@@ -756,7 +757,7 @@
               class="flex items-center space-x-3"
             >
               <span
-                class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800"
+                class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 dark:bg-blue-900/40 text-blue-800 dark:text-blue-300"
               >
                 <span
                   x-text="`${availableProvisioners.length} provisioners configured`"
@@ -798,8 +799,8 @@
               :key="provisioner.id"
             >
               <div
-                class="border border-gray-200 rounded-lg p-4 hover:border-blue-300 transition-colors"
-                :class="provisioner.is_shared ? 'border-amber-200 bg-amber-50/20' : ''"
+                class="border border-gray-200 dark:border-gray-700 rounded-lg p-4 hover:border-blue-300 transition-colors"
+                :class="provisioner.is_shared ? 'border-amber-200 dark:border-amber-700 bg-amber-50/20 dark:bg-amber-900/20' : ''"
               >
                 <div class="flex items-start justify-between mb-3">
                   <div class="flex items-center space-x-3 flex-1">
@@ -825,7 +826,7 @@
                     <div class="flex-1 min-w-0">
                       <div class="flex items-center gap-2 flex-wrap">
                         <h4
-                          class="text-lg font-semibold text-gray-900"
+                          class="text-lg font-semibold text-gray-900 dark:text-gray-100"
                           x-text="provisioner.name"
                         ></h4>
                         <span
@@ -846,7 +847,7 @@
                         </span>
                       </div>
                       <p
-                        class="text-xs text-gray-500"
+                        class="text-xs text-gray-500 dark:text-gray-400"
                         x-text="provisioner.type"
                       ></p>
                     </div>
@@ -856,7 +857,7 @@
                     <button
                       x-show="provisioner.is_shared"
                       @click="toggleFavorite('provisioners', provisioner.id)"
-                      :class="isFavorite('provisioners', provisioner.id) ? 'text-yellow-500' : 'text-gray-400'"
+                      :class="isFavorite('provisioners', provisioner.id) ? 'text-yellow-500' : 'text-gray-400 dark:text-gray-500'"
                       class="p-1 hover:text-yellow-500 transition-colors"
                       :title="isFavorite('provisioners', provisioner.id) ? 'Remove from favorites' : 'Add to favorites'"
                     >
@@ -878,7 +879,7 @@
                     <button
                       x-show="provisioner.is_shared"
                       @click="copySharedResource('provisioners', provisioner.id)"
-                      class="p-1 text-gray-400 hover:text-blue-600 transition-colors"
+                      class="p-1 text-gray-400 dark:text-gray-500 hover:text-blue-600 transition-colors"
                       title="Copy to My Resources"
                     >
                       <svg
@@ -899,7 +900,7 @@
                     <button
                       x-show="!provisioner.is_shared"
                       @click="openEditProvisionerModal(provisioner)"
-                      class="p-1 text-gray-400 hover:text-blue-600 transition-colors"
+                      class="p-1 text-gray-400 dark:text-gray-500 hover:text-blue-600 transition-colors"
                     >
                       <svg
                         class="w-4 h-4"
@@ -914,7 +915,7 @@
                     <button
                       x-show="!provisioner.is_shared"
                       @click="confirmDeleteProvisioner(provisioner)"
-                      class="p-1 text-gray-400 hover:text-red-600 transition-colors"
+                      class="p-1 text-gray-400 dark:text-gray-500 hover:text-red-600 transition-colors"
                     >
                       <svg
                         class="w-4 h-4"
@@ -936,12 +937,12 @@
                   </div>
                 </div>
                 <p
-                  class="text-gray-600 text-sm mb-3"
+                  class="text-gray-600 dark:text-gray-400 text-sm mb-3"
                   x-text="provisioner.description || 'No description provided'"
                 ></p>
                 <div class="flex items-center justify-between">
                   <span
-                    class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800"
+                    class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 dark:bg-blue-900/40 text-blue-800 dark:text-blue-300"
                   >
                     <span x-text="provisioner.scope"></span>
                   </span>
@@ -974,10 +975,10 @@
                 ></path>
               </svg>
             </div>
-            <h3 class="text-lg font-medium text-gray-900 mb-2">
+            <h3 class="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">
               No Provisioners Configured
             </h3>
-            <p class="text-gray-600 mb-6">
+            <p class="text-gray-600 dark:text-gray-400 mb-6">
               Get started by creating your first global provisioner.
             </p>
             <button @click="openAddProvisionerModal()" class="btn btn-primary">
@@ -999,7 +1000,7 @@
             <div class="flex items-center space-x-4">
               <button
                 @click="sectionsOpen.settingsTriggers = !sectionsOpen.settingsTriggers"
-                class="text-gray-500 hover:text-gray-700 transition-colors p-1"
+                class="text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 transition-colors p-1"
               >
                 <svg
                   class="w-5 h-5 transition-transform"
@@ -1019,11 +1020,11 @@
                 class="cursor-pointer"
               >
                 <h3
-                  class="text-2xl font-bold text-gray-900 hover:text-gray-700 transition-colors"
+                  class="text-2xl font-bold text-gray-900 dark:text-gray-100 hover:text-gray-700 dark:hover:text-gray-200 transition-colors"
                 >
                   Global Triggers
                 </h3>
-                <p class="text-gray-600 mt-1">
+                <p class="text-gray-600 dark:text-gray-400 mt-1">
                   Configure triggers that execute before/after Vagrant commands
                 </p>
               </div>
@@ -1033,7 +1034,7 @@
               class="flex items-center space-x-3"
             >
               <span
-                class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-orange-100 text-orange-800"
+                class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-orange-100 dark:bg-orange-900/40 text-orange-800 dark:text-orange-300"
               >
                 <span
                   x-text="`${availableTriggers.length} triggers configured`"
@@ -1069,8 +1070,8 @@
           >
             <template x-for="trigger in availableTriggers" :key="trigger.id">
               <div
-                class="border border-gray-200 rounded-lg p-4 hover:border-orange-300 transition-colors"
-                :class="trigger.is_shared ? 'border-amber-200 bg-amber-50/20' : ''"
+                class="border border-gray-200 dark:border-gray-700 rounded-lg p-4 hover:border-orange-300 transition-colors"
+                :class="trigger.is_shared ? 'border-amber-200 dark:border-amber-700 bg-amber-50/20 dark:bg-amber-900/20' : ''"
               >
                 <div class="flex items-start justify-between mb-3">
                   <div class="flex items-center space-x-3 flex-1">
@@ -1092,7 +1093,7 @@
                     <div class="flex-1 min-w-0">
                       <div class="flex items-center gap-2 flex-wrap">
                         <h4
-                          class="text-lg font-semibold text-gray-900"
+                          class="text-lg font-semibold text-gray-900 dark:text-gray-100"
                           x-text="trigger.name"
                         ></h4>
                         <span
@@ -1115,12 +1116,12 @@
                       <div class="flex items-center space-x-1 text-xs">
                         <span
                           class="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium"
-                          :class="trigger.timing === 'before' ? 'bg-yellow-100 text-yellow-800' : 'bg-green-100 text-green-800'"
+                          :class="trigger.timing === 'before' ? 'bg-yellow-100 dark:bg-yellow-900/40 text-yellow-800 dark:text-yellow-300' : 'bg-green-100 dark:bg-green-900/40 text-green-800 dark:text-green-300'"
                           x-text="trigger.timing"
                         ></span>
-                        <span class="text-gray-500">:</span>
+                        <span class="text-gray-500 dark:text-gray-400">:</span>
                         <span
-                          class="text-gray-600 font-medium"
+                          class="text-gray-600 dark:text-gray-400 font-medium"
                           x-text="trigger.stage"
                         ></span>
                       </div>
@@ -1131,7 +1132,7 @@
                     <button
                       x-show="trigger.is_shared"
                       @click="toggleFavorite('triggers', trigger.id)"
-                      :class="isFavorite('triggers', trigger.id) ? 'text-yellow-500' : 'text-gray-400'"
+                      :class="isFavorite('triggers', trigger.id) ? 'text-yellow-500' : 'text-gray-400 dark:text-gray-500'"
                       class="p-1 hover:text-yellow-500 transition-colors"
                       :title="isFavorite('triggers', trigger.id) ? 'Remove from favorites' : 'Add to favorites'"
                     >
@@ -1153,7 +1154,7 @@
                     <button
                       x-show="trigger.is_shared"
                       @click="copySharedResource('triggers', trigger.id)"
-                      class="p-1 text-gray-400 hover:text-orange-600 transition-colors"
+                      class="p-1 text-gray-400 dark:text-gray-500 hover:text-orange-600 transition-colors"
                       title="Copy to My Resources"
                     >
                       <svg
@@ -1174,7 +1175,7 @@
                     <button
                       x-show="!trigger.is_shared"
                       @click="openEditTriggerModal(trigger)"
-                      class="p-1 text-gray-400 hover:text-orange-600 transition-colors"
+                      class="p-1 text-gray-400 dark:text-gray-500 hover:text-orange-600 transition-colors"
                     >
                       <svg
                         class="w-4 h-4"
@@ -1189,7 +1190,7 @@
                     <button
                       x-show="!trigger.is_shared"
                       @click="confirmDeleteTrigger(trigger)"
-                      class="p-1 text-gray-400 hover:text-red-600 transition-colors"
+                      class="p-1 text-gray-400 dark:text-gray-500 hover:text-red-600 transition-colors"
                     >
                       <svg
                         class="w-4 h-4"
@@ -1211,7 +1212,7 @@
                   </div>
                 </div>
                 <p
-                  class="text-gray-600 text-sm mb-3"
+                  class="text-gray-600 dark:text-gray-400 text-sm mb-3"
                   x-text="trigger.description || 'No description provided'"
                 ></p>
               </div>
@@ -1238,10 +1239,10 @@
                 ></path>
               </svg>
             </div>
-            <h3 class="text-lg font-medium text-gray-900 mb-2">
+            <h3 class="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">
               No Triggers Configured
             </h3>
-            <p class="text-gray-600 mb-6">
+            <p class="text-gray-600 dark:text-gray-400 mb-6">
               Get started by creating your first global trigger.
             </p>
             <button @click="openCreateTriggerModal()" class="btn btn-primary">
@@ -1259,10 +1260,10 @@
 
         <!-- Network Validation Settings -->
         <div class="card">
-          <h3 class="text-xl font-bold text-gray-900 mb-6">
+          <h3 class="text-xl font-bold text-gray-900 dark:text-gray-100 mb-6">
             Network Validation Settings
           </h3>
-          <p class="text-gray-600 mb-6">
+          <p class="text-gray-600 dark:text-gray-400 mb-6">
             Configure how IP addresses are validated for private networks. These
             settings affect both frontend validation and user experience.
           </p>
@@ -1275,17 +1276,17 @@
                   x-model="config.allowPublicIPsInPrivateNetworks"
                   @change="saveConfiguration()"
                   id="allowPublicIPs"
-                  class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 focus:ring-2"
+                  class="w-4 h-4 text-blue-600 bg-gray-100 dark:bg-gray-700 border-gray-300 dark:border-gray-600 rounded focus:ring-blue-500 focus:ring-2"
                 />
               </div>
               <div class="ml-3">
                 <label
                   for="allowPublicIPs"
-                  class="text-sm font-medium text-gray-700"
+                  class="text-sm font-medium text-gray-700 dark:text-gray-300"
                 >
                   Allow public IP addresses in private networks
                 </label>
-                <p class="text-sm text-gray-500 mt-1">
+                <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">
                   When enabled, allows any valid IPv4 address in private network
                   configurations. When disabled (recommended), only private IP
                   ranges (192.168.x.x, 10.x.x.x, 172.16-31.x.x) are allowed.
@@ -1295,7 +1296,7 @@
 
             <div
               x-show="config.allowPublicIPsInPrivateNetworks"
-              class="bg-yellow-50 border border-yellow-200 rounded-lg p-4"
+              class="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-4"
             >
               <div class="flex">
                 <div class="flex-shrink-0">
@@ -1312,10 +1313,10 @@
                   </svg>
                 </div>
                 <div class="ml-3">
-                  <h4 class="text-sm font-medium text-yellow-800">
+                  <h4 class="text-sm font-medium text-yellow-800 dark:text-yellow-300">
                     Security Warning
                   </h4>
-                  <p class="text-sm text-yellow-700 mt-1">
+                  <p class="text-sm text-yellow-700 dark:text-yellow-300 mt-1">
                     Allowing public IP addresses in private networks may create
                     connectivity issues and security concerns. This option is
                     intended for advanced users with specific network
@@ -1329,10 +1330,10 @@
 
         <!-- VM Configuration Limits -->
         <div class="card">
-          <h3 class="text-xl font-bold text-gray-900 mb-6">
+          <h3 class="text-xl font-bold text-gray-900 dark:text-gray-100 mb-6">
             VM Configuration Limits
           </h3>
-          <p class="text-gray-600 mb-6">
+          <p class="text-gray-600 dark:text-gray-400 mb-6">
             Configure the default limits for virtual machine resources. These
             limits apply to VM creation and validation.
           </p>
@@ -1348,7 +1349,7 @@
                 class="form-input"
                 placeholder="8"
               />
-              <p class="text-sm text-gray-500 mt-1">
+              <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">
                 Maximum number of CPUs allowed per VM
               </p>
             </div>
@@ -1364,7 +1365,7 @@
                 class="form-input"
                 placeholder="16384"
               />
-              <p class="text-sm text-gray-500 mt-1">
+              <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">
                 Maximum memory allowed per VM (in MB)
               </p>
             </div>
@@ -1380,7 +1381,7 @@
                 class="form-input"
                 placeholder="512"
               />
-              <p class="text-sm text-gray-500 mt-1">
+              <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">
                 Minimum memory required per VM (in MB)
               </p>
             </div>
@@ -1395,16 +1396,16 @@
                 class="form-input"
                 placeholder="256"
               />
-              <p class="text-sm text-gray-500 mt-1">
+              <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">
                 Memory increment size for input controls
               </p>
             </div>
           </div>
 
           <div
-            class="flex justify-between items-center pt-6 border-t border-gray-200 mt-6"
+            class="flex justify-between items-center pt-6 border-t border-gray-200 dark:border-gray-700 mt-6"
           >
-            <div class="text-sm text-gray-600">
+            <div class="text-sm text-gray-600 dark:text-gray-400">
               <p><strong>Current Limits:</strong></p>
               <p>CPUs: 1 - <span x-text="config.maxCpus"></span></p>
               <p>
@@ -1485,16 +1486,16 @@
         x-transition:leave="transition ease-in duration-200"
         x-transition:leave-start="opacity-100 scale-100"
         x-transition:leave-end="opacity-0 scale-95"
-        class="bg-white rounded-lg p-6 w-full max-w-md max-h-screen overflow-y-auto"
+        class="bg-white dark:bg-gray-800 rounded-lg p-6 w-full max-w-md max-h-screen overflow-y-auto"
       >
         <div class="flex justify-between items-center mb-6">
           <h3
-            class="text-xl font-bold text-gray-900"
+            class="text-xl font-bold text-gray-900 dark:text-gray-100"
             x-text="editingBox ? 'Edit Box' : 'Add New Box'"
           ></h3>
           <button
             @click="closeBoxModal()"
-            class="text-gray-400 hover:text-gray-600"
+            class="text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300"
           >
             <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
               <path
@@ -1508,38 +1509,38 @@
 
         <form @submit.prevent="saveBox()" class="space-y-4">
           <div>
-            <label class="block text-sm font-medium text-gray-700 mb-2">
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
               Box Name <span class="text-red-500">*</span>
             </label>
             <input
               type="text"
               x-model="boxForm.name"
               placeholder="e.g., generic/ubuntu2204"
-              class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               required
             />
           </div>
 
           <div>
-            <label class="block text-sm font-medium text-gray-700 mb-2">
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
               Description <span class="text-red-500">*</span>
             </label>
             <textarea
               x-model="boxForm.description"
               placeholder="Brief description of the box"
               rows="3"
-              class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               required
             ></textarea>
           </div>
 
           <div>
-            <label class="block text-sm font-medium text-gray-700 mb-2">
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
               Provider
             </label>
             <select
               x-model="boxForm.provider"
-              class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
               <option value="libvirt">libvirt</option>
               <option value="virtualbox">VirtualBox</option>
@@ -1549,26 +1550,26 @@
           </div>
 
           <div>
-            <label class="block text-sm font-medium text-gray-700 mb-2">
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
               Version (optional)
             </label>
             <input
               type="text"
               x-model="boxForm.version"
               placeholder="e.g., 20230616.0.0"
-              class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
 
           <div>
-            <label class="block text-sm font-medium text-gray-700 mb-2">
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
               Custom URL (optional)
             </label>
             <input
               type="url"
               x-model="boxForm.url"
               placeholder="https://example.com/custom-box.box"
-              class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
 
@@ -1607,11 +1608,11 @@
         x-transition:leave="transition ease-in duration-200"
         x-transition:leave-start="opacity-100 scale-100"
         x-transition:leave-end="opacity-0 scale-95"
-        class="bg-white rounded-lg p-6 w-full max-w-md"
+        class="bg-white dark:bg-gray-800 rounded-lg p-6 w-full max-w-md"
       >
         <div class="flex items-center mb-4">
           <div
-            class="flex-shrink-0 w-10 h-10 bg-red-100 rounded-full flex items-center justify-center"
+            class="flex-shrink-0 w-10 h-10 bg-red-100 dark:bg-red-900/40 rounded-full flex items-center justify-center"
           >
             <svg
               class="w-6 h-6 text-red-600"
@@ -1626,13 +1627,13 @@
             </svg>
           </div>
           <div class="ml-4">
-            <h3 class="text-lg font-medium text-gray-900">Delete Box</h3>
-            <p class="text-sm text-gray-500">This action cannot be undone.</p>
+            <h3 class="text-lg font-medium text-gray-900 dark:text-gray-100">Delete Box</h3>
+            <p class="text-sm text-gray-500 dark:text-gray-400">This action cannot be undone.</p>
           </div>
         </div>
 
         <div class="mb-6">
-          <p class="text-gray-700">
+          <p class="text-gray-700 dark:text-gray-300">
             Are you sure you want to delete the box
             <span class="font-medium" x-text="boxToDelete?.name"></span>?
           </p>
@@ -1641,7 +1642,7 @@
         <div class="flex justify-end space-x-3">
           <button
             @click="closeDeleteBoxModal()"
-            class="px-4 py-2 text-gray-700 bg-gray-200 rounded-md hover:bg-gray-300 transition-colors"
+            class="px-4 py-2 text-gray-700 dark:text-gray-300 bg-gray-200 dark:bg-gray-600 rounded-md hover:bg-gray-300 transition-colors"
           >
             Cancel
           </button>
@@ -1674,16 +1675,16 @@
         x-transition:leave="transition ease-in duration-200"
         x-transition:leave-start="opacity-100 scale-100"
         x-transition:leave-end="opacity-0 scale-95"
-        class="bg-white rounded-lg p-6 w-full max-w-md max-h-screen overflow-y-auto"
+        class="bg-white dark:bg-gray-800 rounded-lg p-6 w-full max-w-md max-h-screen overflow-y-auto"
       >
         <div class="flex justify-between items-center mb-6">
           <h3
-            class="text-xl font-bold text-gray-900"
+            class="text-xl font-bold text-gray-900 dark:text-gray-100"
             x-text="editingPlugin ? 'Edit Plugin' : 'Add New Plugin'"
           ></h3>
           <button
             @click="closePluginModal()"
-            class="text-gray-400 hover:text-gray-600"
+            class="text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300"
           >
             <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
               <path
@@ -1698,7 +1699,7 @@
         <!-- Phase 1: Info Banner for Copied Resources -->
         <div
           x-show="editContext.isCopiedFromShared"
-          class="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg"
+          class="mb-4 p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg"
         >
           <div class="flex items-start">
             <svg
@@ -1712,7 +1713,7 @@
                 clip-rule="evenodd"
               ></path>
             </svg>
-            <p class="text-sm text-blue-800">
+            <p class="text-sm text-blue-800 dark:text-blue-300">
               This is your copy of a shared resource. Changes will only affect
               your projects.
             </p>
@@ -1721,78 +1722,78 @@
 
         <form @submit.prevent="savePlugin()" class="space-y-4">
           <div>
-            <label class="block text-sm font-medium text-gray-700 mb-2">
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
               Plugin Name <span class="text-red-500">*</span>
             </label>
             <input
               type="text"
               x-model="pluginForm.name"
               placeholder="e.g., vagrant-vbguest"
-              class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+              class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
               required
             />
           </div>
 
           <div>
-            <label class="block text-sm font-medium text-gray-700 mb-2">
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
               Description
             </label>
             <textarea
               x-model="pluginForm.description"
               placeholder="Brief description of the plugin"
               rows="3"
-              class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+              class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
             ></textarea>
           </div>
 
           <div>
-            <label class="block text-sm font-medium text-gray-700 mb-2">
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
               Source URL
             </label>
             <input
               type="url"
               x-model="pluginForm.source_url"
               placeholder="https://github.com/..."
-              class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+              class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
             />
           </div>
 
           <div>
-            <label class="block text-sm font-medium text-gray-700 mb-2">
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
               Documentation URL
             </label>
             <input
               type="url"
               x-model="pluginForm.documentation_url"
               placeholder="https://..."
-              class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+              class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
             />
           </div>
 
           <div>
-            <label class="block text-sm font-medium text-gray-700 mb-2">
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
               Default Version
             </label>
             <input
               type="text"
               x-model="pluginForm.default_version"
               placeholder="e.g., 0.31.0 or ~> 0.32.0"
-              class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+              class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
             />
           </div>
 
           <div>
-            <label class="block text-sm font-medium text-gray-700 mb-2">
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
               Plugin Configuration
-              <span class="text-gray-500 text-xs ml-2">(Optional)</span>
+              <span class="text-gray-500 dark:text-gray-400 text-xs ml-2">(Optional)</span>
             </label>
             <textarea
               x-model="pluginForm.configuration"
               placeholder="config.plugin_name.option = value&#10;config.plugin_name.another_option = true"
               rows="8"
-              class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 font-mono text-sm"
+              class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 font-mono text-sm"
             ></textarea>
-            <p class="text-xs text-gray-500 mt-1">
+            <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
               Ruby code to be inserted into the Vagrantfile for plugin-specific
               configuration
             </p>
@@ -1803,11 +1804,11 @@
               type="checkbox"
               x-model="pluginForm.is_deprecated"
               id="is_deprecated"
-              class="w-4 h-4 text-purple-600 bg-gray-100 border-gray-300 rounded focus:ring-purple-500 focus:ring-2"
+              class="w-4 h-4 text-purple-600 bg-gray-100 dark:bg-gray-700 border-gray-300 dark:border-gray-600 rounded focus:ring-purple-500 focus:ring-2"
             />
             <label
               for="is_deprecated"
-              class="ml-2 text-sm font-medium text-gray-700"
+              class="ml-2 text-sm font-medium text-gray-700 dark:text-gray-300"
             >
               Mark as deprecated
             </label>
@@ -1850,11 +1851,11 @@
         x-transition:leave="transition ease-in duration-200"
         x-transition:leave-start="opacity-100 scale-100"
         x-transition:leave-end="opacity-0 scale-95"
-        class="bg-white rounded-lg p-6 w-full max-w-md"
+        class="bg-white dark:bg-gray-800 rounded-lg p-6 w-full max-w-md"
       >
         <div class="flex items-center mb-4">
           <div
-            class="flex-shrink-0 w-10 h-10 bg-red-100 rounded-full flex items-center justify-center"
+            class="flex-shrink-0 w-10 h-10 bg-red-100 dark:bg-red-900/40 rounded-full flex items-center justify-center"
           >
             <svg
               class="w-6 h-6 text-red-600"
@@ -1869,17 +1870,17 @@
             </svg>
           </div>
           <div class="ml-4">
-            <h3 class="text-lg font-medium text-gray-900">Delete Plugin</h3>
-            <p class="text-sm text-gray-500">This action cannot be undone.</p>
+            <h3 class="text-lg font-medium text-gray-900 dark:text-gray-100">Delete Plugin</h3>
+            <p class="text-sm text-gray-500 dark:text-gray-400">This action cannot be undone.</p>
           </div>
         </div>
 
         <div class="mb-6">
-          <p class="text-gray-700">
+          <p class="text-gray-700 dark:text-gray-300">
             Are you sure you want to delete the plugin
             <span class="font-medium" x-text="pluginToDelete?.name"></span>?
           </p>
-          <p class="text-sm text-gray-500 mt-2">
+          <p class="text-sm text-gray-500 dark:text-gray-400 mt-2">
             This will also remove all associations with projects.
           </p>
         </div>
@@ -1887,7 +1888,7 @@
         <div class="flex justify-end space-x-3">
           <button
             @click="closeDeletePluginModal()"
-            class="px-4 py-2 text-gray-700 bg-gray-200 rounded-md hover:bg-gray-300 transition-colors"
+            class="px-4 py-2 text-gray-700 dark:text-gray-300 bg-gray-200 dark:bg-gray-600 rounded-md hover:bg-gray-300 transition-colors"
           >
             Cancel
           </button>
@@ -1920,16 +1921,16 @@
         x-transition:leave="transition ease-in duration-200"
         x-transition:leave-start="opacity-100 scale-100"
         x-transition:leave-end="opacity-0 scale-95"
-        class="bg-white rounded-lg p-6 w-full max-w-2xl max-h-screen overflow-y-auto"
+        class="bg-white dark:bg-gray-800 rounded-lg p-6 w-full max-w-2xl max-h-screen overflow-y-auto"
       >
         <div class="flex justify-between items-center mb-6">
           <h3
-            class="text-xl font-bold text-gray-900"
+            class="text-xl font-bold text-gray-900 dark:text-gray-100"
             x-text="editingProvisioner ? 'Edit Provisioner' : 'Add New Provisioner'"
           ></h3>
           <button
             @click="closeProvisionerModal()"
-            class="text-gray-400 hover:text-gray-600"
+            class="text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300"
           >
             <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
               <path
@@ -1944,7 +1945,7 @@
         <!-- Phase 1: Info Banner for Copied Resources -->
         <div
           x-show="editContext.isCopiedFromShared"
-          class="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg"
+          class="mb-4 p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg"
         >
           <div class="flex items-start">
             <svg
@@ -1958,7 +1959,7 @@
                 clip-rule="evenodd"
               ></path>
             </svg>
-            <p class="text-sm text-blue-800">
+            <p class="text-sm text-blue-800 dark:text-blue-300">
               This is your copy of a shared resource. Changes will only affect
               your projects.
             </p>
@@ -1967,42 +1968,42 @@
 
         <form @submit.prevent="saveProvisioner()" class="space-y-4">
           <div>
-            <label class="block text-sm font-medium text-gray-700 mb-2">
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
               Provisioner Name <span class="text-red-500">*</span>
             </label>
             <input
               type="text"
               x-model="provisionerForm.name"
               placeholder="e.g., Common Setup"
-              class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               required
             />
           </div>
 
           <div>
-            <label class="block text-sm font-medium text-gray-700 mb-2">
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
               Description
             </label>
             <textarea
               x-model="provisionerForm.description"
               placeholder="What does this provisioner do?"
               rows="2"
-              class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             ></textarea>
           </div>
 
           <div>
-            <label class="block text-sm font-medium text-gray-700 mb-2">
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
               Shell Script <span class="text-red-500">*</span>
             </label>
             <textarea
               x-model="provisionerForm.shell_config.script"
               placeholder="#!/bin/bash&#10;echo 'Hello from provisioner'"
               rows="10"
-              class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono text-sm"
+              class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono text-sm"
               required
             ></textarea>
-            <p class="text-xs text-gray-500 mt-1">
+            <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
               Shell script that will run on all VMs (heredoc syntax will be
               used)
             </p>
@@ -2010,7 +2011,7 @@
 
           <div class="grid grid-cols-2 gap-4">
             <div>
-              <label class="block text-sm font-medium text-gray-700 mb-2">
+              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                 Run As
               </label>
               <div class="flex items-center space-x-4">
@@ -2036,12 +2037,12 @@
             </div>
 
             <div>
-              <label class="block text-sm font-medium text-gray-700 mb-2">
+              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                 Run
               </label>
               <select
                 x-model="provisionerForm.shell_config.run"
-                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
                 <option value="once">Once</option>
                 <option value="always">Always</option>
@@ -2051,9 +2052,9 @@
           </div>
 
           <div>
-            <label class="block text-sm font-medium text-gray-700 mb-2">
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
               External Script Path
-              <span class="text-gray-500 text-xs"
+              <span class="text-gray-500 dark:text-gray-400 text-xs"
                 >(Optional - overrides inline script)</span
               >
             </label>
@@ -2061,9 +2062,9 @@
               type="text"
               x-model="provisionerForm.shell_config.path"
               placeholder="scripts/bootstrap.sh"
-              class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
-            <p class="text-xs text-gray-500 mt-1">
+            <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
               If set, Vagrant will use this file instead of the inline script
               above
             </p>
@@ -2106,11 +2107,11 @@
         x-transition:leave="transition ease-in duration-200"
         x-transition:leave-start="opacity-100 scale-100"
         x-transition:leave-end="opacity-0 scale-95"
-        class="bg-white rounded-lg p-6 w-full max-w-md"
+        class="bg-white dark:bg-gray-800 rounded-lg p-6 w-full max-w-md"
       >
         <div class="flex items-center mb-4">
           <div
-            class="flex-shrink-0 w-10 h-10 bg-red-100 rounded-full flex items-center justify-center"
+            class="flex-shrink-0 w-10 h-10 bg-red-100 dark:bg-red-900/40 rounded-full flex items-center justify-center"
           >
             <svg
               class="w-6 h-6 text-red-600"
@@ -2125,15 +2126,15 @@
             </svg>
           </div>
           <div class="ml-4">
-            <h3 class="text-lg font-medium text-gray-900">
+            <h3 class="text-lg font-medium text-gray-900 dark:text-gray-100">
               Delete Provisioner
             </h3>
-            <p class="text-sm text-gray-500">This action cannot be undone.</p>
+            <p class="text-sm text-gray-500 dark:text-gray-400">This action cannot be undone.</p>
           </div>
         </div>
 
         <div class="mb-6">
-          <p class="text-gray-700">
+          <p class="text-gray-700 dark:text-gray-300">
             Are you sure you want to delete the provisioner
             <span class="font-medium" x-text="provisionerToDelete?.name"></span
             >?
@@ -2143,7 +2144,7 @@
         <div class="flex justify-end space-x-3">
           <button
             @click="closeDeleteProvisionerModal()"
-            class="px-4 py-2 text-gray-700 bg-gray-200 rounded-md hover:bg-gray-300 transition-colors"
+            class="px-4 py-2 text-gray-700 dark:text-gray-300 bg-gray-200 dark:bg-gray-600 rounded-md hover:bg-gray-300 transition-colors"
           >
             Cancel
           </button>
@@ -2176,11 +2177,11 @@
         x-transition:leave="transition ease-in duration-200"
         x-transition:leave-start="opacity-100 scale-100"
         x-transition:leave-end="opacity-0 scale-95"
-        class="bg-white rounded-lg p-6 w-full max-w-md"
+        class="bg-white dark:bg-gray-800 rounded-lg p-6 w-full max-w-md"
       >
         <div class="flex items-center mb-4">
           <div
-            class="flex-shrink-0 w-10 h-10 bg-red-100 rounded-full flex items-center justify-center"
+            class="flex-shrink-0 w-10 h-10 bg-red-100 dark:bg-red-900/40 rounded-full flex items-center justify-center"
           >
             <svg
               class="w-6 h-6 text-red-600"
@@ -2195,13 +2196,13 @@
             </svg>
           </div>
           <div class="ml-4">
-            <h3 class="text-lg font-medium text-gray-900">Delete Trigger</h3>
-            <p class="text-sm text-gray-500">This action cannot be undone.</p>
+            <h3 class="text-lg font-medium text-gray-900 dark:text-gray-100">Delete Trigger</h3>
+            <p class="text-sm text-gray-500 dark:text-gray-400">This action cannot be undone.</p>
           </div>
         </div>
 
         <div class="mb-6">
-          <p class="text-gray-700">
+          <p class="text-gray-700 dark:text-gray-300">
             Are you sure you want to delete the trigger
             <span class="font-medium" x-text="triggerToDelete?.name"></span>?
           </p>
@@ -2210,7 +2211,7 @@
         <div class="flex justify-end space-x-3">
           <button
             @click="closeDeleteTriggerModal()"
-            class="px-4 py-2 text-gray-700 bg-gray-200 rounded-md hover:bg-gray-300 transition-colors"
+            class="px-4 py-2 text-gray-700 dark:text-gray-300 bg-gray-200 dark:bg-gray-600 rounded-md hover:bg-gray-300 transition-colors"
           >
             Cancel
           </button>

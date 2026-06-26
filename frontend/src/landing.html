@@ -27,6 +27,7 @@
     <link rel="manifest" href="/images/favicon/site.webmanifest" />
 
     <meta name="theme-color" content="#3b82f6" />
+    <script src="/js/theme.js"></script>
     <meta
       name="description"
       content="Create Vagrant development environments visually — configure VMs, networking, provisioners, plugins, and triggers. Generate ready-to-use Vagrantfiles without editing Ruby."
@@ -140,7 +141,7 @@
     </style>
   </head>
   <body
-    class="bg-gradient-to-br from-slate-50 to-blue-50 min-h-screen"
+    class="bg-gradient-to-br from-slate-50 dark:from-gray-900 to-blue-50 dark:to-gray-800 min-h-screen"
     x-data="landingPage()"
     x-init="init()"
   >
@@ -159,10 +160,10 @@
             height="96"
             style="image-rendering: -webkit-optimize-contrast"
           />
-          <h1 class="text-5xl font-bold text-gray-900 mb-4">
+          <h1 class="text-5xl font-bold text-gray-900 dark:text-gray-100 mb-4">
             Vagrantfile Generator
           </h1>
-          <p class="text-xl text-gray-600 max-w-2xl mx-auto leading-relaxed">
+          <p class="text-xl text-gray-600 dark:text-gray-400 max-w-2xl mx-auto leading-relaxed">
             Create & manage Vagrant development environments visually. No Ruby
             editing — configure everything through an intuitive web interface
             and generate usable Vagrantfiles.
@@ -173,7 +174,7 @@
       <!-- Features Grid -->
       <section class="py-16">
         <div class="app-container">
-          <h2 class="text-3xl font-bold text-gray-900 text-center mb-12">
+          <h2 class="text-3xl font-bold text-gray-900 dark:text-gray-100 text-center mb-12">
             Everything You Need to Build Vagrant Environments
           </h2>
 
@@ -186,10 +187,10 @@
                 📦
               </div>
               <div>
-                <h3 class="text-lg font-semibold text-gray-900 mb-1">
+                <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-1">
                   Multiple VMs
                 </h3>
-                <p class="text-sm text-gray-600">
+                <p class="text-sm text-gray-600 dark:text-gray-400">
                   Create and manage multiple virtual machines in a single
                   project. Configure memory, CPUs, disk, and box images for each
                   VM independently.
@@ -205,10 +206,10 @@
                 🌐
               </div>
               <div>
-                <h3 class="text-lg font-semibold text-gray-900 mb-1">
+                <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-1">
                   Advanced Networking
                 </h3>
-                <p class="text-sm text-gray-600">
+                <p class="text-sm text-gray-600 dark:text-gray-400">
                   Configure static IPs, DHCP, port forwarding, private networks
                   between VMs, and custom network interfaces — all without
                   touching Ruby.
@@ -224,10 +225,10 @@
                 ⚡
               </div>
               <div>
-                <h3 class="text-lg font-semibold text-gray-900 mb-1">
+                <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-1">
                   Shell Provisioners
                 </h3>
-                <p class="text-sm text-gray-600">
+                <p class="text-sm text-gray-600 dark:text-gray-400">
                   Add shell scripts to automate VM setup. Configure inline
                   scripts or external paths, set privileges, and control when
                   scripts run.
@@ -243,10 +244,10 @@
                 🔌
               </div>
               <div>
-                <h3 class="text-lg font-semibold text-gray-900 mb-1">
+                <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-1">
                   Vagrant Plugins
                 </h3>
-                <p class="text-sm text-gray-600">
+                <p class="text-sm text-gray-600 dark:text-gray-400">
                   Install and manage Vagrant plugins for enhanced functionality.
                   Browse shared plugins or define your own with custom
                   configurations.
@@ -262,10 +263,10 @@
                 ⚙️
               </div>
               <div>
-                <h3 class="text-lg font-semibold text-gray-900 mb-1">
+                <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-1">
                   Vagrant Triggers
                 </h3>
-                <p class="text-sm text-gray-600">
+                <p class="text-sm text-gray-600 dark:text-gray-400">
                   Configure pre/post hooks that execute before or after Vagrant
                   commands. Run scripts or remote commands at specific lifecycle
                   stages.
@@ -281,10 +282,10 @@
                 ✅
               </div>
               <div>
-                <h3 class="text-lg font-semibold text-gray-900 mb-1">
+                <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-1">
                   Real-time Validation
                 </h3>
-                <p class="text-sm text-gray-600">
+                <p class="text-sm text-gray-600 dark:text-gray-400">
                   Get immediate feedback on configuration errors as you build.
                   Generate syntactically correct, ready-to-use Vagrantfiles with
                   a single click.
@@ -296,52 +297,52 @@
       </section>
 
       <!-- How It Works -->
-      <section class="py-16 bg-white/50">
+      <section class="py-16 bg-white/50 dark:bg-gray-800/50">
         <div class="app-container">
-          <h2 class="text-3xl font-bold text-gray-900 text-center mb-12">
+          <h2 class="text-3xl font-bold text-gray-900 dark:text-gray-100 text-center mb-12">
             How It Works
           </h2>
           <div class="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-4xl mx-auto">
             <div class="text-center">
               <div
-                class="w-16 h-16 bg-blue-100 rounded-2xl flex items-center justify-center mx-auto mb-4"
+                class="w-16 h-16 bg-blue-100 dark:bg-blue-900/40 rounded-2xl flex items-center justify-center mx-auto mb-4"
               >
                 <span class="text-2xl font-bold text-blue-600">1</span>
               </div>
-              <h3 class="text-lg font-semibold text-gray-900 mb-2">
+              <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">
                 Create a Project
               </h3>
-              <p class="text-sm text-gray-600">
+              <p class="text-sm text-gray-600 dark:text-gray-400">
                 Give your Vagrant setup a name and description.
               </p>
             </div>
             <div class="text-center">
               <div
-                class="w-16 h-16 bg-purple-100 rounded-2xl flex items-center justify-center mx-auto mb-4"
+                class="w-16 h-16 bg-purple-100 dark:bg-purple-900/40 rounded-2xl flex items-center justify-center mx-auto mb-4"
               >
                 <span class="text-2xl font-bold text-purple-600">2</span>
               </div>
-              <h3 class="text-lg font-semibold text-gray-900 mb-2">
+              <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">
                 Add Virtual Machines
               </h3>
-              <p class="text-sm text-gray-600">
+              <p class="text-sm text-gray-600 dark:text-gray-400">
                 Configure VMs with boxes, networks, provisioners, plugins, and
                 triggers.
               </p>
             </div>
             <div class="text-center">
               <div
-                class="w-16 h-16 bg-green-100 rounded-2xl flex items-center justify-center mx-auto mb-4"
+                class="w-16 h-16 bg-green-100 dark:bg-green-900/40 rounded-2xl flex items-center justify-center mx-auto mb-4"
               >
                 <span class="text-2xl font-bold text-green-600">3</span>
               </div>
-              <h3 class="text-lg font-semibold text-gray-900 mb-2">
+              <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">
                 Generate & Deploy
               </h3>
-              <p class="text-sm text-gray-600">
+              <p class="text-sm text-gray-600 dark:text-gray-400">
                 Generate a ready-to-use Vagrantfile and run
                 <code
-                  class="bg-gray-100 px-1.5 py-0.5 rounded text-xs font-mono"
+                  class="bg-gray-100 dark:bg-gray-700 px-1.5 py-0.5 rounded text-xs font-mono"
                   >vagrant up</code
                 >.
               </p>
@@ -353,16 +354,16 @@
       <!-- Shared Footer Component -->
       <footer
         data-testid="footer"
-        class="footer-component mt-auto bg-gradient-to-br from-slate-50 to-blue-50 border-t-2 border-blue-100"
+        class="footer-component mt-auto bg-gradient-to-br from-slate-50 dark:from-gray-900 to-blue-50 dark:to-gray-800 border-t-2 border-blue-100 dark:border-gray-700"
         x-data="footerComponent"
         x-init="initializeFooter()"
       >
         <div class="app-container py-8">
           <!-- Loading state -->
-          <div x-show="loading" class="text-center text-gray-500">
+          <div x-show="loading" class="text-center text-gray-500 dark:text-gray-400">
             <div class="inline-flex items-center">
               <svg
-                class="animate-spin -ml-1 mr-3 h-4 w-4 text-gray-500"
+                class="animate-spin -ml-1 mr-3 h-4 w-4 text-gray-500 dark:text-gray-400"
                 xmlns="http://www.w3.org/2000/svg"
                 fill="none"
                 viewBox="0 0 24 24"
@@ -414,7 +415,7 @@
             </div>
             <div class="footer-text flex-1 min-w-0">
               <p
-                class="text-sm text-gray-600 leading-relaxed"
+                class="text-sm text-gray-600 dark:text-gray-400 leading-relaxed"
                 x-html="copyrightText"
               ></p>
             </div>
@@ -431,7 +432,7 @@
                     x-show="!link.isExternal"
                     :href="link.href"
                     :data-page="link.pageId"
-                    :class="{ 'text-blue-600 font-medium': link.pageId === currentPage, 'text-gray-500 hover:text-gray-900': link.pageId !== currentPage }"
+                    :class="{ 'text-blue-600 font-medium': link.pageId === currentPage, 'text-gray-500 dark:text-gray-400 hover:text-gray-900': link.pageId !== currentPage }"
                     class="text-sm transition-colors duration-150 ease-in-out cursor-pointer"
                     @click="handleLinkClick($event, link)"
                     x-text="link.text"
@@ -442,7 +443,7 @@
                 href="https://github.com/marekruzicka/vagrantfile-generator"
                 target="_blank"
                 rel="noopener noreferrer"
-                class="text-gray-400 hover:text-gray-700 transition-colors"
+                class="text-gray-400 dark:text-gray-500 hover:text-gray-700 dark:hover:text-gray-200 transition-colors"
                 title="View on GitHub"
               >
                 <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
@@ -473,7 +474,7 @@
           ></div>
           <div class="flex min-h-full items-center justify-center p-4">
             <div
-              class="modal-content relative bg-white rounded-2xl shadow-2xl max-w-3xl w-full max-h-[85vh] overflow-hidden"
+              class="modal-content relative bg-white dark:bg-gray-800 rounded-2xl shadow-2xl max-w-3xl w-full max-h-[85vh] overflow-hidden"
               x-transition:enter="ease-out duration-300"
               x-transition:enter-start="opacity-0 translate-y-4 scale-95"
               x-transition:enter-end="opacity-100 translate-y-0 scale-100"
@@ -482,17 +483,17 @@
               x-transition:leave-end="opacity-0 translate-y-4 scale-95"
             >
               <div
-                class="card-header bg-gradient-to-r from-blue-50 to-indigo-50 border-b border-gray-200"
+                class="card-header bg-gradient-to-r from-blue-50 to-indigo-50 border-b border-gray-200 dark:border-gray-700"
               >
                 <div class="flex items-center justify-between">
                   <h3
-                    class="text-xl font-bold text-gray-900"
+                    class="text-xl font-bold text-gray-900 dark:text-gray-100"
                     id="modal-title"
                     x-text="modalTitle"
                   ></h3>
                   <button
                     @click="closeContentModal()"
-                    class="text-gray-400 hover:text-gray-600 transition-colors p-2 rounded-xl hover:bg-white hover:bg-opacity-50"
+                    class="text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 transition-colors p-2 rounded-xl hover:bg-white hover:bg-opacity-50"
                     aria-label="Close modal"
                   >
                     <svg
@@ -518,7 +519,7 @@
                 ></div>
               </div>
               <div
-                class="card-header border-t border-gray-200 flex justify-end gap-3 bg-gray-50"
+                class="card-header border-t border-gray-200 dark:border-gray-700 flex justify-end gap-3 bg-gray-50 dark:bg-gray-900"
               >
                 <button
                   type="button"
@@ -557,10 +558,10 @@
             height="64"
             style="image-rendering: -webkit-optimize-contrast"
           />
-          <h2 class="text-2xl font-bold text-gray-900">
+          <h2 class="text-2xl font-bold text-gray-900 dark:text-gray-100">
             Vagrantfile Generator
           </h2>
-          <p class="text-gray-600 mt-1">Sign in to your account</p>
+          <p class="text-gray-600 dark:text-gray-400 mt-1">Sign in to your account</p>
         </div>
 
         <!-- Email OTP Form -->
@@ -569,7 +570,7 @@
             <div>
               <label
                 for="email"
-                class="block text-sm font-medium text-gray-700 mb-2"
+                class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
               >
                 Email Address
               </label>
@@ -587,9 +588,9 @@
             <!-- Mailgun not configured warning -->
             <div
               x-show="!mailgunConfigured"
-              class="bg-yellow-50 border border-yellow-200 rounded-lg p-3"
+              class="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-3"
             >
-              <p class="text-sm text-yellow-700">
+              <p class="text-sm text-yellow-700 dark:text-yellow-300">
                 Email OTP is disabled. Please use an OIDC provider below to sign
                 in.
               </p>
@@ -597,7 +598,7 @@
 
             <div
               x-show="error"
-              class="text-sm text-red-600 bg-red-50 rounded-lg p-3"
+              class="text-sm text-red-600 bg-red-50 dark:bg-red-900/20 rounded-lg p-3"
               x-text="error"
             ></div>
 
@@ -616,7 +617,7 @@
         <div x-show="otpSent">
           <form @submit.prevent="verifyOTP" class="space-y-3">
             <div class="text-center mb-3">
-              <p class="text-sm text-gray-600">
+              <p class="text-sm text-gray-600 dark:text-gray-400">
                 We sent a code to
                 <span class="font-medium" x-text="email"></span>
               </p>
@@ -624,7 +625,7 @@
             <div>
               <label
                 for="code"
-                class="block text-sm font-medium text-gray-700 mb-2"
+                class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
               >
                 Enter 6-digit code
               </label>
@@ -644,7 +645,7 @@
             </div>
             <div
               x-show="error"
-              class="text-sm text-red-600 bg-red-50 rounded-lg p-3"
+              class="text-sm text-red-600 bg-red-50 dark:bg-red-900/20 rounded-lg p-3"
               x-text="error"
             ></div>
             <button
@@ -659,7 +660,7 @@
               type="button"
               @click="resetForm"
               :disabled="loading"
-              class="w-full text-gray-500 py-2 text-sm hover:bg-gray-100 rounded-lg transition-colors"
+              class="w-full text-gray-500 dark:text-gray-400 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
             >
               Use different email
             </button>
@@ -667,12 +668,12 @@
         </div>
 
         <!-- OIDC Options -->
-        <div class="mt-5 pt-5 border-t border-gray-200">
-          <p class="text-center text-sm text-gray-500 mb-3">Or continue with</p>
+        <div class="mt-5 pt-5 border-t border-gray-200 dark:border-gray-700">
+          <p class="text-center text-sm text-gray-500 dark:text-gray-400 mb-3">Or continue with</p>
           <div class="grid grid-cols-3 gap-2">
             <button
               @click="loginWithOIDC('google')"
-              class="flex items-center justify-center gap-1.5 px-3 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition text-sm"
+              class="flex items-center justify-center gap-1.5 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition text-sm"
             >
               <svg class="w-4 h-4" viewBox="0 0 24 24">
                 <path
@@ -692,22 +693,22 @@
                   d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
                 />
               </svg>
-              <span class="text-xs font-medium text-gray-700">Google</span>
+              <span class="text-xs font-medium text-gray-700 dark:text-gray-300">Google</span>
             </button>
             <button
               @click="loginWithOIDC('github')"
-              class="flex items-center justify-center gap-1.5 px-3 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition text-sm"
+              class="flex items-center justify-center gap-1.5 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition text-sm"
             >
               <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
                 <path
                   d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"
                 />
               </svg>
-              <span class="text-xs font-medium text-gray-700">GitHub</span>
+              <span class="text-xs font-medium text-gray-700 dark:text-gray-300">GitHub</span>
             </button>
             <button
               @click="loginWithOIDC('gitlab')"
-              class="flex items-center justify-center gap-1.5 px-3 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition text-sm"
+              class="flex items-center justify-center gap-1.5 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition text-sm"
             >
               <svg class="w-4 h-4" viewBox="0 0 24 24">
                 <path
@@ -715,7 +716,7 @@
                   d="M23.546 10.93L13.067.452a1.01 1.01 0 00-1.428 0L1.16 10.93a1.01 1.01 0 000 1.428l10.48 10.478a1.01 1.01 0 001.428 0l10.478-10.478a1.01 1.01 0 000-1.428"
                 />
               </svg>
-              <span class="text-xs font-medium text-gray-700">GitLab</span>
+              <span class="text-xs font-medium text-gray-700 dark:text-gray-300">GitLab</span>
             </button>
           </div>
         </div>
@@ -724,7 +725,7 @@
         <div class="mt-5 text-center">
           <button
             @click="$dispatch('dismiss-login')"
-            class="text-sm text-gray-400 hover:text-gray-600 transition-colors"
+            class="text-sm text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
           >
             ↓ Learn more about Vagrantfile Generator
           </button>
@@ -738,7 +739,7 @@
     <div
       x-show="scrolled"
       x-transition
-      class="sticky-bar-enter fixed top-0 left-0 right-0 z-50 glass-effect border-b border-gray-200 shadow-sm"
+      class="sticky-bar-enter fixed top-0 left-0 right-0 z-50 glass-effect border-b border-gray-200 dark:border-gray-700 shadow-sm"
     >
       <div class="app-container flex justify-between items-center py-3">
         <a
@@ -753,23 +754,61 @@
             height="32"
             style="image-rendering: -webkit-optimize-contrast"
           />
-          <span class="text-lg font-bold text-gray-900"
+          <span class="text-lg font-bold text-gray-900 dark:text-gray-100"
             >Vagrantfile Generator</span
           >
         </a>
-        <a
-          href="/views/login/login.html"
-          class="btn btn-primary text-sm px-4 py-2"
-        >
-          <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-            <path
-              fill-rule="evenodd"
-              d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z"
-              clip-rule="evenodd"
-            />
-          </svg>
-          Sign In
-        </a>
+        <div class="flex items-center gap-3">
+          <button
+            type="button"
+            onclick="window.__theme && window.__theme.toggle()"
+            class="p-2.5 rounded-xl text-slate-600 dark:text-gray-200 bg-slate-50 dark:bg-gray-700 border border-slate-200 dark:border-gray-600 hover:bg-slate-100 dark:hover:bg-gray-600 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:ring-offset-2 dark:focus:ring-offset-gray-900"
+            aria-label="Toggle dark mode"
+            title="Toggle dark mode"
+          >
+            <svg
+              class="w-4 h-4 hidden dark:block"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+              aria-hidden="true"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M12 8a4 4 0 100 8 4 4 0 000-8z"
+              ></path>
+            </svg>
+            <svg
+              class="w-4 h-4 block dark:hidden"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+              aria-hidden="true"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"
+              ></path>
+            </svg>
+          </button>
+          <a
+            href="/views/login/login.html"
+            class="btn btn-primary text-sm px-4 py-2"
+          >
+            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+              <path
+                fill-rule="evenodd"
+                d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z"
+                clip-rule="evenodd"
+              />
+            </svg>
+            Sign In
+          </a>
+        </div>
       </div>
     </div>
 

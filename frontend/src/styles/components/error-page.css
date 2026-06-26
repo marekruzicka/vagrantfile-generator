@@ -372,6 +372,83 @@
     }
 }
 
+html.dark .error-page {
+    @apply bg-gray-900 bg-opacity-75;
+}
+
+html.dark .error-page__container {
+    @apply bg-gray-800 border-gray-600;
+}
+
+html.dark .error-page__title {
+    @apply text-gray-100;
+}
+
+html.dark .error-page__primary-message {
+    @apply text-gray-300;
+}
+
+html.dark .error-page__details-content {
+    @apply bg-gray-700 border-gray-600;
+}
+
+html.dark .error-page__details-content p {
+    @apply text-gray-300;
+}
+
+html.dark .error-page__details-content strong {
+    @apply text-gray-200;
+}
+
+html.dark .error-page__button--secondary {
+    @apply bg-gray-700 text-gray-200 border-gray-600;
+}
+
+html.dark .error-page__button--secondary:hover {
+    @apply bg-gray-600;
+}
+
+html.dark .error-page__button--outline {
+    @apply text-gray-300 border-gray-600;
+}
+
+html.dark .error-page__button--outline:hover {
+    @apply bg-gray-700 text-gray-200;
+}
+
+html.dark .error-page__button--ghost {
+    @apply text-gray-400;
+}
+
+html.dark .error-page__button--ghost:hover {
+    @apply text-gray-300 bg-gray-700;
+}
+
+html.dark .error-page__help {
+    @apply border-gray-600;
+}
+
+html.dark .error-page__help p {
+    @apply text-gray-400;
+}
+
+html.dark .error-page--network .error-page__title,
+html.dark .error-page--server .error-page__title {
+    @apply text-red-300;
+}
+
+html.dark .error-page--not-found .error-page__title {
+    @apply text-yellow-300;
+}
+
+html.dark .error-page--timeout .error-page__title {
+    @apply text-orange-300;
+}
+
+html.dark .error-page--forbidden .error-page__title {
+    @apply text-red-200;
+}
+
 /* High Contrast Mode */
 @media (prefers-contrast: high) {
     .error-page__container {

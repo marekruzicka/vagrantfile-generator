@@ -1,5 +1,15 @@
 # Changelog
 
+## Version 1.14.4
+
+**Date:** June 26, 2026
+
+### 🎨 UI / UX Improvements
+
+- **Dark mode**: Added class-based dark/light theme support with persisted preference, OS-theme fallback, app and landing-page toggle controls, dark styling across pages/modals/components, and no-auth Playwright coverage for theme behavior.
+
+---
+
 ## Version 1.14.3
 
 **Date:** June 25, 2026
