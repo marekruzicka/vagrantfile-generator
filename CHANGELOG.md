@@ -1,5 +1,13 @@
 # Changelog
 
+## Unreleased
+
+### 🐛 Bug Fixes
+
+- **Dashboard theme toggle**: Fixed theme toggle button not working on the authenticated dashboard after sign-in. Alpine.js directives on dynamically loaded HTML partials were never bound; added `Alpine.initTree()` re-initialization after partial injection.
+
+---
+
 ## Version 1.14.4
 
 **Date:** June 26, 2026
