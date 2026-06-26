@@ -67,13 +67,16 @@ test.describe('dark mode theme', () => {
     await expect.poll(() => themeColor(page)).toBe('#1e293b')
   })
 
-  test('theme API toggles and persists preference', async ({ page }) => {
+  test('landing page toggle is visible and persists preference', async ({ page }) => {
     await page.addInitScript(() => {
       localStorage.setItem('vfg-theme', 'light')
     })
 
     await page.goto('/landing.html')
-    await page.evaluate(() => window.__theme.toggle())
+
+    const toggle = page.getByRole('button', { name: /toggle dark mode/i })
+    await expect(toggle).toBeVisible()
+    await toggle.click()
 
     await expect(page.locator('html')).toHaveClass(/\bdark\b/)
     await expect.poll(() => themeColor(page)).toBe('#1e293b')
