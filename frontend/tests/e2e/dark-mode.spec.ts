@@ -73,8 +73,11 @@ test.describe('dark mode theme', () => {
     })
 
     await page.goto('/landing.html')
+    await page.getByText(/learn more about vagrantfile generator/i).click()
 
-    const toggle = page.getByRole('button', { name: /toggle dark mode/i })
+    const stickyBar = page.locator('.sticky-bar-enter')
+    await expect(stickyBar).toBeVisible()
+    const toggle = stickyBar.getByRole('button', { name: /toggle dark mode/i })
     await expect(toggle).toBeVisible()
     await toggle.click()
 
