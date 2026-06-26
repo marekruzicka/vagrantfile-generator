@@ -36,6 +36,9 @@ class HTMLLoader {
             const html = await this.loadPartial(path);
             element.innerHTML = html;
             element.removeAttribute('data-include-html');
+            if (typeof Alpine !== 'undefined' && Alpine.initTree) {
+                Alpine.initTree(element);
+            }
         }
     }
 
@@ -44,6 +47,9 @@ class HTMLLoader {
         if (modalContainer) {
             const html = await this.loadPartial(path);
             modalContainer.innerHTML = html;
+            if (typeof Alpine !== 'undefined' && Alpine.initTree) {
+                Alpine.initTree(modalContainer);
+            }
         }
     }
 }

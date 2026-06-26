@@ -1,5 +1,13 @@
 # Changelog
 
+## Version 1.14.5
+
+### 🐛 Bug Fixes
+
+- **Dashboard theme toggle**: Fixed theme toggle button not working on the authenticated dashboard after sign-in. Alpine.js directives on dynamically loaded HTML partials were never bound; added `Alpine.initTree()` re-initialization after partial injection.
+
+---
+
 ## Version 1.14.4
 
 **Date:** June 26, 2026
@@ -247,7 +255,6 @@
 ### ✨ New Features
 
 - **Collapsible Sections**: Improved content organization and navigation
-
   - All major sections (Plugins, Provisioners, Triggers, VMs) can now be collapsed/expanded
   - Toggle sections by clicking either the chevron icon or the section name
   - Smooth expand/collapse transitions with visual feedback
@@ -256,7 +263,6 @@
   - Available on both Project Detail and Settings pages (8 collapsible sections total)
 
 - **Enhanced Main Page Layout**: More compact and efficient use of screen space
-
   - Reduced header padding and spacing for less whitespace
   - Added global statistics cards showing total Plugins, Provisioners, and Triggers
   - Implemented 6-column responsive grid layout for statistics cards
@@ -274,14 +280,12 @@
 ### 🎨 UI/UX Improvements
 
 - **Better Interaction Design**: More intuitive and accessible controls
-
   - Section headers are now fully clickable, not just the chevron buttons
   - Hover states provide clear visual feedback on interactive elements
   - Reduced visual clutter by removing unnecessary subtitle text from cards
   - Progressive disclosure pattern improves navigation with large datasets
 
 - **Modal Enhancements**: Standardized and improved modal experiences
-
   - Trigger modal now uses checkmark icon instead of plus sign (consistent with other modals)
   - Enhanced empty states with X icons for better visual communication
   - Improved button consistency across all modals
@@ -308,7 +312,6 @@
 ### ✨ New Features
 
 - **Global Provisioner Management**: Add and configure Vagrant provisioners for your projects
-
   - Manage shell provisioners through the Settings page
   - Add, edit, and delete provisioner configurations
   - Configure shell scripts, privilege levels, and run modes (once/always)
@@ -316,7 +319,6 @@
   - View provisioner descriptions and details
 
 - **Project-Level Provisioner Configuration**: Assign provisioners to individual projects
-
   - Add multiple provisioners to any project from the project detail page
   - Multiselect modal with checkbox-based selection for adding multiple provisioners at once
   - Visual provisioner cards showing name, type, and description
@@ -327,7 +329,6 @@
   - Provisioners are organized in the Settings page, separate from plugins
 
 - **Enhanced Plugin Management**: Improved plugin workflow and UX
-
   - **Smart Filtering**: Plugin modal now only shows plugins not yet added to the project
   - **Edit from Project Detail**: Edit plugins directly from the project detail page without navigating away
   - **Improved Error Handling**: Better feedback when plugins already exist or fail to add
@@ -367,14 +368,12 @@
 ### ✨ New Features
 
 - **Global Plugin Management**: Add and configure Vagrant plugins for your projects
-
   - Manage plugins through the Settings page
   - Add, edit, and delete plugin configurations
   - Set default versions and mark deprecated plugins
   - View plugin descriptions and details
 
 - **Project-Level Plugin Configuration**: Assign plugins to individual projects
-
   - Add multiple plugins to any project from the project detail page
   - Visual plugin cards showing name, version, and status
   - Bulk selection and deletion of plugins
@@ -382,7 +381,6 @@
   - Simple empty state when no plugins are configured
 
 - **Enhanced Vagrantfile Generation**: Generated Vagrantfiles now include plugin configurations
-
   - Plugins are automatically added to the Vagrant configuration
   - Version constraints are respected
   - Proper Ruby syntax with color-coded highlighting in preview modal
@@ -407,7 +405,6 @@
 ### ✨ New Features
 
 - **Configurable Footer**: View changelog, documentation, and external links from the footer
-
   - Click footer links to view content in a modal window
   - External links open in new tabs automatically
   - Markdown documents displayed with proper formatting
