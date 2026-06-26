@@ -6,7 +6,7 @@
       <div class="flex items-center space-x-4 flex-1">
         <button
           @click="showProjects()"
-          class="text-gray-500 hover:text-gray-700 p-2 rounded-lg hover:bg-gray-100 transition-colors"
+          class="text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
         >
           <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
             <path
@@ -18,11 +18,11 @@
         </button>
         <div class="flex-1">
           <h2
-            class="text-3xl font-bold text-gray-900"
+            class="text-3xl font-bold text-gray-900 dark:text-gray-100"
             x-text="currentProject?.name"
           ></h2>
           <p
-            class="text-gray-600 mt-1"
+            class="text-gray-600 dark:text-gray-400 mt-1"
             x-text="currentProject?.description || 'No description provided'"
           ></p>
         </div>
@@ -31,7 +31,7 @@
       <!-- VM Count, Status, and Actions in header -->
       <div class="flex items-center space-x-3 ml-4">
         <span
-          class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800"
+          class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 dark:bg-blue-900/40 text-blue-800 dark:text-blue-300"
         >
           <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
             <path
@@ -47,8 +47,8 @@
         <div
           class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium"
           :class="{
-               'bg-gray-100 text-gray-800': currentProject?.deployment_status === 'draft',
-               'bg-green-100 text-green-800': currentProject?.deployment_status === 'ready'
+               'bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200': currentProject?.deployment_status === 'draft',
+               'bg-green-100 dark:bg-green-900/40 text-green-800 dark:text-green-300': currentProject?.deployment_status === 'ready'
              }"
         >
           <div
@@ -82,12 +82,12 @@
           <div
             x-show="showStatusMenu"
             @click.away="showStatusMenu = false"
-            class="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 z-50"
+            class="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 z-50"
           >
             <div class="py-1">
               <button
                 @click="updateDeploymentStatus(currentProject.id, 'draft'); showStatusMenu = false"
-                class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                class="block w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
               >
                 <div class="flex items-center">
                   <div class="w-2 h-2 bg-gray-500 rounded-full mr-3"></div>
@@ -96,7 +96,7 @@
               </button>
               <button
                 @click="updateDeploymentStatus(currentProject.id, 'ready'); showStatusMenu = false"
-                class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                class="block w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
               >
                 <div class="flex items-center">
                   <div class="w-2 h-2 bg-green-500 rounded-full mr-3"></div>
@@ -116,7 +116,7 @@
       <div class="flex items-center space-x-4">
         <button
           @click="sectionsOpen.projectPlugins = !sectionsOpen.projectPlugins"
-          class="text-gray-500 hover:text-gray-700 transition-colors p-1"
+          class="text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 transition-colors p-1"
         >
           <svg
             class="w-5 h-5 transition-transform"
@@ -133,7 +133,7 @@
         </button>
         <h3
           @click="sectionsOpen.projectPlugins = !sectionsOpen.projectPlugins"
-          class="text-2xl font-bold text-gray-900 cursor-pointer hover:text-gray-700 transition-colors"
+          class="text-2xl font-bold text-gray-900 dark:text-gray-100 cursor-pointer hover:text-gray-700 dark:hover:text-gray-200 transition-colors"
         >
           Plugins
         </h3>
@@ -142,7 +142,7 @@
           class="flex items-center space-x-2"
         >
           <span
-            class="text-sm text-gray-600"
+            class="text-sm text-gray-600 dark:text-gray-400"
             x-text="`${selectedPlugins.length} selected`"
           ></span>
           <button
@@ -197,7 +197,7 @@
     >
       <template x-for="plugin in getProjectPlugins()" :key="plugin.id">
         <div
-          class="border border-gray-200 rounded-lg p-4 hover:border-purple-300 transition-colors group"
+          class="border border-gray-200 dark:border-gray-700 rounded-lg p-4 hover:border-purple-300 transition-colors group"
           :class="{ 'ring-2 ring-purple-500': isPluginSelected(plugin.id) }"
         >
           <div class="flex items-start justify-between mb-3">
@@ -206,7 +206,7 @@
                 type="checkbox"
                 :checked="isPluginSelected(plugin.id)"
                 @change="togglePluginSelection(plugin.id)"
-                class="w-4 h-4 text-purple-600 border-gray-300 rounded focus:ring-purple-500"
+                class="w-4 h-4 text-purple-600 border-gray-300 dark:border-gray-600 rounded focus:ring-purple-500"
               />
               <div
                 class="w-10 h-10 bg-gradient-to-br from-purple-500 to-pink-600 rounded-lg flex items-center justify-center flex-shrink-0"
@@ -225,11 +225,11 @@
               </div>
               <div>
                 <h4
-                  class="text-base font-bold text-gray-900 mb-1"
+                  class="text-base font-bold text-gray-900 dark:text-gray-100 mb-1"
                   x-text="plugin.name"
                 ></h4>
                 <p
-                  class="text-xs text-gray-500"
+                  class="text-xs text-gray-500 dark:text-gray-400"
                   x-text="plugin.default_version || 'latest'"
                 ></p>
               </div>
@@ -266,7 +266,7 @@
               </button>
               <button
                 @click="openDeleteProjectPluginModal(plugin)"
-                class="text-red-500 hover:text-red-700 p-1 rounded hover:bg-red-50"
+                class="text-red-500 hover:text-red-700 p-1 rounded hover:bg-red-50 dark:hover:bg-red-900/30"
                 title="Remove plugin from project"
               >
                 <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
@@ -284,7 +284,7 @@
           <div class="flex gap-2">
             <span
               class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium"
-              :class="plugin.is_deprecated ? 'bg-red-100 text-red-800' : 'bg-green-100 text-green-800'"
+              :class="plugin.is_deprecated ? 'bg-red-100 dark:bg-red-900/40 text-red-800 dark:text-red-300' : 'bg-green-100 dark:bg-green-900/40 text-green-800 dark:text-green-300'"
             >
               <span
                 x-text="plugin.is_deprecated ? 'Deprecated' : 'Active'"
@@ -292,7 +292,7 @@
             </span>
             <span
               x-show="plugin.is_shared"
-              class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-700"
+              class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300"
               title="This is a shared resource. Click Edit to create your copy."
             >
               <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
@@ -315,7 +315,7 @@
       x-show="sectionsOpen.projectPlugins && !currentProject?.global_plugins?.length"
       class="text-center py-4"
     >
-      <p class="text-gray-500">No plugins configured for this project.</p>
+      <p class="text-gray-500 dark:text-gray-400">No plugins configured for this project.</p>
     </div>
   </div>
 
@@ -325,7 +325,7 @@
       <div class="flex items-center space-x-4">
         <button
           @click="sectionsOpen.projectProvisioners = !sectionsOpen.projectProvisioners"
-          class="text-gray-500 hover:text-gray-700 transition-colors p-1"
+          class="text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 transition-colors p-1"
         >
           <svg
             class="w-5 h-5 transition-transform"
@@ -342,7 +342,7 @@
         </button>
         <h3
           @click="sectionsOpen.projectProvisioners = !sectionsOpen.projectProvisioners"
-          class="text-2xl font-bold text-gray-900 cursor-pointer hover:text-gray-700 transition-colors"
+          class="text-2xl font-bold text-gray-900 dark:text-gray-100 cursor-pointer hover:text-gray-700 dark:hover:text-gray-200 transition-colors"
         >
           Provisioners
         </h3>
@@ -351,7 +351,7 @@
           class="flex items-center space-x-2"
         >
           <span
-            class="text-sm text-gray-600"
+            class="text-sm text-gray-600 dark:text-gray-400"
             x-text="`${selectedProvisioners.length} selected`"
           ></span>
           <button
@@ -412,7 +412,7 @@
         :key="provisionerId"
       >
         <div
-          class="border border-gray-200 rounded-lg p-4 hover:border-blue-300 transition-colors group"
+          class="border border-gray-200 dark:border-gray-700 rounded-lg p-4 hover:border-blue-300 transition-colors group"
           :class="{ 'ring-2 ring-blue-500': isProvisionerSelected(provisionerId) }"
         >
           <div class="flex items-start justify-between mb-3">
@@ -421,7 +421,7 @@
                 type="checkbox"
                 :checked="isProvisionerSelected(provisionerId)"
                 @change="toggleProvisionerSelection(provisionerId)"
-                class="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                class="w-4 h-4 text-blue-600 border-gray-300 dark:border-gray-600 rounded focus:ring-blue-500"
               />
               <div
                 class="w-10 h-10 bg-gradient-to-br from-blue-500 to-cyan-600 rounded-lg flex items-center justify-center flex-shrink-0"
@@ -444,11 +444,11 @@
               </div>
               <div>
                 <h4
-                  class="text-base font-bold text-gray-900 mb-1"
+                  class="text-base font-bold text-gray-900 dark:text-gray-100 mb-1"
                   x-text="getProvisionerName(provisionerId)"
                 ></h4>
                 <p
-                  class="text-xs text-gray-500"
+                  class="text-xs text-gray-500 dark:text-gray-400"
                   x-text="getProvisionerType(provisionerId)"
                 ></p>
               </div>
@@ -487,7 +487,7 @@
               <button
                 @click="openDeleteProjectProvisionerModal(provisionerId)"
                 x-show="currentProject?.deployment_status !== 'ready'"
-                class="text-red-500 hover:text-red-700 p-1 rounded hover:bg-red-50"
+                class="text-red-500 hover:text-red-700 p-1 rounded hover:bg-red-50 dark:hover:bg-red-900/30"
                 title="Remove provisioner from project"
               >
                 <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
@@ -502,20 +502,20 @@
           </div>
 
           <p
-            class="text-sm text-gray-600 mb-2"
+            class="text-sm text-gray-600 dark:text-gray-400 mb-2"
             x-text="getProvisionerDescription(provisionerId)"
           ></p>
 
           <!-- Status Badges -->
           <div class="flex gap-2">
             <span
-              class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800"
+              class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 dark:bg-blue-900/40 text-blue-800 dark:text-blue-300"
             >
               global
             </span>
             <span
               x-show="isProvisionerShared(provisionerId)"
-              class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-700"
+              class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300"
               title="This is a shared resource. Click Edit to create your copy."
             >
               <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
@@ -538,7 +538,7 @@
       x-show="sectionsOpen.projectProvisioners && !currentProject?.global_provisioners?.length"
       class="text-center py-4"
     >
-      <p class="text-gray-500">No provisioners configured for this project.</p>
+      <p class="text-gray-500 dark:text-gray-400">No provisioners configured for this project.</p>
     </div>
   </div>
 
@@ -548,7 +548,7 @@
       <div class="flex items-center space-x-4">
         <button
           @click="sectionsOpen.projectTriggers = !sectionsOpen.projectTriggers"
-          class="text-gray-500 hover:text-gray-700 transition-colors p-1"
+          class="text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 transition-colors p-1"
         >
           <svg
             class="w-5 h-5 transition-transform"
@@ -565,7 +565,7 @@
         </button>
         <h3
           @click="sectionsOpen.projectTriggers = !sectionsOpen.projectTriggers"
-          class="text-2xl font-bold text-gray-900 cursor-pointer hover:text-gray-700 transition-colors"
+          class="text-2xl font-bold text-gray-900 dark:text-gray-100 cursor-pointer hover:text-gray-700 dark:hover:text-gray-200 transition-colors"
         >
           Triggers
         </h3>
@@ -574,7 +574,7 @@
           class="flex items-center space-x-2"
         >
           <span
-            class="text-sm text-gray-600"
+            class="text-sm text-gray-600 dark:text-gray-400"
             x-text="`${selectedTriggers.length} selected`"
           ></span>
           <button
@@ -632,7 +632,7 @@
         :key="triggerId"
       >
         <div
-          class="border border-gray-200 rounded-lg p-4 hover:border-orange-300 transition-colors group"
+          class="border border-gray-200 dark:border-gray-700 rounded-lg p-4 hover:border-orange-300 transition-colors group"
           :class="{ 'ring-2 ring-orange-500': isTriggerSelected(triggerId) }"
         >
           <div class="flex items-start justify-between mb-3">
@@ -641,7 +641,7 @@
                 type="checkbox"
                 :checked="isTriggerSelected(triggerId)"
                 @change="toggleTriggerSelection(triggerId)"
-                class="w-4 h-4 text-orange-600 border-gray-300 rounded focus:ring-orange-500"
+                class="w-4 h-4 text-orange-600 border-gray-300 dark:border-gray-600 rounded focus:ring-orange-500"
               />
               <div
                 class="w-10 h-10 bg-gradient-to-br from-orange-500 to-red-600 rounded-lg flex items-center justify-center flex-shrink-0"
@@ -660,18 +660,18 @@
               </div>
               <div>
                 <h4
-                  class="text-base font-bold text-gray-900 mb-1"
+                  class="text-base font-bold text-gray-900 dark:text-gray-100 mb-1"
                   x-text="getTriggerName(triggerId)"
                 ></h4>
                 <div class="flex items-center space-x-1 text-xs">
                   <span
                     class="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium"
-                    :class="getTriggerTiming(triggerId) === 'before' ? 'bg-yellow-100 text-yellow-800' : 'bg-green-100 text-green-800'"
+                    :class="getTriggerTiming(triggerId) === 'before' ? 'bg-yellow-100 dark:bg-yellow-900/40 text-yellow-800 dark:text-yellow-300' : 'bg-green-100 dark:bg-green-900/40 text-green-800 dark:text-green-300'"
                     x-text="getTriggerTiming(triggerId)"
                   ></span>
-                  <span class="text-gray-500">:</span>
+                  <span class="text-gray-500 dark:text-gray-400">:</span>
                   <span
-                    class="text-gray-600 font-medium"
+                    class="text-gray-600 dark:text-gray-400 font-medium"
                     x-text="getTriggerStage(triggerId)"
                   ></span>
                 </div>
@@ -710,7 +710,7 @@
               <button
                 @click="confirmDeleteProjectTrigger(getTriggerById(triggerId))"
                 x-show="currentProject?.deployment_status !== 'ready'"
-                class="text-red-500 hover:text-red-700 p-1 rounded hover:bg-red-50"
+                class="text-red-500 hover:text-red-700 p-1 rounded hover:bg-red-50 dark:hover:bg-red-900/30"
                 title="Remove trigger from project"
               >
                 <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
@@ -725,14 +725,14 @@
           </div>
 
           <p
-            class="text-sm text-gray-600 mb-2"
+            class="text-sm text-gray-600 dark:text-gray-400 mb-2"
             x-text="getTriggerDescription(triggerId)"
           ></p>
 
           <!-- Read-only Badge for shared triggers -->
           <div x-show="isTriggerShared(triggerId)">
             <span
-              class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-700"
+              class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300"
               title="This is a shared resource. Click Edit to create your copy."
             >
               <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
@@ -755,7 +755,7 @@
       x-show="sectionsOpen.projectTriggers && !currentProject?.global_triggers?.length"
       class="text-center py-4"
     >
-      <p class="text-gray-500">No triggers configured for this project.</p>
+      <p class="text-gray-500 dark:text-gray-400">No triggers configured for this project.</p>
     </div>
   </div>
 
@@ -765,7 +765,7 @@
       <div class="flex items-center space-x-4">
         <button
           @click="sectionsOpen.projectVMs = !sectionsOpen.projectVMs"
-          class="text-gray-500 hover:text-gray-700 transition-colors p-1"
+          class="text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 transition-colors p-1"
         >
           <svg
             class="w-5 h-5 transition-transform"
@@ -782,7 +782,7 @@
         </button>
         <h3
           @click="sectionsOpen.projectVMs = !sectionsOpen.projectVMs"
-          class="text-2xl font-bold text-gray-900 cursor-pointer hover:text-gray-700 transition-colors"
+          class="text-2xl font-bold text-gray-900 dark:text-gray-100 cursor-pointer hover:text-gray-700 dark:hover:text-gray-200 transition-colors"
         >
           Virtual Machines
         </h3>
@@ -791,7 +791,7 @@
           class="flex items-center space-x-2"
         >
           <span
-            class="text-sm text-gray-600"
+            class="text-sm text-gray-600 dark:text-gray-400"
             x-text="`${selectedVMs.length} selected`"
           ></span>
           <button
@@ -847,9 +847,9 @@
     <!-- Label-based Quick Selection -->
     <div
       x-show="sectionsOpen.projectVMs && projectLabels && projectLabels.length > 0"
-      class="bg-gray-50 border border-gray-200 rounded-lg p-4 mb-6"
+      class="bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg p-4 mb-6"
     >
-      <h4 class="text-sm font-medium text-gray-700 mb-3">
+      <h4 class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
         Quick Select by Labels:
       </h4>
       <div class="flex flex-wrap gap-2">
@@ -859,7 +859,7 @@
             class="inline-flex items-center px-3 py-1 rounded-lg text-sm border transition-colors"
             :class="isLabelFullySelected(label) ? 
                          'bg-blue-500 text-white border-blue-500' : 
-                         'bg-white text-gray-700 border-gray-300 hover:bg-gray-100'"
+                         'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700'"
           >
             <span x-text="label"></span>
             <span
@@ -869,7 +869,7 @@
           </button>
         </template>
       </div>
-      <p class="text-xs text-gray-500 mt-2">
+      <p class="text-xs text-gray-500 dark:text-gray-400 mt-2">
         Click a label to select/deselect all VMs with that label
       </p>
     </div>
@@ -890,7 +890,7 @@
                 type="checkbox"
                 :checked="isVMSelected(vm.id)"
                 @change="toggleVMSelection(vm.id)"
-                class="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                class="w-4 h-4 text-blue-600 border-gray-300 dark:border-gray-600 rounded focus:ring-blue-500"
               />
               <div
                 class="w-10 h-10 bg-gradient-to-br from-green-500 to-emerald-600 rounded-lg flex items-center justify-center"
@@ -909,10 +909,10 @@
               </div>
               <div>
                 <h4
-                  class="text-lg font-bold text-gray-900"
+                  class="text-lg font-bold text-gray-900 dark:text-gray-100"
                   x-text="vm.name"
                 ></h4>
-                <p class="text-sm text-gray-500 mb-2">Virtual Machine</p>
+                <p class="text-sm text-gray-500 dark:text-gray-400 mb-2">Virtual Machine</p>
                 <!-- VM Labels Display -->
                 <div class="min-h-[24px]">
                   <div
@@ -921,14 +921,14 @@
                   >
                     <template x-for="label in vm.labels" :key="label">
                       <span
-                        class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800"
+                        class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 dark:bg-blue-900/40 text-blue-800 dark:text-blue-300"
                         x-text="label"
                       ></span>
                     </template>
                   </div>
                   <div
                     x-show="!vm.labels || vm.labels.length === 0"
-                    class="text-xs text-gray-400 italic"
+                    class="text-xs text-gray-400 dark:text-gray-500 italic"
                   >
                     No labels
                   </div>
@@ -941,7 +941,7 @@
             >
               <button
                 @click="openEditVMModal(vm)"
-                class="opacity-0 group-hover:opacity-100 transition-opacity text-blue-500 hover:text-blue-700 p-2 rounded-lg hover:bg-blue-50"
+                class="opacity-0 group-hover:opacity-100 transition-opacity text-blue-500 hover:text-blue-700 p-2 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/30"
               >
                 <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                   <path
@@ -951,7 +951,7 @@
               </button>
               <button
                 @click="openDeleteConfirmModal(vm, 'vm')"
-                class="opacity-0 group-hover:opacity-100 transition-opacity text-red-500 hover:text-red-700 p-2 rounded-lg hover:bg-red-50"
+                class="opacity-0 group-hover:opacity-100 transition-opacity text-red-500 hover:text-red-700 p-2 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/30"
               >
                 <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                   <path
@@ -981,43 +981,43 @@
 
           <div class="space-y-3">
             <div class="flex items-center justify-between">
-              <span class="text-sm font-medium text-gray-600">Box:</span>
+              <span class="text-sm font-medium text-gray-600 dark:text-gray-400">Box:</span>
               <span
-                class="text-sm text-gray-900 font-mono bg-gray-100 px-2 py-1 rounded"
+                class="text-sm text-gray-900 dark:text-gray-100 font-mono bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded"
                 x-text="vm.box"
               ></span>
             </div>
             <div class="flex items-center justify-between">
-              <span class="text-sm font-medium text-gray-600">Memory:</span>
+              <span class="text-sm font-medium text-gray-600 dark:text-gray-400">Memory:</span>
               <span
-                class="text-sm text-gray-900 font-semibold"
+                class="text-sm text-gray-900 dark:text-gray-100 font-semibold"
                 x-text="`${vm.memory} MB`"
               ></span>
             </div>
             <div class="flex items-center justify-between">
-              <span class="text-sm font-medium text-gray-600">CPUs:</span>
+              <span class="text-sm font-medium text-gray-600 dark:text-gray-400">CPUs:</span>
               <span
-                class="text-sm text-gray-900 font-semibold"
+                class="text-sm text-gray-900 dark:text-gray-100 font-semibold"
                 x-text="vm.cpus"
               ></span>
             </div>
             <div x-show="vm.hostname" class="flex items-center justify-between">
-              <span class="text-sm font-medium text-gray-600">Hostname:</span>
+              <span class="text-sm font-medium text-gray-600 dark:text-gray-400">Hostname:</span>
               <span
-                class="text-sm text-gray-900 font-semibold"
+                class="text-sm text-gray-900 dark:text-gray-100 font-semibold"
                 x-text="vm.hostname"
               ></span>
             </div>
             <div
               x-show="vm.network_interfaces && vm.network_interfaces.length > 0"
-              class="border-t border-gray-200 pt-3 mt-3"
+              class="border-t border-gray-200 dark:border-gray-700 pt-3 mt-3"
             >
               <div class="flex items-center justify-between mb-2">
-                <span class="text-sm font-medium text-gray-600"
+                <span class="text-sm font-medium text-gray-600 dark:text-gray-400"
                   >Network Interfaces:</span
                 >
                 <span
-                  class="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full"
+                  class="text-xs bg-blue-100 dark:bg-blue-900/40 text-blue-800 dark:text-blue-300 px-2 py-1 rounded-full"
                   x-text="vm.network_interfaces.length"
                 ></span>
               </div>
@@ -1027,7 +1027,7 @@
                   :key="interface.id"
                 >
                   <div
-                    class="text-xs text-gray-600 bg-gray-50 px-2 py-1 rounded"
+                    class="text-xs text-gray-600 dark:text-gray-400 bg-gray-50 dark:bg-gray-900 px-2 py-1 rounded"
                   >
                     <span
                       class="font-medium"
@@ -1039,7 +1039,7 @@
                 </template>
                 <div
                   x-show="vm.network_interfaces.length > 3"
-                  class="text-xs text-gray-500 italic"
+                  class="text-xs text-gray-500 dark:text-gray-400 italic"
                 >
                   +<span x-text="vm.network_interfaces.length - 3"></span>
                   more...
@@ -1060,7 +1060,7 @@
         class="mx-auto h-24 w-24 bg-gradient-to-br from-gray-100 to-gray-200 rounded-full flex items-center justify-center mb-6"
       >
         <svg
-          class="h-12 w-12 text-gray-400"
+          class="h-12 w-12 text-gray-400 dark:text-gray-500"
           fill="none"
           viewBox="0 0 24 24"
           stroke="currentColor"
@@ -1073,10 +1073,10 @@
           ></path>
         </svg>
       </div>
-      <h3 class="text-lg font-medium text-gray-900 mb-2">
+      <h3 class="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">
         No virtual machines configured
       </h3>
-      <p class="text-gray-500 mb-6">
+      <p class="text-gray-500 dark:text-gray-400 mb-6">
         Add your first VM to start building your development environment.
       </p>
       <button @click="openCreateVMModal()" class="btn btn-success">

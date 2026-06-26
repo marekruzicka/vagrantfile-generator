@@ -87,7 +87,7 @@
       }
     } catch (e) {
       // If localStorage is not available, still show nothing harmful
-      console.error('cookie-consent init error', e)
+      console.warn('cookie-consent init error', e)
     }
   }
 

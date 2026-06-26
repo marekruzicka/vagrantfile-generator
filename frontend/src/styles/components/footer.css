@@ -473,6 +473,47 @@
   }
 }
 
+html.dark .footer-component {
+  background-color: #1f2937; /* bg-gray-800 */
+  border-color: #374151; /* border-gray-700 */
+}
+
+html.dark .footer-component .internal-link {
+  color: #d1d5db; /* text-gray-300 */
+}
+
+html.dark .footer-component .internal-link:hover {
+  color: #ffffff; /* text-white */
+}
+
+html.dark .footer-component .internal-link.active {
+  color: #60a5fa; /* text-blue-400 */
+}
+
+html.dark .footer-component .external-link {
+  color: #d1d5db; /* text-gray-300 */
+}
+
+html.dark .footer-component .external-link:hover {
+  color: #ffffff; /* text-white */
+}
+
+html.dark .footer-component .loading-spinner {
+  color: #d1d5db;
+}
+
+html.dark .footer-component .error-message {
+  color: #f87171; /* text-red-400 */
+}
+
+html.dark .footer-component .error-retry-button {
+  color: #f87171;
+}
+
+html.dark .footer-component .error-retry-button:hover {
+  color: #fca5a5; /* text-red-300 */
+}
+
 /* ===== PRINT STYLES ===== */
 
 @media print {

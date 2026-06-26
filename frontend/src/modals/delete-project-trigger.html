@@ -4,11 +4,11 @@
      class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50"
      @click.self="showDeleteProjectTriggerModal = false">
     
-    <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+    <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white dark:bg-gray-800">
         <!-- Header -->
         <div class="flex justify-between items-center pb-3 border-b">
-            <h3 class="text-xl font-semibold text-gray-900">Remove Trigger</h3>
-            <button @click="showDeleteProjectTriggerModal = false" class="text-gray-400 hover:text-gray-600">
+            <h3 class="text-xl font-semibold text-gray-900 dark:text-gray-100">Remove Trigger</h3>
+            <button @click="showDeleteProjectTriggerModal = false" class="text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300">
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
                 </svg>
@@ -24,12 +24,12 @@
                     </svg>
                 </div>
                 <div class="flex-1">
-                    <p class="text-sm text-gray-700">
+                    <p class="text-sm text-gray-700 dark:text-gray-300">
                         Are you sure you want to remove the trigger 
                         <strong x-text="deletingProjectTrigger?.name"></strong> 
                         from this project?
                     </p>
-                    <p class="text-sm text-gray-500 mt-2">
+                    <p class="text-sm text-gray-500 dark:text-gray-400 mt-2">
                         This will only remove it from the project. The trigger template will still be available in Settings.
                     </p>
                 </div>

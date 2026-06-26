@@ -4,11 +4,11 @@
      class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50"
      @click.self="showEditTriggerModal = false">
     
-    <div class="relative top-10 mx-auto p-5 border w-11/12 md:w-3/4 lg:w-2/3 shadow-lg rounded-md bg-white max-h-[90vh] flex flex-col">
+    <div class="relative top-10 mx-auto p-5 border w-11/12 md:w-3/4 lg:w-2/3 shadow-lg rounded-md bg-white dark:bg-gray-800 max-h-[90vh] flex flex-col">
         <!-- Header -->
         <div class="flex justify-between items-center pb-3 border-b">
-            <h3 class="text-xl font-semibold text-gray-900" x-text="triggerForm.id ? 'Edit Trigger' : 'Create New Trigger'"></h3>
-            <button @click="showEditTriggerModal = false" class="text-gray-400 hover:text-gray-600">
+            <h3 class="text-xl font-semibold text-gray-900 dark:text-gray-100" x-text="triggerForm.id ? 'Edit Trigger' : 'Create New Trigger'"></h3>
+            <button @click="showEditTriggerModal = false" class="text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300">
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
                 </svg>
@@ -17,12 +17,12 @@
         
         <!-- Phase 1: Info Banner for Copied Resources -->
         <div x-show="editContext.isCopiedFromShared" 
-             class="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+             class="mt-4 p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
             <div class="flex items-start">
                 <svg class="w-5 h-5 text-blue-600 mr-2 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
                     <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"></path>
                 </svg>
-                <p class="text-sm text-blue-800">
+                <p class="text-sm text-blue-800 dark:text-blue-300">
                     This is your copy of a shared resource. Changes will only affect your projects.
                 </p>
             </div>
@@ -33,48 +33,48 @@
             <div class="space-y-4">
                 <!-- Name -->
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                         Trigger Name <span class="text-red-500">*</span>
                     </label>
                     <input type="text" 
                            x-model="triggerForm.name" 
                            required
                            placeholder="e.g., RHC Connect"
-                           class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                           class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
                 </div>
 
                 <!-- Description -->
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                         Description
                     </label>
                     <textarea x-model="triggerForm.description" 
                               rows="2"
                               placeholder="Optional description of what this trigger does"
-                              class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"></textarea>
+                              class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"></textarea>
                 </div>
 
                 <!-- Timing and Stage -->
                 <div class="grid grid-cols-2 gap-4">
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                             Timing <span class="text-red-500">*</span>
                         </label>
                         <select x-model="triggerForm.trigger_config.timing" 
                                 required
-                                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
                             <option value="before">Before</option>
                             <option value="after">After</option>
                         </select>
                     </div>
 
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                             Stage <span class="text-red-500">*</span>
                         </label>
                         <select x-model="triggerForm.trigger_config.stage" 
                                 required
-                                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
                             <option value="up">up</option>
                             <option value="destroy">destroy</option>
                             <option value="halt">halt</option>
@@ -87,7 +87,7 @@
 
                 <!-- Execution Target -->
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                         Execution Target <span class="text-red-500">*</span>
                     </label>
                     <div class="space-y-2">
@@ -96,21 +96,21 @@
                                    x-model="triggerForm.executionTarget" 
                                    value="run"
                                    class="h-4 w-4 text-blue-600">
-                            <span class="ml-2 text-sm text-gray-700">Run locally (on host machine)</span>
+                            <span class="ml-2 text-sm text-gray-700 dark:text-gray-300">Run locally (on host machine)</span>
                         </label>
                         <label class="flex items-center">
                             <input type="radio" 
                                    x-model="triggerForm.executionTarget" 
                                    value="run_remote"
                                    class="h-4 w-4 text-blue-600">
-                            <span class="ml-2 text-sm text-gray-700">Run remotely (inside VM)</span>
+                            <span class="ml-2 text-sm text-gray-700 dark:text-gray-300">Run remotely (inside VM)</span>
                         </label>
                     </div>
                 </div>
 
                 <!-- Command -->
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                         Command <span class="text-red-500">*</span>
                     </label>
                     <textarea x-show="triggerForm.executionTarget === 'run'"
@@ -118,61 +118,61 @@
                               rows="4"
                               :required="triggerForm.executionTarget === 'run'"
                               placeholder="e.g., echo 'Starting backup...'"
-                              class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono text-sm"></textarea>
+                              class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono text-sm"></textarea>
                     
                     <textarea x-show="triggerForm.executionTarget === 'run_remote'"
                               x-model="triggerForm.trigger_config.run_remote_inline" 
                               rows="4"
                               :required="triggerForm.executionTarget === 'run_remote'"
                               placeholder="e.g., sudo systemctl restart myservice"
-                              class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono text-sm"></textarea>
+                              class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono text-sm"></textarea>
                 </div>
 
                 <!-- Optional Fields -->
                 <details class="border rounded-md p-3">
-                    <summary class="cursor-pointer font-medium text-gray-700">Optional Fields</summary>
+                    <summary class="cursor-pointer font-medium text-gray-700 dark:text-gray-300">Optional Fields</summary>
                     <div class="mt-3 space-y-3">
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">
+                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                                 Trigger Identifier (name)
                             </label>
                             <input type="text" 
                                    x-model="triggerForm.trigger_config.name" 
                                    placeholder="e.g., backup_trigger"
-                                   class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
-                            <p class="text-xs text-gray-500 mt-1">Internal identifier used in Vagrantfile</p>
+                                   class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Internal identifier used in Vagrantfile</p>
                         </div>
 
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">
+                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                                 Info Message
                             </label>
                             <input type="text" 
                                    x-model="triggerForm.trigger_config.info" 
                                    placeholder="e.g., Starting backup process..."
-                                   class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                   class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
                         </div>
 
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">
+                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                                 Warning Message
                             </label>
                             <input type="text" 
                                    x-model="triggerForm.trigger_config.warn" 
                                    placeholder="Optional warning message"
-                                   class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                   class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
                         </div>
                     </div>
                 </details>
 
                 <!-- Error Handling -->
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                         On Error <span class="text-red-500">*</span>
                     </label>
                     <select x-model="triggerForm.trigger_config.on_error" 
                             required
-                            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
                         <option value="continue">Continue (ignore errors)</option>
                         <option value="halt">Halt (stop on error)</option>
                     </select>
