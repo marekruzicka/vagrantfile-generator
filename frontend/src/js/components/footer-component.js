@@ -19,6 +19,7 @@ function footerComponent() {
         screenReaderAnnouncement: '',
         lastApiCall: null,
         errorCount: 0,
+        frontendVersion: '',  // Fetched from /api/version
         
         // Modal state for internal content
         showContentModal: false,
@@ -72,6 +73,18 @@ function footerComponent() {
                     throw new Error(`HTTP ${pagesResponse.status}: ${pagesResponse.statusText}`);
                 }
                 const pagesData = await pagesResponse.json();
+
+                // Fetch version information from backend (gracefully degrade on failure)
+                try {
+                    const versionResponse = await fetch('/api/version');
+                    if (versionResponse.ok) {
+                        const versionData = await versionResponse.json();
+                        this.frontendVersion = versionData.frontend || '';
+                    }
+                } catch (e) {
+                    // Version fetch failed silently — frontendVersion stays ''
+                    console.warn('FooterComponent: Failed to fetch version:', e);
+                }
 
                 // Process footer configuration
                 this.copyrightText = this.extractCopyrightText(configData.result.renderedContent);

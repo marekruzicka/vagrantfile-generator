@@ -65,9 +65,10 @@
              style="image-rendering: -webkit-optimize-contrast;">
       </div>
 
-      <!-- Center: Copyright text (grows to fill) -->
+      <!-- Center: Copyright text + version (grows to fill) -->
       <div class="footer-text min-w-0">
         <p class="text-sm text-gray-600 dark:text-gray-400 leading-relaxed" x-html="copyrightText"></p>
+        <p x-show="frontendVersion" class="text-xs text-gray-400 dark:text-gray-500 mt-0.5" x-text="'v' + frontendVersion"></p>
       </div>
 
       <!-- Right: Navigation links + GitHub icon -->
