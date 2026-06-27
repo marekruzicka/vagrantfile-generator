@@ -259,19 +259,6 @@ test.describe('Landing page scroll-to-dismiss', () => {
 
     await page.route('**/api/**', async (route) => {
       const url = route.request().url()
-      if (url.includes('/api/version')) {
-        await route.fulfill({
-          status: 200,
-          contentType: 'application/json',
-          body: JSON.stringify({
-            backend: '1.0.0-test',
-            frontend: '1.2.3-test',
-            app: '1.0.0-test',
-            helm_chart: '0.0.0-test',
-          }),
-        })
-        return
-      }
       if (url.includes('/api/footer/content/footer')) {
         await route.fulfill({
           status: 200,
@@ -305,13 +292,12 @@ test.describe('Landing page scroll-to-dismiss', () => {
       localStorage.clear()
     })
 
-    await page.goto('/')
+    await page.goto('/landing.html')
     // Scroll footer into view
     await page.evaluate(() => {
       document.querySelector('footer')?.scrollIntoView({ behavior: 'instant' })
     })
-    await page.waitForTimeout(500)
     const versionEl = page.locator('footer p').filter({ hasText: /^v1\.2\.3-test$/ })
-    await expect(versionEl).toBeVisible()
+    await expect(versionEl).toBeVisible({ timeout: 5_000 })
   })
 })
