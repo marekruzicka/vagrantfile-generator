@@ -7,8 +7,6 @@ This module sets up the FastAPI application with all routes and middleware.
 import logging
 import sys
 import os
-import json
-from pathlib import Path
 from typing import List, Optional, TextIO
 import time
 from fastapi import FastAPI, HTTPException, Request
@@ -96,22 +94,18 @@ def get_cors_origins() -> List[str]:
 app = FastAPI(
     title="Vagrantfile Generator API",
     description="API for generating Vagrantfiles through a web interface",
-    version="1.0.0",
     docs_url="/docs",
     redoc_url="/redoc",
 )
 
 
-# Resolve frontend version from package.json at startup.
-# Graceful fallback if the file is missing or unparseable.
-_FRONTEND_VERSION: str = "unknown"
-try:
-    _pkg_path = Path(__file__).resolve().parent.parent.parent / "frontend" / "package.json"
-    with open(_pkg_path, "r", encoding="utf-8") as _f:
-        _pkg_data = json.load(_f)
-        _FRONTEND_VERSION = _pkg_data.get("version", "unknown")
-except Exception:
-    pass  # Keep "unknown"
+# Resolve versions from environment variables at startup.
+# Helm injects real values at deploy time; defaults to "unknown"
+# for compose/native dev environments.
+_BACKEND_VERSION: str = os.getenv("BACKEND_VERSION", "unknown")
+_FRONTEND_VERSION: str = os.getenv("FRONTEND_VERSION", "unknown")
+_APP_VERSION: str = os.getenv("APP_VERSION", "unknown")
+_HELM_CHART_VERSION: str = os.getenv("HELM_CHART_VERSION", "unknown")
 
 
 # Startup validation
@@ -329,8 +323,13 @@ async def root():
 # Version endpoint (no auth required)
 @app.get("/api/version")
 async def api_version():
-    """Return backend and frontend version information."""
-    return {"backend": app.version, "frontend": _FRONTEND_VERSION}
+    """Return version information for all components."""
+    return {
+        "backend": _BACKEND_VERSION,
+        "frontend": _FRONTEND_VERSION,
+        "app": _APP_VERSION,
+        "helm_chart": _HELM_CHART_VERSION,
+    }
 
 
 # Serve static frontend files (if directory exists)

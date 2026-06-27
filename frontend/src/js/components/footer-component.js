@@ -79,7 +79,8 @@ function footerComponent() {
                     const versionResponse = await fetch('/api/version');
                     if (versionResponse.ok) {
                         const versionData = await versionResponse.json();
-                        this.frontendVersion = versionData.frontend || '';
+                        const raw = versionData.frontend || '';
+                        this.frontendVersion = (raw === 'unknown') ? '' : raw;
                     }
                 } catch (e) {
                     // Version fetch failed silently — frontendVersion stays ''
