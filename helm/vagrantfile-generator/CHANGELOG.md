@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.5.0] - 2026-06-27
+
+### Features
+* feat: version API endpoint, footer unification, env var injection
+
+### Bug Fixes
+* fix(helm): sync chart appVersion to 1.15.0
+
 ## [0.4.5] - 2026-06-26
 
 ### Bug Fixes
