@@ -1,10 +1,38 @@
 import { defineConfig } from 'vite'
 import { resolve } from 'path'
+import { readFileSync } from 'fs'
+import { dirname, resolve as pathResolve } from 'path'
 
 const internalApiTarget = process.env.VITE_API_URL || 'http://localhost:8000'
 const browserApiUrl = process.env.VITE_BROWSER_API_URL || ''
 
+function vitePluginHtmlInclude() {
+  const INCLUDE_RE = /<!--\s*@vite-include\s+(.+?)\s*-->/g
+
+  return {
+    name: 'vite-plugin-html-include',
+    transformIndexHtml: {
+      order: 'pre',
+      handler(html, ctx) {
+        return html.replace(INCLUDE_RE, (match, includePath) => {
+          const absPath = pathResolve(dirname(ctx.filename), includePath.trim())
+          try {
+            return readFileSync(absPath, 'utf-8')
+          } catch (err) {
+            console.warn(
+              `[vite-plugin-html-include] Could not include "${includePath}" ` +
+              `from "${ctx.filename}": ${err.message}`
+            )
+            return match
+          }
+        })
+      }
+    }
+  }
+}
+
 export default defineConfig({
+  plugins: [vitePluginHtmlInclude()],
   root: 'src',
   build: {
     outDir: '../dist',

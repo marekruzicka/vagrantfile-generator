@@ -25,6 +25,10 @@ services:
       TEST_USER_EMAIL_2: ${TEST_USER_EMAIL_2:-}
       TEST_USER_OTP_2: ${TEST_USER_OTP_2:-}
       TEST_USER_ENABLED: ${TEST_USER_ENABLED:-}
+      BACKEND_VERSION: ${BACKEND_VERSION:-unknown}
+      FRONTEND_VERSION: ${FRONTEND_VERSION:-unknown}
+      APP_VERSION: ${APP_VERSION:-unknown}
+      HELM_CHART_VERSION: ${HELM_CHART_VERSION:-unknown}
     ports:
       - "8000:8000"
     # volumes:

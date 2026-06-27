@@ -4,7 +4,22 @@
  * Verifies that the login card overlay dismisses on scroll
  * and that the "Learn more" button also dismisses it.
  */
-import { expect, test } from '@playwright/test'
+import { expect, type Page, test } from '@playwright/test'
+
+async function mockVersionApi(page: Page) {
+  await page.route('**/api/version', async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({
+        backend: '1.0.0-test',
+        frontend: '1.2.3-test',
+        app: '1.0.0-test',
+        helm_chart: '0.0.0-test',
+      }),
+    })
+  })
+}
 
 test.describe('Landing page scroll-to-dismiss', () => {
   test('shows login card on initial visit and dismisses on scroll', async ({
@@ -18,6 +33,9 @@ test.describe('Landing page scroll-to-dismiss', () => {
         body: JSON.stringify({ mode: 'public' }),
       })
     })
+
+    // Mock version before the blanket API mock so it can render in the footer.
+    await mockVersionApi(page)
 
     // Mock all other API calls to avoid noise.
     await page.route('**/api/**', async (route) => {
@@ -97,6 +115,8 @@ test.describe('Landing page scroll-to-dismiss', () => {
       })
     })
 
+    await mockVersionApi(page)
+
     await page.route('**/api/**', async (route) => {
       const url = route.request().url()
       if (url.includes('/api/footer/')) {
@@ -143,6 +163,8 @@ test.describe('Landing page scroll-to-dismiss', () => {
       })
     })
 
+    await mockVersionApi(page)
+
     await page.route('**/api/**', async (route) => {
       const url = route.request().url()
       if (url.includes('/api/footer/')) {
@@ -186,6 +208,8 @@ test.describe('Landing page scroll-to-dismiss', () => {
       })
     })
 
+    await mockVersionApi(page)
+
     await page.route('**/api/**', async (route) => {
       const url = route.request().url()
       if (url.includes('/api/footer/')) {
@@ -220,5 +244,60 @@ test.describe('Landing page scroll-to-dismiss', () => {
     await expect(page.getByRole('heading', { name: 'Vagrant Plugins' })).toBeVisible()
     await expect(page.getByRole('heading', { name: 'Vagrant Triggers' })).toBeVisible()
     await expect(page.getByRole('heading', { name: 'Real-time Validation' })).toBeVisible()
+  })
+
+  test('footer displays frontend version on landing page', async ({ page }) => {
+    await page.route('**/api/config/deployment-mode', async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({ mode: 'public' }),
+      })
+    })
+
+    await mockVersionApi(page)
+
+    await page.route('**/api/**', async (route) => {
+      const url = route.request().url()
+      if (url.includes('/api/footer/content/footer')) {
+        await route.fulfill({
+          status: 200,
+          contentType: 'application/json',
+          body: JSON.stringify({
+            result: { renderedContent: '© 2025 Vagrantfile Generator.' },
+          }),
+        })
+        return
+      }
+      if (url.includes('/api/footer/files')) {
+        await route.fulfill({
+          status: 200,
+          contentType: 'application/json',
+          body: JSON.stringify({ files: [] }),
+        })
+        return
+      }
+      if (url.includes('/api/footer/')) {
+        await route.fulfill({
+          status: 200,
+          contentType: 'application/json',
+          body: JSON.stringify({ status: 'success', files: [], excluded: [], errors: [] }),
+        })
+        return
+      }
+      await route.abort('aborted')
+    })
+
+    await page.addInitScript(() => {
+      localStorage.clear()
+    })
+
+    await page.goto('/landing.html')
+    // Scroll footer into view
+    await page.evaluate(() => {
+      document.querySelector('footer')?.scrollIntoView({ behavior: 'instant' })
+    })
+    const versionEl = page.locator('footer p').filter({ hasText: /^v1\.2\.3-test$/ })
+    await expect(versionEl).toBeVisible({ timeout: 5_000 })
   })
 })

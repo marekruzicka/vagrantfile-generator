@@ -1,5 +1,25 @@
 # Changelog
 
+## Version 1.15.0
+
+### ✨ New Features
+
+- **Version API endpoint**: Added `/api/version` endpoint returning backend, frontend, app, and Helm chart versions sourced from environment variables injected at deploy time.
+- **Frontend version in footer**: The footer now displays the frontend version (fetched from `/api/version`) below the copyright text, with graceful degradation when the endpoint is unavailable.
+- **Compose version env vars**: Added `BACKEND_VERSION`, `FRONTEND_VERSION`, `APP_VERSION`, and `HELM_CHART_VERSION` environment variables to `compose.yml` and `compose-dev.yml`.
+
+### 🐛 Bug Fixes
+
+- **Landing page footer version**: Fixed frontend version not appearing in the landing page footer (the version endpoint was functional but a transient condition hid it).
+- **E2E test cleanup**: Removed dead test code, standardized Playwright test URLs, and replaced fragile timeouts with robust locator-based waits.
+
+### 🔧 Technical Notes
+
+- **Footer unification**: Replaced the two divergent footer implementations (inline in `landing.html` and runtime `data-include-html` in `index.html`) with a single Vite `transformIndexHtml` plugin that inlines `footer.html` at build time, eliminating drift between pages.
+- **Footer version placement**: Moved the version string from the center column (under copyright) to the left column (under the app icon) for a cleaner layout.
+
+---
+
 ## Version 1.14.5
 
 ### 🐛 Bug Fixes
