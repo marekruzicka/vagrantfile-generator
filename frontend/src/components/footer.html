@@ -57,18 +57,18 @@
       x-show="!loading && !error"
       class="footer-content w-full grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-4 sm:gap-6 lg:gap-8"
     >
-      <!-- Left: Icon only -->
-      <div class="flex items-center w-12 sm:w-14 flex-shrink-0">
+      <!-- Left: Icon + version -->
+      <div class="flex flex-col items-center w-12 sm:w-14 flex-shrink-0 gap-1">
         <img src="/images/icon-tr.png"
              alt="Vagrantfile Generator"
              class="h-10 w-10 flex-shrink-0"
              style="image-rendering: -webkit-optimize-contrast;">
+        <p x-show="frontendVersion" class="text-xs text-gray-400 dark:text-gray-500 whitespace-nowrap" x-text="'v' + frontendVersion"></p>
       </div>
 
-      <!-- Center: Copyright text + version (grows to fill) -->
+      <!-- Center: Copyright text (grows to fill) -->
       <div class="footer-text min-w-0">
         <p class="text-sm text-gray-600 dark:text-gray-400 leading-relaxed" x-html="copyrightText"></p>
-        <p x-show="frontendVersion" class="text-xs text-gray-400 dark:text-gray-500 mt-0.5" x-text="'v' + frontendVersion"></p>
       </div>
 
       <!-- Right: Navigation links + GitHub icon -->
