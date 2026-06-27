@@ -3,7 +3,7 @@ name: vagrantfile-generator
 description: A Helm chart for Vagrantfile Generator - web-based tool for generating Vagrantfiles
 type: application
 version: 0.4.5
-appVersion: "1.14.5"
+appVersion: "1.15.0"
 keywords:
     - vagrant
     - vagrantfile
