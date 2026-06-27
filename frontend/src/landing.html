@@ -418,6 +418,11 @@
                 class="text-sm text-gray-600 dark:text-gray-400 leading-relaxed"
                 x-html="copyrightText"
               ></p>
+              <p
+                x-show="frontendVersion"
+                class="text-xs text-gray-400 dark:text-gray-500 mt-0.5"
+                x-text="'v' + frontendVersion"
+              ></p>
             </div>
             <div
               class="footer-nav w-full lg:w-auto flex-shrink-0 flex items-center justify-end gap-x-4 lg:justify-self-end"
