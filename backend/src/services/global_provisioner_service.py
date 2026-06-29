@@ -196,6 +196,7 @@ class GlobalProvisionerService:
                 "type": provisioner_data.type,
                 "scope": provisioner_data.scope,
                 "shell_config": provisioner_data.shell_config.model_dump() if provisioner_data.shell_config else None,
+                "ansible_config": provisioner_data.ansible_config.model_dump() if provisioner_data.ansible_config else None,
                 "is_shared": False,
                 "owner_id": self.user_id if self.user_id else None,
                 "created_at": now,
@@ -302,10 +303,7 @@ class GlobalProvisionerService:
             
             for key, value in update_dict.items():
                 if value is not None:
-                    if key == "shell_config" and value:
-                        existing_data[key] = value
-                    else:
-                        existing_data[key] = value
+                    existing_data[key] = value
             
             self._save_provisioner_to_file(existing_data)
             

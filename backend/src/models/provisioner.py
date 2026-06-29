@@ -118,6 +118,18 @@ class Provisioner(BaseModel):
             
             config_lines.append(f'privileged: {str(self.privileged).lower()}')
         
+        elif self.type == ProvisionerType.ANSIBLE:
+            from ..utils.ansible import render_ansible_block
+            config_dict = {
+                "playbook": self.config.get("playbook", ""),
+                "extra_vars": self.config.get("extra_vars"),
+                "tags": self.config.get("tags"),
+                "skip_tags": self.config.get("skip_tags"),
+                "verbose": self.config.get("verbose", "off"),
+                "raw_args": self.config.get("raw_args"),
+            }
+            return render_ansible_block(config_dict)
+
         else:
             # For other provisioner types, use the config dict
             for key, value in self.config.items():

@@ -30,4 +30,19 @@ test.describe('8. Global Settings: Provisioners', () => {
       await settings.safeDeleteResource(provisionerName, /delete provisioner/i)
     }
   })
+
+  test('8.5 create and delete an Ansible provisioner', async ({ page }) => {
+    const settings = new SettingsPage(page)
+    const provisionerName = `e2e-ansible-provisioner-${Date.now()}`
+
+    await settings.goto()
+    try {
+      await settings.addAnsibleProvisioner(provisionerName)
+      const card = settings.resourceCard(provisionerName)
+      await expect(card).toContainText('E2E Ansible provisioner description')
+      await expect(card).toContainText(/ansible/i)
+    } finally {
+      await settings.safeDeleteResource(provisionerName, /delete provisioner/i)
+    }
+  })
 })

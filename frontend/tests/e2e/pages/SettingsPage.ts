@@ -69,6 +69,21 @@ export class SettingsPage {
     await expect(this.resourceCard(name)).toBeVisible()
   }
 
+  async addAnsibleProvisioner(name: string, playbook = 'playbook.yml') {
+    await this.page.getByRole('button', { name: /add provisioner|add first provisioner/i }).first().click()
+    const dialog = this.modal(/add new provisioner/i)
+    await expect(dialog).toBeVisible()
+    await dialog.getByRole('button', { name: /^ansible$/i }).click()
+    await this.fieldAfterLabel(dialog, 'Provisioner Name').fill(name)
+    await this.fieldAfterLabel(dialog, 'Description').fill('E2E Ansible provisioner description')
+    await this.fieldAfterLabel(dialog, 'Playbook').fill(playbook)
+    await this.fieldAfterLabel(dialog, 'Extra Variables').fill('app_env: e2e')
+    await this.fieldAfterLabel(dialog, 'Tags').fill('setup')
+    await this.fieldAfterLabel(dialog, 'Verbose').selectOption('v')
+    await dialog.getByRole('button', { name: /^add provisioner$/i }).click()
+    await expect(this.resourceCard(name)).toBeVisible()
+  }
+
   async addTrigger(name: string, command = "echo 'E2E trigger'") {
     await this.page.getByRole('button', { name: /add trigger|add first trigger/i }).first().click()
     const dialog = this.modal(/create new trigger/i)

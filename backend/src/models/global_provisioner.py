@@ -7,7 +7,9 @@ once in Settings and applied to all VMs in a project.
 
 from typing import Optional, Literal
 from datetime import datetime
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, Field, field_validator, model_validator
+
+from ..utils.ansible import render_ansible_block
 
 
 class ShellProvisionerConfig(BaseModel):
@@ -39,6 +41,39 @@ class ShellProvisionerConfig(BaseModel):
         return v
 
 
+class AnsibleProvisionerConfig(BaseModel):
+    """Configuration for ansible provisioner."""
+    playbook: str = Field(..., min_length=1, description="Path to Ansible playbook")
+    extra_vars: Optional[str] = Field(default=None, description="Extra variables in YAML format")
+    tags: Optional[str] = Field(default=None, description="Tags to run")
+    skip_tags: Optional[str] = Field(default=None, description="Tags to skip")
+    verbose: Literal["off", "v", "vv", "vvv", "vvvv"] = Field(default="off")
+    raw_args: Optional[str] = Field(default=None, description="Raw additional arguments")
+
+    @field_validator('playbook')
+    @classmethod
+    def validate_playbook(cls, v: str) -> str:
+        """Validate playbook path is not empty."""
+        if not v or not v.strip():
+            raise ValueError("Playbook path cannot be empty")
+        return v
+
+    @field_validator('extra_vars')
+    @classmethod
+    def validate_extra_vars(cls, v: Optional[str]) -> Optional[str]:
+        """Validate extra_vars is a YAML dictionary when provided."""
+        if v is None or not v.strip():
+            return None
+        import yaml
+        try:
+            parsed = yaml.safe_load(v)
+            if not isinstance(parsed, dict):
+                raise ValueError("extra_vars must be a YAML dictionary (key-value pairs)")
+        except yaml.YAMLError as e:
+            raise ValueError(f"extra_vars is not valid YAML: {e}")
+        return v
+
+
 class GlobalProvisioner(BaseModel):
     """Global provisioner configuration model."""
     id: str = Field(..., description="Unique identifier for the provisioner")
@@ -53,9 +88,9 @@ class GlobalProvisioner(BaseModel):
         max_length=500,
         description="Optional description of what the provisioner does"
     )
-    type: Literal["shell"] = Field(
+    type: Literal["shell", "ansible"] = Field(
         default="shell",
-        description="Provisioner type (currently only shell supported)"
+        description="Provisioner type"
     )
     scope: Literal["global"] = Field(
         default="global",
@@ -64,6 +99,10 @@ class GlobalProvisioner(BaseModel):
     shell_config: Optional[ShellProvisionerConfig] = Field(
         default=None,
         description="Shell provisioner configuration"
+    )
+    ansible_config: Optional[AnsibleProvisionerConfig] = Field(
+        default=None,
+        description="Ansible provisioner configuration"
     )
     created_at: datetime = Field(
         default_factory=datetime.now,
@@ -93,6 +132,21 @@ class GlobalProvisioner(BaseModel):
         if not v or not v.strip():
             raise ValueError("Provisioner name cannot be empty")
         return v
+
+    @model_validator(mode='after')
+    def validate_config(self) -> 'GlobalProvisioner':
+        """Validate provisioner config matches its type."""
+        if self.type == "shell":
+            if not self.shell_config:
+                raise ValueError("Shell provisioner requires shell_config")
+            if self.ansible_config is not None:
+                raise ValueError("Shell provisioner cannot have ansible_config")
+        if self.type == "ansible":
+            if not self.ansible_config:
+                raise ValueError("Ansible provisioner requires ansible_config")
+            if self.shell_config is not None:
+                raise ValueError("Ansible provisioner cannot have shell_config")
+        return self
     
     def get_variable_name(self) -> str:
         """
@@ -151,6 +205,19 @@ class GlobalProvisioner(BaseModel):
                 lines.append(f"config.vm.provision {', '.join(provision_args)}")
             
             return '\n'.join(lines)
+        elif self.type == "ansible" and self.ansible_config:
+            lines = []
+            lines.append(f"# Ansible provisioner: {self.name}")
+            if self.description:
+                lines.append(f"# {self.description}")
+
+            config_dict = self.ansible_config.model_dump()
+            if config_dict.get("extra_vars"):
+                import yaml
+                config_dict["extra_vars"] = yaml.safe_load(config_dict["extra_vars"])
+
+            lines.append(render_ansible_block(config_dict))
+            return '\n'.join(lines)
         
         return ""
 
@@ -159,9 +226,10 @@ class GlobalProvisionerCreate(BaseModel):
     """Model for creating a new global provisioner."""
     name: str = Field(..., min_length=1, max_length=100)
     description: Optional[str] = Field(default=None, max_length=500)
-    type: Literal["shell"] = Field(default="shell")
+    type: Literal["shell", "ansible"] = Field(default="shell")
     scope: Literal["global"] = Field(default="global")
     shell_config: Optional[ShellProvisionerConfig] = None
+    ansible_config: Optional[AnsibleProvisionerConfig] = None
     
     @field_validator('name')
     @classmethod
@@ -171,12 +239,28 @@ class GlobalProvisionerCreate(BaseModel):
             raise ValueError("Provisioner name cannot be empty")
         return v
 
+    @model_validator(mode='after')
+    def validate_config(self) -> 'GlobalProvisionerCreate':
+        """Validate provisioner config matches its type."""
+        if self.type == "shell":
+            if not self.shell_config:
+                raise ValueError("Shell provisioner requires shell_config")
+            if self.ansible_config is not None:
+                raise ValueError("Shell provisioner cannot have ansible_config")
+        if self.type == "ansible":
+            if not self.ansible_config:
+                raise ValueError("Ansible provisioner requires ansible_config")
+            if self.shell_config is not None:
+                raise ValueError("Ansible provisioner cannot have shell_config")
+        return self
+
 
 class GlobalProvisionerUpdate(BaseModel):
     """Model for updating an existing global provisioner."""
     name: Optional[str] = Field(default=None, min_length=1, max_length=100)
     description: Optional[str] = Field(default=None, max_length=500)
     shell_config: Optional[ShellProvisionerConfig] = None
+    ansible_config: Optional[AnsibleProvisionerConfig] = None
     
     @field_validator('name')
     @classmethod
@@ -192,7 +276,7 @@ class GlobalProvisionerSummary(BaseModel):
     id: str
     name: str
     description: Optional[str] = None
-    type: Literal["shell"] = "shell"
+    type: Literal["shell", "ansible"] = "shell"
     scope: Literal["global"] = "global"
     is_shared: Optional[bool] = False
     owner_id: Optional[str] = None
