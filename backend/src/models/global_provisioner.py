@@ -270,6 +270,15 @@ class GlobalProvisionerUpdate(BaseModel):
             raise ValueError("Provisioner name cannot be empty")
         return v
 
+    @model_validator(mode='after')
+    def validate_config_not_both(self) -> 'GlobalProvisionerUpdate':
+        """Reject requests that set both shell_config and ansible_config."""
+        if self.shell_config is not None and self.ansible_config is not None:
+            raise ValueError(
+                "Cannot set both shell_config and ansible_config in the same update"
+            )
+        return self
+
 
 class GlobalProvisionerSummary(BaseModel):
     """Global provisioner summary for list views."""

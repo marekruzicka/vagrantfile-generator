@@ -8,7 +8,12 @@ def _ruby_value(value: Any, indent: int) -> str:
     if isinstance(value, dict):
         return _dict_to_ruby_hash(value, indent=indent)
     if isinstance(value, str):
-        escaped = value.replace('\\', '\\\\').replace('"', '\\"')
+        escaped = (value
+            .replace('\\', '\\\\')
+            .replace('#', '\\#')
+            .replace('\n', '\\n')
+            .replace('\r', '\\r')
+            .replace('"', '\\"'))
         return f'"{escaped}"'
     if isinstance(value, bool):
         return str(value).lower()
