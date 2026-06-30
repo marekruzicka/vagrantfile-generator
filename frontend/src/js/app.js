@@ -142,11 +142,20 @@ function vagrantApp() {
     provisionerForm: {
       name: '',
       description: '',
+      type: 'shell',
       shell_config: {
         script: '',
         privileged: true,
         run: 'once',
         path: '',
+      },
+      ansible_config: {
+        playbook: '',
+        extra_vars: '',
+        tags: '',
+        skip_tags: '',
+        verbose: 'off',
+        raw_args: '',
       },
     },
 
@@ -1990,11 +1999,20 @@ function vagrantApp() {
       this.provisionerForm = {
         name: '',
         description: '',
+        type: 'shell',
         shell_config: {
           script: '',
           privileged: true,
           run: 'once',
           path: '',
+        },
+        ansible_config: {
+          playbook: '',
+          extra_vars: '',
+          tags: '',
+          skip_tags: '',
+          verbose: 'off',
+          raw_args: '',
         },
       }
       this.showProvisionerModal = true
@@ -2013,11 +2031,20 @@ function vagrantApp() {
         this.provisionerForm = {
           name: fullProvisioner.name || '',
           description: fullProvisioner.description || '',
+          type: fullProvisioner.type || 'shell',
           shell_config: {
-            script: fullProvisioner.shell_config?.script || '',
-            privileged: fullProvisioner.shell_config?.privileged ?? true,
-            run: fullProvisioner.shell_config?.run || 'once',
-            path: fullProvisioner.shell_config?.path || '',
+            script: fullProvisioner.type === 'shell' ? fullProvisioner.shell_config?.script || '' : '',
+            privileged: fullProvisioner.type === 'shell' ? fullProvisioner.shell_config?.privileged ?? true : true,
+            run: fullProvisioner.type === 'shell' ? fullProvisioner.shell_config?.run || 'once' : 'once',
+            path: fullProvisioner.type === 'shell' ? fullProvisioner.shell_config?.path || '' : '',
+          },
+          ansible_config: {
+            playbook: fullProvisioner.type === 'ansible' ? fullProvisioner.ansible_config?.playbook || '' : '',
+            extra_vars: fullProvisioner.type === 'ansible' ? fullProvisioner.ansible_config?.extra_vars || '' : '',
+            tags: fullProvisioner.type === 'ansible' ? fullProvisioner.ansible_config?.tags || '' : '',
+            skip_tags: fullProvisioner.type === 'ansible' ? fullProvisioner.ansible_config?.skip_tags || '' : '',
+            verbose: fullProvisioner.type === 'ansible' ? fullProvisioner.ansible_config?.verbose || 'off' : 'off',
+            raw_args: fullProvisioner.type === 'ansible' ? fullProvisioner.ansible_config?.raw_args || '' : '',
           },
         }
       } catch (error) {
@@ -2025,11 +2052,20 @@ function vagrantApp() {
         this.provisionerForm = {
           name: this.editingProvisioner.name || '',
           description: this.editingProvisioner.description || '',
+          type: this.editingProvisioner.type || 'shell',
           shell_config: {
             script: '',
             privileged: true,
             run: 'once',
             path: '',
+          },
+          ansible_config: {
+            playbook: '',
+            extra_vars: '',
+            tags: '',
+            skip_tags: '',
+            verbose: 'off',
+            raw_args: '',
           },
         }
       }
@@ -2041,11 +2077,20 @@ function vagrantApp() {
       this.provisionerForm = {
         name: '',
         description: '',
+        type: 'shell',
         shell_config: {
           script: '',
           privileged: true,
           run: 'once',
           path: '',
+        },
+        ansible_config: {
+          playbook: '',
+          extra_vars: '',
+          tags: '',
+          skip_tags: '',
+          verbose: 'off',
+          raw_args: '',
         },
       }
     },
@@ -2057,7 +2102,14 @@ function vagrantApp() {
           return
         }
 
-        if (
+        const isAnsible = this.provisionerForm.type === 'ansible'
+
+        if (isAnsible) {
+          if (!this.provisionerForm.ansible_config.playbook.trim()) {
+            alert('Ansible playbook path is required')
+            return
+          }
+        } else if (
           !this.provisionerForm.shell_config.script.trim() &&
           !this.provisionerForm.shell_config.path.trim()
         ) {
@@ -2068,14 +2120,26 @@ function vagrantApp() {
         const provisionerData = {
           name: this.provisionerForm.name.trim(),
           description: this.provisionerForm.description.trim() || null,
-          type: 'shell',
+          type: this.provisionerForm.type,
           scope: 'global',
-          shell_config: {
+        }
+
+        if (isAnsible) {
+          provisionerData.ansible_config = {
+            playbook: this.provisionerForm.ansible_config.playbook.trim(),
+            extra_vars: this.provisionerForm.ansible_config.extra_vars.trim() || null,
+            tags: this.provisionerForm.ansible_config.tags.trim() || null,
+            skip_tags: this.provisionerForm.ansible_config.skip_tags.trim() || null,
+            verbose: this.provisionerForm.ansible_config.verbose,
+            raw_args: this.provisionerForm.ansible_config.raw_args.trim() || null,
+          }
+        } else {
+          provisionerData.shell_config = {
             script: this.provisionerForm.shell_config.script.trim(),
             privileged: this.provisionerForm.shell_config.privileged,
             run: this.provisionerForm.shell_config.run,
             path: this.provisionerForm.shell_config.path.trim() || null,
-          },
+          }
         }
 
         let updatedProvisioner

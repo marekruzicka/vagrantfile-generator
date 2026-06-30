@@ -1992,82 +1992,185 @@
             ></textarea>
           </div>
 
-          <div>
-            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-              Shell Script <span class="text-red-500">*</span>
-            </label>
-            <textarea
-              x-model="provisionerForm.shell_config.script"
-              placeholder="#!/bin/bash&#10;echo 'Hello from provisioner'"
-              rows="10"
-              class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono text-sm"
-              required
-            ></textarea>
-            <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
-              Shell script that will run on all VMs (heredoc syntax will be
-              used)
-            </p>
+          <div x-show="!editingProvisioner" class="flex rounded-md border border-gray-300 dark:border-gray-600 overflow-hidden">
+            <button
+              type="button"
+              @click="provisionerForm.type = 'shell'"
+              :class="provisionerForm.type === 'shell' ? 'bg-blue-600 text-white' : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300'"
+              class="flex-1 px-4 py-2 text-sm font-medium"
+            >
+              Shell
+            </button>
+            <button
+              type="button"
+              @click="provisionerForm.type = 'ansible'"
+              :class="provisionerForm.type === 'ansible' ? 'bg-blue-600 text-white' : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300'"
+              class="flex-1 px-4 py-2 text-sm font-medium"
+            >
+              Ansible
+            </button>
+          </div>
+          <div x-show="editingProvisioner" class="text-sm text-gray-600 dark:text-gray-400">
+            Provisioner type: <span class="font-medium capitalize" x-text="provisionerForm.type"></span>
           </div>
 
-          <div class="grid grid-cols-2 gap-4">
+          <div x-show="provisionerForm.type === 'shell'" class="space-y-4">
             <div>
               <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                Run As
+                Shell Script <span class="text-red-500">*</span>
               </label>
-              <div class="flex items-center space-x-4">
-                <label class="flex items-center">
-                  <input
-                    type="radio"
-                    x-model="provisionerForm.shell_config.privileged"
-                    :value="true"
-                    class="w-4 h-4 text-blue-600"
-                  />
-                  <span class="ml-2 text-sm">Root (sudo)</span>
+              <textarea
+                x-model="provisionerForm.shell_config.script"
+                placeholder="#!/bin/bash&#10;echo 'Hello from provisioner'"
+                rows="10"
+                class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono text-sm"
+              ></textarea>
+              <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                Shell script that will run on all VMs (heredoc syntax will be
+                used)
+              </p>
+            </div>
+
+            <div class="grid grid-cols-2 gap-4">
+              <div>
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  Run As
                 </label>
-                <label class="flex items-center">
-                  <input
-                    type="radio"
-                    x-model="provisionerForm.shell_config.privileged"
-                    :value="false"
-                    class="w-4 h-4 text-blue-600"
-                  />
-                  <span class="ml-2 text-sm">User</span>
+                <div class="flex items-center space-x-4">
+                  <label class="flex items-center">
+                    <input
+                      type="radio"
+                      x-model="provisionerForm.shell_config.privileged"
+                      :value="true"
+                      class="w-4 h-4 text-blue-600"
+                    />
+                    <span class="ml-2 text-sm">Root (sudo)</span>
+                  </label>
+                  <label class="flex items-center">
+                    <input
+                      type="radio"
+                      x-model="provisionerForm.shell_config.privileged"
+                      :value="false"
+                      class="w-4 h-4 text-blue-600"
+                    />
+                    <span class="ml-2 text-sm">User</span>
+                  </label>
+                </div>
+              </div>
+
+              <div>
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  Run
                 </label>
+                <select
+                  x-model="provisionerForm.shell_config.run"
+                  class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="once">Once</option>
+                  <option value="always">Always</option>
+                  <option value="never">Never</option>
+                </select>
               </div>
             </div>
 
             <div>
               <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                Run
+                External Script Path
+                <span class="text-gray-500 dark:text-gray-400 text-xs"
+                  >(Optional - overrides inline script)</span
+                >
               </label>
-              <select
-                x-model="provisionerForm.shell_config.run"
+              <input
+                type="text"
+                x-model="provisionerForm.shell_config.path"
+                placeholder="scripts/bootstrap.sh"
                 class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              >
-                <option value="once">Once</option>
-                <option value="always">Always</option>
-                <option value="never">Never</option>
-              </select>
+              />
+              <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                If set, Vagrant will use this file instead of the inline script
+                above
+              </p>
             </div>
           </div>
 
-          <div>
-            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-              External Script Path
-              <span class="text-gray-500 dark:text-gray-400 text-xs"
-                >(Optional - overrides inline script)</span
-              >
-            </label>
-            <input
-              type="text"
-              x-model="provisionerForm.shell_config.path"
-              placeholder="scripts/bootstrap.sh"
-              class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-            <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
-              If set, Vagrant will use this file instead of the inline script
-              above
-            </p>
+          <div x-show="provisionerForm.type === 'ansible'" class="space-y-4">
+            <div>
+              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                Playbook <span class="text-red-500">*</span>
+              </label>
+              <input
+                type="text"
+                x-model="provisionerForm.ansible_config.playbook"
+                placeholder="playbook.yml"
+                class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+
+            <div>
+              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                Extra Variables
+              </label>
+              <textarea
+                x-model="provisionerForm.ansible_config.extra_vars"
+                placeholder="app_env: dev"
+                rows="4"
+                class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono text-sm"
+              ></textarea>
+            </div>
+
+            <div class="grid grid-cols-2 gap-4">
+              <div>
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  Tags
+                </label>
+                <input
+                  type="text"
+                  x-model="provisionerForm.ansible_config.tags"
+                  placeholder="setup,deploy"
+                  class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  Skip Tags
+                </label>
+                <input
+                  type="text"
+                  x-model="provisionerForm.ansible_config.skip_tags"
+                  placeholder="slow"
+                  class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-4">
+              <div>
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  Verbose
+                </label>
+                <select
+                  x-model="provisionerForm.ansible_config.verbose"
+                  class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="off">Off</option>
+                  <option value="v">v</option>
+                  <option value="vv">vv</option>
+                  <option value="vvv">vvv</option>
+                  <option value="vvvv">vvvv</option>
+                </select>
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  Raw Arguments
+                </label>
+                <input
+                  type="text"
+                  x-model="provisionerForm.ansible_config.raw_args"
+                  placeholder="--diff"
+                  class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
+            </div>
           </div>
 
           <div class="flex justify-end space-x-3 pt-4">

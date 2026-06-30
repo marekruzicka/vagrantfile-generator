@@ -255,8 +255,6 @@ test.describe('Landing page scroll-to-dismiss', () => {
       })
     })
 
-    await mockVersionApi(page)
-
     await page.route('**/api/**', async (route) => {
       const url = route.request().url()
       if (url.includes('/api/footer/content/footer')) {
@@ -287,6 +285,9 @@ test.describe('Landing page scroll-to-dismiss', () => {
       }
       await route.abort('aborted')
     })
+
+    // Must register version mock AFTER the catch-all so it takes precedence (Playwright LIFO routing)
+    await mockVersionApi(page)
 
     await page.addInitScript(() => {
       localStorage.clear()
