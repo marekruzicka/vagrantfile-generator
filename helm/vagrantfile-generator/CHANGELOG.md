@@ -1,5 +1,10 @@
 # Changelog
 
+## [0.5.2] - 2026-06-30
+
+### Bug Fixes
+* fix(helm): improve landing page handling and SPA fallback
+
 ## [0.5.1] - 2026-06-30
 
 ### Bug Fixes
