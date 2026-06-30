@@ -1,5 +1,13 @@
 # Changelog
 
+## Version 1.16.1
+
+### 🐛 Bug Fixes
+
+- **Helm landing page redirect loop**: Fixed missing `location = /` nginx block in the Helm ConfigMap that caused an infinite redirect loop in public (authenticated) deployments. The ConfigMap was missing the exact-match root location that serves `landing.html` (login page), so unauthenticated users hitting `/` received the SPA (`index.html`) instead — which immediately redirected to `/` again. Added the `location = / { try_files /landing.html =404; }` block to match the compose `nginx.conf`, breaking the loop so public-mode users see the login page.
+
+---
+
 ## Version 1.16.0
 
 ### ✨ New Features
