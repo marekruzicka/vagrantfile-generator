@@ -22,7 +22,7 @@ test.describe('8. Global Settings: Provisioners', () => {
       await expect(dialog).toBeVisible()
       await dialog.locator('xpath=.//label[contains(normalize-space(.), "Description")]/following::textarea[1]').fill('Updated E2E provisioner description')
       await dialog.locator('xpath=.//label[contains(normalize-space(.), "Shell Script")]/following::textarea[1]').fill('echo updated provisioner')
-      await dialog.locator('select').last().selectOption('once')
+      await dialog.locator('select').first().selectOption('once')
       await dialog.getByRole('button', { name: /^update provisioner$/i }).click()
       await expect(dialog).toBeHidden()
       await expect(settings.resourceCard(provisionerName)).toContainText('Updated E2E provisioner description')

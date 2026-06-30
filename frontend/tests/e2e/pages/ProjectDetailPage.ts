@@ -251,7 +251,7 @@ export class ProjectDetailPage {
     await this.fieldAfterLabel(provisionerDialog, 'Provisioner Name').fill(provisionerName)
     await this.fieldAfterLabel(provisionerDialog, 'Description').fill('E2E provisioner created from project')
     await this.fieldAfterLabel(provisionerDialog, 'Shell Script').fill(script)
-    await provisionerDialog.locator('select').last().selectOption('always')
+    await provisionerDialog.locator('select').first().selectOption('always')
     await provisionerDialog.getByRole('button', { name: /^add provisioner$/i }).click()
     await expect(provisionerDialog).toBeHidden()
 
