@@ -278,7 +278,7 @@ async def oidc_callback(
         from starlette.responses import RedirectResponse
 
         frontend_url = os.getenv("FRONTEND_URL", "http://localhost:8080")
-        redirect_url = f"{frontend_url}/?token={jwt_token}"
+        redirect_url = f"{frontend_url}/index.html?token={jwt_token}"
         return RedirectResponse(url=redirect_url)
 
     except OIDCServiceError as e:

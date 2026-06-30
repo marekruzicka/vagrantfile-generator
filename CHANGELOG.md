@@ -1,5 +1,13 @@
 # Changelog
 
+## Version 1.16.1
+
+### 🐛 Bug Fixes
+
+- **OIDC callback redirect serving landing page instead of SPA**: After nginx was configured with a `location = /` block serving `landing.html` (commit b683a43), the OIDC callback redirect to `{frontend_url}/?token={jwt_token}` hit that exact-match rule and served the landing page — which has no token-handling JavaScript — instead of `index.html` (the SPA). Changed the redirect URL to `/index.html?token=...` so nginx serves the SPA, and `main.js` correctly picks up the token, stores it in `localStorage`, and completes the authentication flow. Both the SPA and the legacy login page (`/views/login/login.html`) are covered.
+
+---
+
 ## Version 1.16.0
 
 ### ✨ New Features
