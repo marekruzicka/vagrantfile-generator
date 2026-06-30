@@ -1,5 +1,10 @@
 # Changelog
 
+## [0.5.1] - 2026-06-30
+
+### Bug Fixes
+* fix(helm): sync chart appVersion to 1.16.0
+
 ## [0.5.0] - 2026-06-27
 
 ### Features
