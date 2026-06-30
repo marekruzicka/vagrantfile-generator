@@ -1,5 +1,25 @@
 # Changelog
 
+## Version 1.16.0
+
+### ✨ New Features
+
+- **Ansible provisioner support**: Added Ansible as a new global provisioner type alongside Shell. Users can create Ansible provisioners with playbook path, YAML extra-vars, tags, skip tags, verbosity, and raw arguments. The provisioner modal now has Shell | Ansible tabs (functional on create, locked on edit). Generated Vagrantfiles use block-form Ruby (`config.vm.provision "ansible" do |ansible| ... end`).
+
+### 🐛 Bug Fixes
+
+- **Ruby string interpolation injection**: Fixed a security issue where unescaped `#{}` sequences in provisioner fields (playbook, tags, raw_args, etc.) could be interpreted as Ruby string interpolation in generated Vagrantfiles.
+- **E2E test selectors**: Fixed `select.last()` in provisioner E2E tests no longer matching the correct dropdown after the Ansible section added a new hidden `<select>` (Verbose).
+- **Landing page version test**: Fixed the version API mock being overridden by a catch-all route in Playwright (LIFO routing), causing the footer version check to fail.
+
+### 🔧 Technical Notes
+
+- **Ansible unit tests**: Added 6 unit tests covering the Ansible block renderer, Ruby hash conversion, injection escaping, and model validators.
+- **Forward-compat refactor**: Per-VM `Provisioner.get_vagrant_config()` now has an `ANSIBLE` branch using the shared `render_ansible_block()` utility, ready for future per-VM Ansible support.
+- Added `PyYAML>=6.0` dependency for server-side YAML validation of `extra_vars`.
+
+---
+
 ## Version 1.15.0
 
 ### ✨ New Features
